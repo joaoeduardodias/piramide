@@ -1,7 +1,6 @@
 "use client"
 
 import { destroyCookie, parseCookies, setCookie } from "nookies"
-import path from "path"
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 
@@ -64,7 +63,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCookie(null, CART_COOKIE_NAME, JSON.stringify(items), {
           expires: CART_COOKIE_EXPIRES,
           sameSite: "strict",
-          path: path.posix.join("/", "api", "cart")
+          path: "/"
         })
       } else {
         destroyCookie(null, CART_COOKIE_NAME)

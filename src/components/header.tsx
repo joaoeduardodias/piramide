@@ -1,0 +1,112 @@
+"use client"
+import { Menu, Search, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { CartButton } from "./cart-button";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
+
+export function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isTop, setIsTop] = useState(true);
+
+
+  useEffect(() => {
+    function handleScroll() {
+      setIsTop(window.scrollY === 0);
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ease-in-out
+        ${isTop ? "bg-transparent text-white" : "bg-white text-black shadow-md"}`}
+      style={{ backdropFilter: "saturate(180%) blur(8px)" }}
+    >
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-bold text-sm">P</div>
+            <span className="font-bold text-xl text-black">Pirâmide Calçados</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="/" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Início
+            </Link>
+            <Link href="/produtos" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Produtos
+            </Link>
+            <Link href="/categorias" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Categorias
+            </Link>
+            <Link href="/sobre" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Sobre
+            </Link>
+            <Link href="/contato" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Contato
+            </Link>
+          </nav>
+
+          {/* Search and Cart */}
+          <div className="flex items-center space-x-4 text-gray-900 hover:text-gray-600">
+            <div className="hidden md:flex items-center">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="search"
+                  placeholder="Buscar produtos..."
+                  className={`pl-10 w-64 ${isTop ? 'border-gray-100' : 'border-gray-200'} focus:border-black`}
+                />
+              </div>
+            </div>
+
+            <CartButton />
+
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-100 py-4">
+            <nav className="flex flex-col space-y-4">
+              <Link href="/" className="text-gray-900 hover:text-gray-600 transition-colors">
+                Início
+              </Link>
+              <Link href="/produtos" className="text-gray-900 hover:text-gray-600 transition-colors">
+                Produtos
+              </Link>
+              <Link href="/categorias" className="text-gray-900 hover:text-gray-600 transition-colors">
+                Categorias
+              </Link>
+              <Link href="/sobre" className="text-gray-900 hover:text-gray-600 transition-colors">
+                Sobre
+              </Link>
+              <Link href="/contato" className="text-gray-900 hover:text-gray-600 transition-colors">
+                Contato
+              </Link>
+              <div className="pt-4">
+                <Input
+                  type="search"
+                  placeholder="Buscar produtos..."
+                  className="w-full border-gray-200 focus:border-black"
+                />
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  )
+}

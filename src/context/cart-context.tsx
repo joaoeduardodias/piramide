@@ -1,7 +1,6 @@
 "use client"
 
 import { destroyCookie, parseCookies, setCookie } from "nookies"
-import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 
 export interface CartItem {
@@ -33,7 +32,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 const CART_COOKIE_NAME = "piramide_cart"
-const CART_COOKIE_EXPIRES = 7 // days
+const CART_COOKIE_EXPIRES = 60 * 60 * 24 * 7  // 7 days
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
@@ -61,7 +60,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (isLoaded) {
       if (items.length > 0) {
         setCookie(null, CART_COOKIE_NAME, JSON.stringify(items), {
-          expires: CART_COOKIE_EXPIRES,
+          maxAge: CART_COOKIE_EXPIRES,
           sameSite: "strict",
           path: "/"
         })

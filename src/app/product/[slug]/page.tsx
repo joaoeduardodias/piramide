@@ -11,12 +11,13 @@ import { products } from "@/utils/products"
 import { Heart, MessageCircle, RotateCcw, Share2, Shield, Star, Truck } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { use, useState } from "react"
 
 
-export default function Page({ params }: { params: { slug: string } }) {
-  const product = products.find(p => p.slug === params.slug)
-  const relatedProducts = products.filter(p => p.category === product?.category && p.slug !== params.slug).slice(0, 3)
+export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
+  const product = products.find(p => p.slug === slug)
+  const relatedProducts = products.filter(p => p.category === product?.category && p.slug !== slug).slice(0, 3)
   if (!product) {
     return (
       <main className="min-h-screen flex items-center justify-center">

@@ -32,7 +32,6 @@ interface ProductProps {
 
 
 export function Product(product: ProductProps) {
-  console.log(product.images[0])
   return (
     <Card key={product.id} className="group hover:shadow-xl transition-shadow duration-300 bg-white">
       <CardContent className="p-0">

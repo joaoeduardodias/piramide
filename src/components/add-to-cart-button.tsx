@@ -68,7 +68,7 @@ export function AddToCartButton({
       onClick={handleAddToCart}
       disabled={disabled || !selectedSize || !selectedColor}
       size={size}
-      className={`bg-black hover:bg-gray-800 text-white transition-all duration-200 ${isAdded ? "bg-green-600 hover:bg-green-700" : ""
+      className={`bg-black hover:bg-gray-800 text-white transition-all duration-200 cursor-pointer z-50 ${isAdded ? "bg-green-600 hover:bg-green-700" : ""
         } ${className}`}
     >
       {isAdded ? (
@@ -79,7 +79,7 @@ export function AddToCartButton({
       ) : (
         <>
           <ShoppingCart className="w-4 h-4 mr-2" />
-          Adicionar ao Carrinho
+
         </>
       )}
     </Button>

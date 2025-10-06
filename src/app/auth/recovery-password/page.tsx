@@ -19,24 +19,15 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-export default function RecuperarSenhaPage() {
+export default function RecoveryPasswordPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
   const isResetMode = !!token
-
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  // const { isAuthenticated, user } = useAuth()
   const router = useRouter()
 
-  // if (isAuthenticated && user?.role === 'ADMIN' || user?.role === 'EDITOR' || user?.role === 'MANAGER') {
-  //   router.push("/admin")
-  // } else if (isAuthenticated) {
-  //   router.push("/")
-  // }
-
-  // Form for requesting password reset
   const requestForm = useForm<RequestPasswordResetFormData>({
     resolver: zodResolver(requestPasswordResetSchema),
     defaultValues: {
@@ -44,7 +35,6 @@ export default function RecuperarSenhaPage() {
     },
   })
 
-  // Form for confirming password reset
   const confirmForm = useForm<ConfirmPasswordResetFormData>({
     resolver: zodResolver(confirmPasswordResetSchema),
     defaultValues: {
@@ -56,7 +46,6 @@ export default function RecuperarSenhaPage() {
   const onRequestReset = async (data: RequestPasswordResetFormData) => {
     try {
       const response = await authService.requestPasswordReset(data)
-
       if (response.success) {
         setIsSuccess(true)
         toast('Email enviado!', {
@@ -111,7 +100,7 @@ export default function RecuperarSenhaPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Link href="/sign-in" className="w-full">
+            <Link href="/auth/sign-in" className="w-full">
               <Button className="w-full">
                 <ArrowLeft className="mr-2 size-4" />
                 Voltar para login
@@ -165,7 +154,7 @@ export default function RecuperarSenhaPage() {
                 )}
               </Button>
               <Link
-                href="/sign-in"
+                href="/auth/sign-in"
                 className="text-center text-sm text-blue-600 hover:underline w-full flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="size-4" />
@@ -239,10 +228,10 @@ export default function RecuperarSenhaPage() {
                 )}
               </Button>
               <Link
-                href="/sign-in"
+                href="/auth/sign-in"
                 className="text-center text-sm text-blue-600 hover:underline w-full flex items-center justify-center gap-2"
               >
-                <ArrowLeft className="size-4" />
+                {/* <ArrowLeft className="size-4" /> */}
                 Voltar para login
               </Link>
             </CardFooter>

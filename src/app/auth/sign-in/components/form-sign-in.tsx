@@ -1,5 +1,6 @@
 "use client"
 
+import googleIcon from "@/assets/google.svg"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CardContent, CardFooter } from "@/components/ui/card"
@@ -7,10 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState } from "@/hooks/use-form-state"
 import { AlertTriangle, Eye, EyeOff, Loader2 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
+import { signInWithGoogle } from "../../actions"
 import { signInAction } from "../actions"
-
 
 export function FormSignIn() {
   const [showPassword, setShowPassword] = useState(false)
@@ -19,7 +21,6 @@ export function FormSignIn() {
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signInAction)
   return (
     <form onSubmit={handleSubmit}>
-
       <CardContent className="space-y-4">
         {
           success === false && message && (
@@ -65,9 +66,8 @@ export function FormSignIn() {
             <p className="text-xs ml-1 text-red-600">{errors.password}</p>
           )}
         </div>
-        <div className="flex items-center justify-between">
-
-          <Link href="/recovery-password" className="text-sm text-blue-600 hover:underline">
+        <div className="flex items-center justify-end">
+          <Link href="/auth/recovery-password" className="text-sm text-blue-600 hover:underline">
             Esqueceu a senha?
           </Link>
         </div>
@@ -83,9 +83,13 @@ export function FormSignIn() {
             "Entrar"
           )}
         </Button>
+        <Button type="button" onClick={signInWithGoogle} variant="outline" className="w-full cursor-pointer" disabled={isPending}>
+          <Image src={googleIcon} alt="" className="size-4" />
+          Entrar com Google
+        </Button>
         <div className="text-center text-sm text-gray-600">
           Não tem uma conta?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline font-medium">
+          <Link href="/auth/register" className="text-blue-600 hover:underline font-medium">
             Criar conta
           </Link>
         </div>

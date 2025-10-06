@@ -194,7 +194,7 @@ export default function OrdersPage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-4" />
               <Input
                 placeholder="Buscar por cliente, pedido ou email..."
                 value={searchTerm}
@@ -204,7 +204,7 @@ export default function OrdersPage() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-48 border-gray-300">
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="size-4 mr-2" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -270,7 +270,7 @@ export default function OrdersPage() {
                               onClick={() => setSelectedOrder(order)}
                               className="border-gray-300"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="size-4" />
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl">
@@ -327,7 +327,7 @@ export default function OrdersPage() {
                           </DialogContent>
                         </Dialog>
                         <Button variant="outline" size="sm" className="border-gray-300 bg-transparent">
-                          <Edit className="h-4 w-4" />
+                          <Edit className="size-4" />
                         </Button>
                       </div>
                     </TableCell>

@@ -32,11 +32,10 @@ import { Suspense, useState } from "react"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Produtos", href: "/admin/produtos", icon: Package, badge: "1.234" },
-  { name: "Pedidos", href: "/admin/pedidos", icon: ShoppingCart, badge: "156" },
-  { name: "Clientes", href: "/admin/clientes", icon: Users },
-  { name: "Relatórios", href: "/admin/relatorios", icon: BarChart3 },
-  { name: "Configurações", href: "/admin/configuracoes", icon: Settings },
+  { name: "Produtos", href: "/admin/products", icon: Package, badge: "1.234" },
+  { name: "Pedidos", href: "/admin/orders", icon: ShoppingCart, badge: "156" },
+  { name: "Clientes", href: "/admin/clients", icon: Users },
+  { name: "Relatórios", href: "/admin/reports", icon: BarChart3 },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

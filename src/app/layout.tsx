@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import { CartProvider } from "@/context/cart-context";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -21,9 +22,17 @@ export default function RootLayout({
     <html lang="pt-BR">
 
       <body className={`${inter.className}  antialiased`}>
+        {/* <AuthProvider> */}
         <CartProvider>
           {children}
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            theme="light"
+          />
         </CartProvider>
+        {/* </AuthProvider> */}
       </body>
 
     </html>

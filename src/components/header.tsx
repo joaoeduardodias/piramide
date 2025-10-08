@@ -9,19 +9,6 @@ import { Input } from "./ui/input";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  // const [isTop, setIsTop] = useState(true);
-
-
-  // useEffect(() => {
-  //   function handleScroll() {
-  //     setIsTop(window.scrollY === 0);
-  //   }
-
-  //   window.addEventListener("scroll", handleScroll);
-  //   handleScroll();
-
-  //   return () => window.removeEventListener("scroll", handleScroll);
-  // }, []);
 
   return (
     <header

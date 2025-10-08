@@ -89,7 +89,7 @@ export function FormSignIn() {
         </Button>
         <div className="text-center text-sm text-gray-600">
           Não tem uma conta?{" "}
-          <Link href="/auth/register" className="text-blue-600 hover:underline font-medium">
+          <Link href="/auth/sign-up" className="text-blue-600 hover:underline font-medium">
             Criar conta
           </Link>
         </div>

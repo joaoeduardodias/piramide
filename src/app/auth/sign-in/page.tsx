@@ -1,13 +1,16 @@
-import { isAdmin, isAuthenticated } from "@/auth/auth"
+import { auth, isAuthenticated } from "@/auth/auth"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { redirect } from "next/navigation"
 import { FormSignIn } from "./components/form-sign-in"
 
 export default async function SignInPage() {
-  if (await isAuthenticated() && await isAdmin()) {
-    redirect('/admin')
-  } else if (await isAuthenticated()) {
-    redirect('/')
+  if (await isAuthenticated()) {
+    const { user } = await auth()
+    if (user.role === 'ADMIN' || user.role === 'MANAGER' || user.role === 'EDITOR') {
+      redirect('/admin')
+    } else {
+      redirect('/')
+    }
   }
 
   return (

@@ -9,7 +9,6 @@ interface SignInWithGoogleResponse {
 }
 
 export async function signInWithGoogle({ code }: SignInWithGoogleRequest) {
-  console.log(code);
 
   const result = await api.post('sessions/google', { json: { code } }).json<SignInWithGoogleResponse>()
 

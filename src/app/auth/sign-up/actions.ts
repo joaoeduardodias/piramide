@@ -1,6 +1,7 @@
 "use server"
 
 import { signUp } from "@/http/sign-up";
+import type { Role } from "@/permissions/roles";
 import { jwtDecode } from 'jwt-decode';
 import { HTTPError } from "ky";
 import { cookies } from "next/headers";
@@ -35,7 +36,7 @@ export async function signUpAction(data: FormData) {
   const { name, email, password } = result.data
   let decodedToken: {
     sub: string;
-    role: 'ADMIN' | 'MANAGER' | 'EDITOR' | 'CUSTOMER' | 'GUEST';
+    role: Role
     iat: number;
     exp: number;
   }

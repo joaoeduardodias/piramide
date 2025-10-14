@@ -1,6 +1,7 @@
 "use server"
 
 import { signInWithPassword } from "@/http/sign-in-with-password";
+import type { Role } from "@/permissions/roles";
 import { jwtDecode } from 'jwt-decode';
 import { HTTPError } from "ky";
 import { cookies } from "next/headers";
@@ -24,7 +25,7 @@ export async function signInAction(data: FormData) {
   const { email, password } = result.data
   let decodedToken: {
     sub: string;
-    role: 'ADMIN' | 'MANAGER' | 'EDITOR' | 'CUSTOMER' | 'GUEST';
+    role: Role
     iat: number;
     exp: number;
   }

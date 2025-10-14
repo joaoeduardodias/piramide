@@ -1,3 +1,4 @@
+import type { Role } from "@/permissions/roles";
 import { api } from "./api-client";
 
 
@@ -6,6 +7,7 @@ interface GetProfile {
     id: string;
     name: string;
     email: string;
+    role: Role
   }
 }
 

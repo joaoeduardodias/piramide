@@ -19,7 +19,7 @@ export function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signUpAction)
-  console.log(errors);
+
 
   return (
     <form onSubmit={handleSubmit}>

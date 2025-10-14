@@ -13,7 +13,7 @@ export default async function NewProductPage() {
   if (permissions?.cannot('create', 'Product')) {
     redirect('/admin/product')
   }
-  const categories = await getCategories()
+  const { categories } = await getCategories()
 
 
   return (

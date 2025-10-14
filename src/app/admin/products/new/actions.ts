@@ -152,6 +152,7 @@ export async function createProductAction(data: FormData) {
       const { message } = await err.response.json()
       return { success: false, message, errors: null };
     }
+    console.log(err);
     return {
       success: false,
       message: "Erro ao criar produto. Tente novamente.",

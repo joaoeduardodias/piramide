@@ -1,7 +1,7 @@
 "use client"
 import { Badge } from "@/components/ui/badge";
 import { getBasePath } from "@/utils/get-base-path";
-import { BarChart3, LayoutDashboard, Package, ShoppingCart, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, FolderTree, LayoutDashboard, Package, ShoppingCart, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -12,6 +12,7 @@ const icons: Record<string, LucideIcon> = {
   package: Package,
   users: Users,
   shoppingCart: ShoppingCart,
+  folderTree: FolderTree,
 };
 
 export interface NavItemProps {
@@ -19,7 +20,6 @@ export interface NavItemProps {
   href: string;
   icon: keyof typeof icons;
   badge?: string;
-
 }
 
 

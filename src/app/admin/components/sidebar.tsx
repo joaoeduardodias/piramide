@@ -6,6 +6,7 @@ import { Profile } from "./profile"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: 'layoutDashboard' },
   { name: "Produtos", href: "/admin/products", icon: 'package', badge: "1.234" },
+  { name: "Categorias", href: "/admin/categories", icon: "folderTree" },
   { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: "156" },
   { name: "Clientes", href: "/admin/clients", icon: 'users' },
   { name: "Relatórios", href: "/admin/reports", icon: 'barChart3' },

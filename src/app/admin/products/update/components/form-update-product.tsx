@@ -14,7 +14,7 @@ import { AlertCircle, AlertTriangle, Check, ImageIcon, Loader2, Palette, Ruler, 
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { createProductAction } from "../actions"
+import { updateProductAction } from "../[id]/actions"
 
 
 
@@ -39,22 +39,62 @@ interface Variation {
   price?: number
   comparePrice?: number
 }
-interface FormCreateProps {
+interface FormUpdateProps {
   categories: {
     id: string
     name: string
-  }[]
+  }[],
+  initialData: {
+    id: string;
+    name: string;
+    slug: string;
+    sales: number;
+    featured: boolean | null;
+    description: string | null;
+    price: number;
+    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    createdAt: Date;
+    updatedAt: Date;
+    categories: {
+      categoryId: string;
+      productId: string;
+      category: {
+        id: string;
+        name: string;
+        slug: string;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }[];
+    images: {
+      id: string;
+      url: string;
+      alt: string | null;
+      sortOrder: number;
+      productId: string;
+      createdAt: Date;
+      optionValueId: string | null;
+    }[];
+    variants: {
+      id: string;
+      price?: number;
+      comparePrice?: number;
+      sku: string;
+      stock: number;
+    }[];
+  }
 }
 
-export function FormCreateProduct({ categories }: FormCreateProps) {
+export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) {
+
 
   const [colors, setColors] = useState(defaultColors)
   const [sizes, setSizes] = useState(defaultSizes)
-  const [variations, setVariations] = useState<Variation[]>([])
-  const [images, setImages] = useState<File[]>([])
-  const [featured, setFeatured] = useState(true)
-  const [selectedColors, setSelectedColors] = useState<string[]>([])
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([])
+  const [variations, setVariations] = useState<Variation[]>(initialData.variations)
+  const [images, setImages] = useState<File[]>(initialData.images)
+  const [featured, setFeatured] = useState(initialData.featured)
+  const [selectedColors, setSelectedColors] = useState<string[]>(initialData.colors)
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(initialData.sizes)
 
   const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false)
   const [newSize, setNewSize] = useState("")
@@ -65,7 +105,6 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
 
   function getInitials(name: string): string {
     if (!name.trim()) return "";
-
     const parts = name.trim().split(/\s+/);
     const initials = parts
       .slice(0, 2)
@@ -139,9 +178,6 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
     setVariations((prev) => prev.filter((v) => v.id !== id))
   }
 
-  const getTotalStock = () => variations.reduce((total, v) => total + v.stock, 0)
-
-
   const addNewSize = () => {
     if (newSize.trim() && !sizes.includes(newSize.trim())) {
       setSizes((prev) =>
@@ -171,7 +207,8 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
       setIsColorDialogOpen(false)
     }
   }
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createProductAction)
+
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProductAction)
 
 
   const options = [
@@ -186,7 +223,7 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
   ]
   useEffect(() => {
     if (success === true) {
-      toast.success("Produto criado com sucesso!")
+      toast.success("Produto atualizado com sucesso!")
     }
   }, [success])
 
@@ -213,18 +250,18 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
             )}
             <div>
               <Label htmlFor="name">Nome do Produto *</Label>
-              <Input id="name" name="name" placeholder="Ex: Tênis Urbano Premium" className={`mt-2 ${errors?.name ? "border-red-500" : ""}`} />
+              <Input id="name" name="name" defaultValue={initialData.name} placeholder="Ex: Tênis Urbano Premium" className={`mt-2 ${errors?.name ? "border-red-500" : ""}`} />
               {errors?.name && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.name[0]}</p>}
             </div>
             <div>
               <Label htmlFor="description">Descrição *</Label>
-              <Textarea id="description" name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
+              <Textarea id="description" defaultValue={initialData?.description} name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
               {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="category">Categoria *</Label>
-                <Select name="category">
+                <Select name="category" defaultValue={initialData.category}>
                   <SelectTrigger className={`mt-2 ${errors?.categories ? "border-red-500" : ""}`}>
                     <SelectValue placeholder={`Selecione uma categoria`} />
                   </SelectTrigger>
@@ -522,7 +559,6 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
               <Label htmlFor="featured">Produto em Destaque</Label>
               <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
               <input type="hidden" name="featured" value={featured ? "true" : "false"} />
-              {/* <Switch id="featured" name="featured" checked={isFeatured} onCheckedChange={setIsFeatured} /> */}
             </div>
           </CardContent>
         </Card>
@@ -532,15 +568,14 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="price">Preço de Venda *</Label>
-              <Input id="price" name="price" type="number" step="0.01" placeholder="0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
+              <Input id="price" name="price" defaultValue={initialData.price} type="number" step="0.01" placeholder="0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
               {errors?.price && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.price[0]}</p>}
             </div>
             <div>
               <Label htmlFor="comparePrice">Preço Comparativo *</Label>
-              <Input id="comparePrice" name="comparePrice" type="number" step="0.01" placeholder="0,00" className="mt-2" />
+              <Input id="comparePrice" name="comparePrice" defaultValue={initialData.comparePrice} type="number" step="0.01" placeholder="0,00" className="mt-2" />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>
-
           </CardContent>
         </Card>
 
@@ -548,16 +583,8 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Informações Gerais</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            {/* <div>
-              <Label htmlFor="sku">SKU Base *</Label>
-              <Input id="sku" name="sku" placeholder="TENIS-001" className={`mt-2 ${errors?.sku ? "border-red-500" : ""}`} />
-              {errors?.sku && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors?.sku}</p>}
-            </div> */}
-
-            <div>
-              <Label htmlFor="weight">Peso (kg)</Label>
-              <Input id="weight" name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
-            </div>
+            <Label htmlFor="weight">Peso (kg)</Label>
+            <Input id="weight" defaultValue={initialData.weight} name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
           </CardContent>
         </Card>
 
@@ -567,12 +594,8 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
           <CardContent className="space-y-4">
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Publicar Produto
+              Atualizar Produto
             </Button>
-            {/* <Button type="submit" variant="outline" className="w-full" name="isDraft" value="true" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Salvar como Rascunho
-            </Button> */}
             {errors?.form && <p className="text-sm text-red-600 text-center">{errors.form[0]}</p>}
           </CardContent>
         </Card>

@@ -6,8 +6,12 @@ interface GetCategories {
     id: string,
     name: string,
     slug: string,
-    createdAt: Date,
-    updatedAt: Date,
+    products: {
+      product: {
+        id: string;
+        name: string;
+      };
+    }[];
   }[]
 }
 

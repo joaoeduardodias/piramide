@@ -75,7 +75,6 @@ export async function createProduct({
     }
   }).json<CreateProductResponse>()
 
-  console.log(result);
   return result
 
 }

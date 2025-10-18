@@ -3,30 +3,29 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
-import { AlertCircle, AlertTriangle, Check, ImageIcon, Loader2, Palette, Ruler, Trash2, X } from "lucide-react"
+import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, Palette, Ruler, Trash2, X } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { createProductAction } from "../actions"
+import { createProductAction } from "../../actions"
 
 
 
 const defaultColors = [
-  { name: "Preto", value: "#000000" },
-  { name: "Branco", value: "#FFFFFF" },
-  { name: "Marrom", value: "#8B4513" },
-  { name: "Azul", value: "#0000FF" },
-  { name: "Vermelho", value: "#FF0000" },
-  { name: "Verde", value: "#008000" },
-  { name: "Cinza", value: "#808080" },
-  { name: "Bege", value: "#F5F5DC" },
+  { value: "Preto", content: "#000000" },
+  { value: "Branco", content: "#FFFFFF" },
+  { value: "Marrom", content: "#8B4513" },
+  { value: "Azul", content: "#0000FF" },
+  { value: "Vermelho", content: "#FF0000" },
+  { value: "Verde", content: "#008000" },
+  { value: "Cinza", content: "#808080" },
+  { value: "Bege", content: "#F5F5DC" },
 ]
 const defaultSizes = ["33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"]
 
@@ -53,15 +52,15 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
   const [variations, setVariations] = useState<Variation[]>([])
   const [images, setImages] = useState<File[]>([])
   const [featured, setFeatured] = useState(true)
-  const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [selectedColors, setSelectedColors] = useState<{ value: string, content: string }[]>([])
   const [selectedSizes, setSelectedSizes] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
   const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false)
   const [newSize, setNewSize] = useState("")
   const [isColorDialogOpen, setIsColorDialogOpen] = useState(false)
-  const [newColorName, setNewColorName] = useState("")
-  const [newColorValue, setNewColorValue] = useState("#000000")
-
+  const [newColorName, setNewColorName] = useState<string>("")
+  const [newColorValue, setNewColorValue] = useState<string>("#000000")
 
   function getInitials(name: string): string {
     if (!name.trim()) return "";
@@ -97,14 +96,20 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
     setVariations(newVariations)
   }
 
-  const handleColorToggle = (colorName: string) => {
-    const newSelectedColors = selectedColors.includes(colorName)
-      ? selectedColors.filter((c) => c !== colorName)
-      : [...selectedColors, colorName]
+  const handleCategoryToggle = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
+    )
+  }
+
+  const handleColorToggle = (color: { value: string, content: string }) => {
+    const newSelectedColors = selectedColors.includes(color)
+      ? selectedColors.filter((c) => c.value !== color.value)
+      : [...selectedColors, color]
     setSelectedColors(newSelectedColors)
     const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || ""
     const baseSku = getInitials(baseSkuName)
-    updateVariations(newSelectedColors, selectedSizes, baseSku)
+    updateVariations(newSelectedColors.map(c => c.value), selectedSizes, baseSku)
   }
 
   const handleSizeToggle = (size: string) => {
@@ -114,7 +119,7 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
     setSelectedSizes(newSelectedSizes)
     const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || ""
     const baseSku = getInitials(baseSkuName)
-    updateVariations(selectedColors, newSelectedSizes, baseSku)
+    updateVariations(selectedColors.map(c => c.value), newSelectedSizes, baseSku)
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,9 +144,6 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
     setVariations((prev) => prev.filter((v) => v.id !== id))
   }
 
-  const getTotalStock = () => variations.reduce((total, v) => total + v.stock, 0)
-
-
   const addNewSize = () => {
     if (newSize.trim() && !sizes.includes(newSize.trim())) {
       setSizes((prev) =>
@@ -160,10 +162,10 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
   }
 
   const addNewColor = () => {
-    if (newColorName.trim() && !colors.find((c) => c.name === newColorName.trim())) {
+    if (newColorName.trim() && !colors.find((c) => c.value === newColorName.trim())) {
       const newColor = {
-        name: newColorName.trim(),
-        value: newColorValue,
+        value: newColorName.trim(),
+        content: newColorValue,
       }
       setColors((prev) => [...prev, newColor])
       setNewColorName("")
@@ -177,11 +179,11 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
   const options = [
     {
       name: "color",
-      values: selectedColors,
+      values: selectedColors
     },
     {
       name: "size",
-      values: selectedSizes,
+      values: selectedSizes.map(size => ({ value: size })),
     },
   ]
   useEffect(() => {
@@ -195,6 +197,8 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
       <div className="lg:col-span-2 space-y-8">
         <input type="hidden" name="options" value={JSON.stringify(options)} />
         <input type="hidden" name="variations" value={JSON.stringify(variations)} />
+        <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
+
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle>Informações Básicas</CardTitle>
@@ -221,27 +225,51 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
               <Textarea id="description" name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
               {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category">Categoria *</Label>
-                <Select name="category">
-                  <SelectTrigger className={`mt-2 ${errors?.categories ? "border-red-500" : ""}`}>
-                    <SelectValue placeholder={`Selecione uma categoria`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors?.category && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.category[0]}</p>}
-              </div>
-            </div>
           </CardContent>
         </Card>
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="font-semibold text-gray-900 flex items-center gap-2">
+              <FolderTree className="size-5" />
+              Categorias do Produto *
+            </CardTitle>
+            <p className="text-sm text-gray-600">Selecione uma ou mais categorias para classificar este produto</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {categories.map((category) => {
+                const isSelected = selectedCategories.includes(category.id)
+                return (
+                  <div
+                    key={category.id}
+                    onClick={() => handleCategoryToggle(category.id)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all  ${isSelected
+                      ? "bg-black  text-white border-black hover:bg-black"
+                      : "border-gray-200 bg-white hover:bg-gray-200"
+                      }`}
+                  >
 
+                    <Label
+                      htmlFor={category.name}
+                      className={`flex items-center gap-2 cursor-pointer flex-1 text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}
+                    >
+                      <span>{category.name}</span>
+                    </Label>
+                    <Check className={`size-5 text-black ${isSelected && 'sr-only'}`} />
+                    {isSelected && <X className={`size-5 ${isSelected ? 'text-white' : 'text-gray-700'}`} />}
+                  </div>
+                )
+              })}
+            </div>
+
+            {errors?.categories && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
+                <AlertCircle className="size-4" />
+                {errors.categories[0]}
+              </p>
+            )}
+          </CardContent>
+        </Card>
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Imagens do Produto *</CardTitle></CardHeader>
           <CardContent>
@@ -270,89 +298,53 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
               <div className="flex items-center justify-between mb-4">
                 <Label>Cores Disponíveis *</Label>
                 <Dialog open={isColorDialogOpen} onOpenChange={setIsColorDialogOpen}>
-                  <DialogTrigger asChild><Button variant="outline" size="sm"><Palette size={16} /> Nova Cor</Button></DialogTrigger>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm"><Palette size={16} /> Nova Cor</Button>
+                  </DialogTrigger>
                   <DialogContent>
-                    <DialogHeader><DialogTitle>Adicionar Nova Cor</DialogTitle></DialogHeader>
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <Label className="text-sm font-medium text-gray-700">Cores Disponíveis *</Label>
-                        <Dialog open={isColorDialogOpen} onOpenChange={setIsColorDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-                              <Palette className="size-4" />
-                              Nova Cor
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Adicionar Nova Cor</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="colorName">Nome da Cor</Label>
-                                <Input
-                                  id="colorName"
-                                  name="colorName"
-                                  value={newColorName}
-                                  onChange={(e) => setNewColorName(e.target.value)}
-                                  placeholder="Ex: Azul Marinho"
-                                  className="mt-2"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="colorValue">Cor</Label>
-                                <div className="flex items-center gap-3 mt-2">
-                                  <input
-                                    type="color"
-                                    id="colorValue"
-                                    name="colorValue"
-                                    value={newColorValue}
-                                    onChange={(e) => setNewColorValue(e.target.value)}
-                                    className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer"
-                                  />
-                                  <Input
-                                    value={newColorValue}
-                                    onChange={(e) => setNewColorValue(e.target.value)}
-                                    placeholder="#000000"
-                                    className="flex-1"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setIsColorDialogOpen(false)}>
-                                  Cancelar
-                                </Button>
-                                <Button onClick={addNewColor} className="bg-black hover:bg-gray-800">
-                                  Adicionar Cor
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                    <DialogHeader>
+                      <DialogTitle>Adicionar Nova Cor</DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription className="sr-only">Criação de cor</DialogDescription>
 
-                      <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                        {colors.map((color) => (
-                          <div
-                            key={color.name}
-                            className={`relative cursor-pointer p-3 rounded-lg border-2 transition-all hover:scale-105 ${selectedColors.includes(color.name)
-                              ? "border-black shadow-md bg-gray-50"
-                              : "border-gray-200 hover:border-gray-300 bg-white"
-                              }`}
-                            onClick={() => handleColorToggle(color.name)}
-                          >
-                            <div
-                              className="size-8 rounded-full mx-auto mb-2 border-2 border-gray-300 shadow-sm"
-                              style={{ backgroundColor: color.value }}
-                            />
-                            <p className="text-xs text-center font-medium text-gray-700">{color.name}</p>
-                            {selectedColors.includes(color.name) && (
-                              <div className="absolute top-1 right-1 size-5 bg-black rounded-full flex items-center justify-center">
-                                <Check className="size-3 text-white" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="colorName">Nome da Cor</Label>
+                        <Input
+                          id="colorName"
+                          name="colorName"
+                          value={newColorName}
+                          onChange={(e) => setNewColorName(e.target.value)}
+                          placeholder="Ex: Azul Marinho"
+                          className="mt-2"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="colorValue">Cor</Label>
+                        <div className="flex items-center gap-3 mt-2">
+                          <input
+                            type="color"
+                            id="colorValue"
+                            name="colorValue"
+                            value={newColorValue}
+                            onChange={(e) => setNewColorValue(e.target.value)}
+                            className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                          />
+                          <Input
+                            value={newColorValue}
+                            onChange={(e) => setNewColorValue(e.target.value)}
+                            placeholder="#000000"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsColorDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={addNewColor} className="bg-black hover:bg-gray-800">
+                          Adicionar Cor
+                        </Button>
                       </div>
                       {errors?.colors && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
@@ -361,15 +353,17 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
                         </p>
                       )}
                     </div>
+
                   </DialogContent>
                 </Dialog>
               </div>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                 {colors.map((color) => (
-                  <div key={color.name} className={`relative cursor-pointer p-3 rounded-lg border-2 ${selectedColors.includes(color.name) ? "border-black" : "border-gray-200"}`} onClick={() => handleColorToggle(color.name)}>
-                    <div className="size-8 rounded-full mx-auto mb-2 border" style={{ backgroundColor: color.value }} />
-                    <p className="text-xs text-center">{color.name}</p>
-                    {selectedColors.includes(color.name) && <div className="absolute top-1 right-1 size-5 bg-black rounded-full flex items-center justify-center"><Check size={12} className="text-white" /></div>}
+                  <div key={color.value} className={`relative cursor-pointer p-3 rounded-lg border-2 ${selectedColors.includes(color) ? "border-black" : "border-gray-200"}`} onClick={() => handleColorToggle(color)}>
+                    <div className="size-8 rounded-full mx-auto mb-2 border" style={{ backgroundColor: color.content }} />
+                    <p className="text-xs text-center">{color.value}</p>
+                    {selectedColors.includes(color) &&
+                      <div className="absolute top-1 right-1 size-5 bg-black rounded-full flex items-center justify-center"><Check size={12} className="text-white" /></div>}
                   </div>
                 ))}
               </div>
@@ -381,62 +375,29 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
                 <Dialog open={isSizeDialogOpen} onOpenChange={setIsSizeDialogOpen}>
                   <DialogTrigger asChild><Button variant="outline" size="sm"><Ruler size={16} /> Novo Tamanho</Button></DialogTrigger>
                   <DialogContent>
-                    <DialogHeader><DialogTitle>Adicionar Novo Tamanho</DialogTitle></DialogHeader>
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <Label className="text-sm font-medium text-gray-700">Tamanhos Disponíveis *</Label>
-                        <Dialog open={isSizeDialogOpen} onOpenChange={setIsSizeDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-                              <Ruler className="size-4" />
-                              Novo Tamanho
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Adicionar Novo Tamanho</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="sizeName">Tamanho</Label>
-                                <Input
-                                  id="sizeName"
-                                  name="sizeName"
-                                  value={newSize}
-                                  onChange={(e) => setNewSize(e.target.value)}
-                                  placeholder="Ex: 46, XL, P"
-                                  className="mt-2"
-                                />
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setIsSizeDialogOpen(false)}>
-                                  Cancelar
-                                </Button>
-                                <Button onClick={addNewSize} className="bg-black hover:bg-gray-800">
-                                  Adicionar Tamanho
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                    <DialogHeader>
+                      <DialogTitle>Adicionar Novo Tamanho</DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription className="sr-only">Adicionar tamanho</DialogDescription>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="sizeName">Tamanho</Label>
+                        <Input
+                          id="sizeName"
+                          name="sizeName"
+                          value={newSize}
+                          onChange={(e) => setNewSize(e.target.value)}
+                          placeholder="Ex: 46, XL, P"
+                          className="mt-2"
+                        />
                       </div>
-
-                      <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
-                        {sizes.map((size) => (
-                          <Button
-                            key={size}
-                            type="button"
-                            variant={selectedSizes.includes(size) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleSizeToggle(size)}
-                            className={`h-12 transition-all hover:scale-105 ${selectedSizes.includes(size)
-                              ? "bg-black text-white shadow-md"
-                              : "bg-white hover:bg-gray-50 border-gray-200"
-                              }`}
-                          >
-                            {size}
-                          </Button>
-                        ))}
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsSizeDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={addNewSize} className="bg-black hover:bg-gray-800">
+                          Adicionar Tamanho
+                        </Button>
                       </div>
                       {errors?.sizes && (
                         <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
@@ -465,7 +426,7 @@ export function FormCreateProduct({ categories }: FormCreateProps) {
               {variations.map((v) => (
                 <div key={v.id} className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border">
                   <div className="flex items-center gap-3 flex-1">
-                    <div className="size-8 rounded-full border" style={{ backgroundColor: colors.find(c => c.name === v.color)?.value }} />
+                    <div className="size-8 rounded-full border" style={{ backgroundColor: colors.find(c => c.value === v.color)?.value }} />
                     <div>
                       <p className="font-medium">{v.color} - {v.size}</p>
                       <p className="text-xs text-gray-500">ID: {v.id}</p>

@@ -1,18 +1,19 @@
 import { api } from "./api-client";
 
+export interface Category {
+  id: string,
+  name: string,
+  slug: string,
+  products: {
+    product: {
+      id: string;
+      name: string;
+    };
+  }[];
+}
 
 interface GetCategories {
-  categories: {
-    id: string,
-    name: string,
-    slug: string,
-    products: {
-      product: {
-        id: string;
-        name: string;
-      };
-    }[];
-  }[]
+  categories: Category[]
 }
 
 export async function getCategories() {

@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCategories } from "@/http/get-categories"
-import { getProducts } from "@/http/get-products"
+import { getProducts, type Product } from "@/http/get-products"
 import { AlertTriangle, Package, Plus } from "lucide-react"
 import Link from "next/link"
 import { CardProducts } from "./components/card-products"
@@ -13,7 +13,7 @@ export default async function ProductsPage() {
   const { categories } = await getCategories()
   const { products } = await getProducts()
 
-  function countLowStockProducts(products: any[], limit = 5) {
+  function countLowStockProducts(products: Product[], limit = 5) {
     return products.filter((p) => {
       const totalStock = p.variants.reduce((acc: any, v: any) => acc + v.stock, 0)
       return totalStock < limit
@@ -21,7 +21,6 @@ export default async function ProductsPage() {
   }
   const lowStockCount = countLowStockProducts(products, 11)
   const soldOutCount = countLowStockProducts(products, 1)
-
 
   return (
     <div className="space-y-8">
@@ -86,26 +85,7 @@ export default async function ProductsPage() {
       </section>
 
       <CardProducts products={products} categories={categories} />
-      {/* Modal de Visualização */}
 
-
-      {/* Dialog de Confirmação de Exclusão */}
-      {/* <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog> */}
     </div>
   )
 }

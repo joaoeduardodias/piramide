@@ -11,7 +11,10 @@ interface ProductImage {
 
 interface ProductOption {
   name: string
-  values: string[]
+  values: {
+    content?: string
+    value: string
+  }[]
 }
 interface ProductVariant {
   sku?: string
@@ -33,7 +36,7 @@ interface CreateProductRequest {
   weight?: number
   categoryIds: string[]
   images: ProductImage[]
-  options?: ProductOption[]
+  options: ProductOption[]
   variants?: ProductVariant[]
 }
 
@@ -56,7 +59,7 @@ export async function createProduct({
   options,
   variants
 }: CreateProductRequest) {
-
+  console.log("aqui");
   const result = await api.post('products', {
     json: {
       categoryIds,
@@ -74,7 +77,7 @@ export async function createProduct({
       variants
     }
   }).json<CreateProductResponse>()
-
+  console.log("result");
   return result
 
 }

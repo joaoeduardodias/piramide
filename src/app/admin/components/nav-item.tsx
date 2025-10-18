@@ -19,7 +19,7 @@ export interface NavItemProps {
   name: string;
   href: string;
   icon: keyof typeof icons;
-  badge?: string;
+  badge?: number;
 }
 
 

@@ -1,7 +1,7 @@
 import { api } from "./api-client";
 
 
-interface GetProductResponse {
+export interface GetProductByIdResponse {
   product: {
     id: string;
     name: string;
@@ -30,6 +30,7 @@ interface GetProductResponse {
       alt: string | null;
       sortOrder: number;
       productId: string;
+      fileKey: string;
       createdAt: Date;
       optionValueId: string | null;
     }[];
@@ -50,7 +51,7 @@ interface GetProductRequest {
 
 export async function getProductById({ id }: GetProductRequest) {
 
-  const result = await api.get(`/product/id/${id}`).json<GetProductResponse>()
+  const result = await api.get(`products/${id}`).json<GetProductByIdResponse>()
 
   return result
 

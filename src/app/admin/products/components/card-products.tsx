@@ -7,61 +7,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Search, Trash2 } from "lucide-react"
+import type { Category } from "@/http/get-categories"
+import type { Product } from "@/http/get-products"
+import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-
-interface Category {
-  id: string,
-  name: string,
-  slug: string,
-  createdAt: Date,
-  updatedAt: Date,
-}
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  sales: number;
-  featured: boolean | null;
-  description: string | null;
-  price: number;
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-  createdAt: Date;
-  updatedAt: Date;
-  categories: {
-    categoryId: string;
-    productId: string;
-    category: {
-      id: string;
-      name: string;
-      slug: string;
-      createdAt: Date;
-      updatedAt: Date;
-    };
-  }[];
-  images: {
-    id: string;
-    url: string;
-    alt: string | null;
-    sortOrder: number;
-    productId: string;
-    createdAt: Date;
-    optionValueId: string | null;
-  }[];
-  variants: {
-    id: string;
-    price?: number;
-    sku: string;
-    stock: number;
-    productId: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }[];
-}
-
-
+import { toast } from "sonner"
+import { deleteProductAction } from "../actions"
 
 interface CardProductsProps {
   products: Product[]
@@ -72,8 +26,7 @@ const allCategory: Category = {
   id: "all",
   name: "Todos",
   slug: "todos",
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  products: []
 }
 
 export function CardProducts({ products, categories: categoriesDb }: CardProductsProps) {
@@ -82,10 +35,9 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
   const categories = [allCategory, ...categoriesDb]
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState("Todos")
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<any>(null)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
 
   const getStatusBadge = (status: string, stock: number) => {
     if (status === "Ativo" && stock > 10) {
@@ -113,15 +65,20 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
     router.push(`/admin/products/update/${productId}`)
   }
 
-  const handleDeleteProduct = (product: any) => {
+  const handleDeleteProduct = (product: Product) => {
     setProductToDelete(product)
   }
 
-  const confirmDelete = () => {
-    // Aqui você implementaria a lógica de exclusão
-    console.log("Excluindo produto:", productToDelete)
+  const confirmDelete = async () => {
+    const data = new FormData()
+    if (!productToDelete) return
+    data.append("id", productToDelete.id)
+    const { message, success } = await deleteProductAction(data)
+    if (!success) {
+      toast.error(message || "Erro ao deletar o produto")
+      router.refresh()
+    }
     setProductToDelete(null)
-    // Atualizar a lista de produtos após exclusão
   }
 
 
@@ -146,7 +103,7 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
 
 
 
-  const statusOptions = ["Todos", "Ativo", "Baixo Estoque", "Esgotado", "Inativo"]
+  const statusOptions = ["Todos", "Baixo Estoque", "Esgotado"]
 
   return (
     <>
@@ -217,204 +174,104 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id} className="hover:bg-gray-50/50">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Image
-                          src={product.images[0].url}
-                          alt={product.name}
-                          width={40}
-                          height={40}
-                          className="size-10 object-cover rounded-lg"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-900">{product.name}</p>
+                {filteredProducts.length === 0 ?
+
+                  <TableCell colSpan={8} className="col-span-8">
+                    <div className="flex min-h-[400px] flex-col items-center justify-center gap-2  p-8 text-center">
+                      <Package2 className="size-12 text-muted-foreground" />
+                      <div className="space-y-1">
+                        <h3 className="text-lg font-semibold">Nenhum produto encontrado</h3>
+                        <p className="text-sm text-muted-foreground">Comece criando sua primeiro produto</p>
+                      </div>
+                      <Button asChild className="mt-4">
+                        <Link href="/admin/products/new">
+                          <Plus className="mr-2 size-4" />
+                          Novo Produto
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+
+                  : filteredProducts.map((product) => (
+                    <TableRow key={product.id} className="hover:bg-gray-50/50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Image
+                            src={product.images[0].url}
+                            alt={product.name}
+                            width={40}
+                            height={40}
+                            className="size-10 object-cover rounded-lg"
+                          />
+                          <div>
+                            <p className="font-medium text-gray-900">{product.name}</p>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-sm bg-gray-100 px-2 py-1 rounded">{product.variants[0].sku}</code>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-gray-600">{product.categories[0].category.name}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStockIcon(product.variants.reduce((acc, variant) => acc + variant.stock, 0))}
-                        <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
-                    <TableCell>
-                      <span className="text-sm text-gray-600">{product.sales}</span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {/* <Dialog>
-                            <DialogTrigger asChild>
-                              <DropdownMenuItem onSelect={(e) => {
-                                e.preventDefault()
-                                setSelectedProduct(product)
-                              }}>
-                                <Eye className="size-4 mr-2" />
-                                Visualizar
-                              </DropdownMenuItem>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader>
-                                <DialogTitle>Detalhes do Produto</DialogTitle>
-                                <DialogDescription>Informações completas do produto selecionado</DialogDescription>
-                              </DialogHeader>
-                              {selectedProduct && (
-                                <div className="space-y-6">
-                                  <div className="flex items-start gap-6">
-                                    <Image
-                                      src={selectedProduct.images[0].url}
-                                      alt={selectedProduct.name}
-                                      width={120}
-                                      height={120}
-                                      className="size-30 object-cover rounded-lg"
-                                    />
-                                    <div className="flex-1 space-y-3">
-                                      <div>
-                                        <h3 className="text-xl font-semibold text-gray-900">{selectedProduct.name}</h3>
-                                        <p className="text-gray-600 mt-1">{selectedProduct.description}</p>
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                          <p className="text-sm font-medium text-gray-600">SKU</p>
-                                          <code className="text-sm bg-gray-100 px-2 py-1 rounded">{selectedProduct.variants[0].sku}</code>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium text-gray-600">Categoria</p>
-                                          <p className="text-sm">{selectedProduct.categories[0].category.name}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium text-gray-600">Preço</p>
-                                          <p className="text-lg font-semibold text-green-600">
-                                            R$ {selectedProduct.price.toFixed(2).replace(".", ",")}
-                                          </p>
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium text-gray-600">Estoque</p>
-                                          <div className="flex items-center gap-2">
-                                            {getStockIcon(selectedProduct.variants.reduce((acc, variant) => acc + variant.stock, 0))}
-                                            <span className="text-sm">{selectedProduct.variants.reduce((acc, variant) => acc + variant.stock, 0)} unidades</span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                      <p className="text-sm font-medium text-gray-600 mb-2">Tamanhos Disponíveis</p>
-                                      <div className="flex flex-wrap gap-2">
-                                        {selectedProduct..map((size: string) => (
-                                          <Badge key={size} variant="outline" className="text-xs">
-                                            {size}
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium text-gray-600 mb-2">Cores Disponíveis</p>
-                                      <div className="flex flex-wrap gap-2">
-                                        {selectedProduct.colors.map((color: string) => (
-                                          <Badge key={color} variant="outline" className="text-xs">
-                                            {color}
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                                    <div className="text-center">
-                                      <p className="text-sm font-medium text-gray-600">Status</p>
-                                      {getStatusBadge(selectedProduct.status, selectedProduct.stock)}
-                                    </div>
-                                    <div className="text-center">
-                                      <p className="text-sm font-medium text-gray-600">Vendas</p>
-                                      <p className="text-lg font-semibold text-blue-600">{selectedProduct.sales}</p>
-                                    </div>
-                                    <div className="text-center">
-                                      <p className="text-sm font-medium text-gray-600">Criado em</p>
-                                      <p className="text-sm">{new Date(selectedProduct.createdAt).toLocaleDateString("pt-BR")}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              <DialogFooter>
-                                <Button
-                                  className="bg-black hover:bg-gray-800 text-white"
-                                  onClick={() => {
-                                    setIsViewModalOpen(false)
-                                    if (selectedProduct) {
-                                      handleEditProduct(selectedProduct.id)
-                                    }
-                                  }}
-                                >
-                                  <Edit className="size-4 mr-2" />
-                                  Editar Produto
-                                </Button>
-                                <DialogClose asChild>
-                                  <Button variant="outline">
-                                    Fechar
-                                  </Button>
-                                </DialogClose>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog> */}
-
-                          <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
-                            <Edit className="size-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem className="text-red-600" onSelect={(e) => {
-                                e.preventDefault()
-                                handleDeleteProduct(product)
-                              }}>
-                                <Trash2 className="size-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">{product.variants[0]?.sku}</code>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-gray-600">{product.categories[0]?.category.name}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-medium">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getStockIcon(product.variants.reduce((acc, variant) => acc + variant.stock, 0))}
+                          <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
+                      <TableCell>
+                        <span className="text-sm text-gray-600">{product.sales}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
+                              <Edit className="size-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-red-600" onSelect={(e) => {
+                                  e.preventDefault()
+                                  handleDeleteProduct(product)
+                                }}>
+                                  <Trash2 className="size-4 mr-2" />
                                   Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </div>

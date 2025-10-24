@@ -30,15 +30,23 @@ const defaultColors = [
 ]
 const defaultSizes = ["33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"]
 
-interface Variation {
-  id: string
-  color: string
-  size: string
-  stock: number
-  sku: string
-  price?: number
-  comparePrice?: number
+interface Variant {
+  id: string;
+  price: number | null;
+  sku: string;
+  stock: number;
+  comparePrice: number | null;
 }
+
+interface Image {
+  id: string;
+  url: string;
+  alt: string | null;
+  fileKey: string | null;
+  sortOrder: number;
+}
+
+
 interface FormUpdateProps {
   categories: {
     id: string
@@ -47,54 +55,43 @@ interface FormUpdateProps {
   initialData: {
     id: string;
     name: string;
-    slug: string;
-    sales: number;
-    featured: boolean | null;
     description: string | null;
     price: number;
-    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-    createdAt: Date;
-    updatedAt: Date;
-    categories: {
-      categoryId: string;
-      productId: string;
-      category: {
+    weight: number | null;
+    variants: Variant[]
+    images: Image[]
+    comparePrice: number | null;
+    featured: boolean | null;
+    productOptions: {
+      option: {
         id: string;
         name: string;
-        slug: string;
-        createdAt: Date;
-        updatedAt: Date;
+        values: {
+          value: string;
+          content: string | null;
+        }[];
       };
-    }[];
-    images: {
-      id: string;
-      url: string;
-      alt: string | null;
-      sortOrder: number;
-      productId: string;
-      createdAt: Date;
-      optionValueId: string | null;
-    }[];
-    variants: {
-      id: string;
-      price?: number;
-      comparePrice?: number;
-      sku: string;
-      stock: number;
     }[];
   }
 }
 
 export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) {
+  const colorOption = initialData.productOptions.find(opt => opt.option.name === "color")
+  const sizeOption = initialData.productOptions.find(opt => opt.option.name === "size")
 
+  const [selectedColors, setSelectedColors] = useState<string[]>(
+    colorOption ? colorOption.option.values.map(v => v.value) : []
+  )
 
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(
+    sizeOption ? sizeOption.option.values.map(v => v.value) : []
+  )
   const [colors, setColors] = useState(defaultColors)
   const [sizes, setSizes] = useState(defaultSizes)
-  const [variations, setVariations] = useState<Variation[]>(initialData.variations)
-  const [images, setImages] = useState<File[]>(initialData.images)
+  const [variants, setVariants] = useState<Variant[]>(initialData.variants)
+  const [images, setImages] = useState<File[] | Image[]>(initialData.images)
   const [featured, setFeatured] = useState(initialData.featured)
-  const [selectedColors, setSelectedColors] = useState<string[]>(initialData.colors)
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(initialData.sizes)
+
 
   const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false)
   const [newSize, setNewSize] = useState("")
@@ -113,27 +110,27 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
 
     return initials;
   }
-  const generateVariationId = (color: string, size: string) => `${color}-${size}`.toLowerCase().replace(/\s+/g, "-")
-  const generateVariationSku = (baseSku: string, color: string, size: string) => `${baseSku}-${color.substring(0, 3).toUpperCase()}-${size}`
+  const generateVariantId = (color: string, size: string) => `${color}-${size}`.toLowerCase().replace(/\s+/g, "-")
+  const generateVariantSku = (baseSku: string, color: string, size: string) => `${baseSku}-${color.substring(0, 3).toUpperCase()}-${size}`
 
-  const updateVariations = (colorsToUpdate: string[], sizesToUpdate: string[], baseSku: string) => {
-    const newVariations: Variation[] = []
+  const updateVariants = (colorsToUpdate: string[], sizesToUpdate: string[], baseSku: string) => {
+    const newVariants: Variant[] = []
     colorsToUpdate.forEach((color) => {
       sizesToUpdate.forEach((size) => {
-        const id = generateVariationId(color, size)
-        const existingVariation = variations.find((v) => v.id === id)
-        newVariations.push({
+        const id = generateVariantId(color, size)
+        const existingVariant = variants.find((v) => v.id === id)
+        newVariants.push({
           id,
           color,
           size,
-          stock: existingVariation?.stock ?? 0, // ok deixar 0 para estoque
-          sku: existingVariation?.sku || generateVariationSku(baseSku || "PROD", color, size),
-          price: existingVariation?.price ?? undefined,
-          comparePrice: existingVariation?.comparePrice ?? undefined,
+          stock: existingVariant?.stock ?? 0, // ok deixar 0 para estoque
+          sku: existingVariant?.sku || generateVariantSku(baseSku || "PROD", color, size),
+          price: existingVariant?.price ?? null,
+          comparePrice: existingVariant?.comparePrice ?? null,
         })
       })
     })
-    setVariations(newVariations)
+    setVariants(newVariants)
   }
 
   const handleColorToggle = (colorName: string) => {
@@ -143,7 +140,7 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
     setSelectedColors(newSelectedColors)
     const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || ""
     const baseSku = getInitials(baseSkuName)
-    updateVariations(newSelectedColors, selectedSizes, baseSku)
+    updateVariants(newSelectedColors, selectedSizes, baseSku)
   }
 
   const handleSizeToggle = (size: string) => {
@@ -153,7 +150,7 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
     setSelectedSizes(newSelectedSizes)
     const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || ""
     const baseSku = getInitials(baseSkuName)
-    updateVariations(selectedColors, newSelectedSizes, baseSku)
+    updateVariants(selectedColors, newSelectedSizes, baseSku)
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,14 +165,14 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const handleVariationChange = (id: string, field: keyof Variation, value: string | number) => {
-    setVariations((prev) =>
+  const handleVariantChange = (id: string, field: keyof Variant, value: string | number) => {
+    setVariants((prev) =>
       prev.map((v) => (v.id === id ? { ...v, [field]: value } : v))
     )
   }
 
-  const removeVariation = (id: string) => {
-    setVariations((prev) => prev.filter((v) => v.id !== id))
+  const removeVariant = (id: string) => {
+    setVariants((prev) => prev.filter((v) => v.id !== id))
   }
 
   const addNewSize = () => {
@@ -231,7 +228,7 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
         <input type="hidden" name="options" value={JSON.stringify(options)} />
-        <input type="hidden" name="variations" value={JSON.stringify(variations)} />
+        <input type="hidden" name="variants" value={JSON.stringify(variants)} />
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle>Informações Básicas</CardTitle>
@@ -494,12 +491,12 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
           </CardContent>
         </Card>
 
-        {variations.length > 0 && (
+        {variants.length > 0 && (
           <Card className="border-0 shadow-sm">
             <CardHeader><CardTitle>Controle de Estoque</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {errors?.variations && <p className="text-sm text-red-600 mb-2 flex items-center gap-1"><AlertCircle size={16} />{errors?.variations}</p>}
-              {variations.map((v) => (
+              {errors?.variants && <p className="text-sm text-red-600 mb-2 flex items-center gap-1"><AlertCircle size={16} />{errors?.variants}</p>}
+              {variants.map((v) => (
                 <div key={v.id} className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border">
                   <div className="flex items-center gap-3 flex-1">
                     <div className="size-8 rounded-full border" style={{ backgroundColor: colors.find(c => c.name === v.color)?.value }} />
@@ -511,13 +508,13 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
                   <div className="flex items-center gap-3">
                     <div className="w-36">
                       <Label className="text-xs">SKU</Label>
-                      <Input value={v.sku} onChange={(e) => handleVariationChange(v.id, "sku", e.target.value)} className="mt-1 h-9" />
+                      <Input value={v.sku} onChange={(e) => handleVariantChange(v.id, "sku", e.target.value)} className="mt-1 h-9" />
                     </div>
                     <div className="w-24">
                       <Label className="text-xs">Preço (R$)</Label>
                       <Input type="number" step="0.01" value={v.price === undefined ? "" : v.price} onChange={(e) => {
                         const inputValue = e.target.value;
-                        handleVariationChange(
+                        handleVariantChange(
                           v.id,
                           "price",
                           inputValue === "" ? "" : Number(inputValue)
@@ -529,7 +526,7 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
                       <Input type="number" step="0.01" value={v.comparePrice === undefined ? "" : v.comparePrice}
                         onChange={(e) => {
                           const inputValue = e.target.value;
-                          handleVariationChange(
+                          handleVariantChange(
                             v.id,
                             "comparePrice",
                             inputValue === "" ? "" : Number(inputValue)
@@ -539,9 +536,9 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
                     </div>
                     <div className="w-24">
                       <Label className="text-xs">Estoque</Label>
-                      <Input type="number" value={v.stock} onChange={(e) => handleVariationChange(v.id, "stock", Number(e.target.value))} className="mt-1 h-9" />
+                      <Input type="number" value={v.stock} onChange={(e) => handleVariantChange(v.id, "stock", Number(e.target.value))} className="mt-1 h-9" />
                     </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(v.id)} className="text-red-500"><Trash2 size={16} /></Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(v.id)} className="text-red-500"><Trash2 size={16} /></Button>
                   </div>
                 </div>
               ))}

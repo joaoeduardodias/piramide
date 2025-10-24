@@ -1,4 +1,5 @@
 import { api } from "./api-client";
+
 type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED"
 
 interface ProductImage {
@@ -11,7 +12,6 @@ interface ProductImage {
 interface ProductOption {
   name: string
   values: {
-    id: string
     content?: string
     value: string
   }[]
@@ -24,7 +24,8 @@ interface ProductVariant {
   optionValueIds?: string[]
 }
 
-interface CreateProductRequest {
+interface updateProductRequest {
+  id: string
   name: string
   slug: string
   description?: string
@@ -36,46 +37,11 @@ interface CreateProductRequest {
   weight?: number
   categoryIds: string[]
   images: ProductImage[]
-  options: ProductOption[]
+  // options: ProductOption[]
   variants?: ProductVariant[]
 }
 
-interface CreateProductResponse {
-  productId: string
-}
-
-export async function createProduct({
-  categoryIds,
-  comparePrice,
-  description,
-  featured,
-  images,
-  name,
-  price,
-  slug,
-  status,
-  tags,
-  weight,
-  options,
-  variants
-}: CreateProductRequest) {
-  const result = await api.post('products', {
-    json: {
-      categoryIds,
-      comparePrice,
-      description,
-      featured,
-      images,
-      name,
-      price,
-      slug,
-      status,
-      tags,
-      weight,
-      options,
-      variants
-    }
-  }).json<CreateProductResponse>()
+export async function updateProduct({ id, name, slug }: updateProductRequest) {
+  const result = await api.put(`categories/${id}`, { json: { name, slug } })
   return result
-
 }

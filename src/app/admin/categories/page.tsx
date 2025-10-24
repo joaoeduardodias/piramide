@@ -9,7 +9,7 @@ import { Suspense } from "react"
 import { CategoryActionsClient } from "./category-actions-client"
 
 export const metadata = {
-  title: "Categorias | Admin",
+  title: "Categorias | Dashboard",
   description: "Gerenciar categorias de produtos",
 }
 

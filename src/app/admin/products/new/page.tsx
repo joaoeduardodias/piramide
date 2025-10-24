@@ -1,10 +1,16 @@
 import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { getCategories } from "@/http/get-categories"
+import { getOptions } from "@/http/get-options"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { FormCreateProduct } from "./components/form-create-product"
+
+export const metadata = {
+  title: "Novo Produto | Dashboard",
+  description: "Criar novo produto",
+}
 
 
 export default async function NewProductPage() {
@@ -14,7 +20,7 @@ export default async function NewProductPage() {
     redirect('/admin/product')
   }
   const { categories } = await getCategories()
-
+  const { options } = await getOptions()
 
   return (
     <div className="space-y-8">
@@ -33,7 +39,7 @@ export default async function NewProductPage() {
 
       </div>
 
-      <FormCreateProduct categories={categories} />
+      <FormCreateProduct options={options} categories={categories} />
     </div>
   )
 }

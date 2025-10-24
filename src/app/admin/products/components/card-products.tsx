@@ -176,102 +176,106 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
               <TableBody>
                 {filteredProducts.length === 0 ?
 
-                  <TableCell colSpan={8} className="col-span-8">
-                    <div className="flex min-h-[400px] flex-col items-center justify-center gap-2  p-8 text-center">
-                      <Package2 className="size-12 text-muted-foreground" />
-                      <div className="space-y-1">
-                        <h3 className="text-lg font-semibold">Nenhum produto encontrado</h3>
-                        <p className="text-sm text-muted-foreground">Comece criando sua primeiro produto</p>
+                  <TableRow>
+                    <TableCell colSpan={8} className="col-span-8">
+                      <div className="flex min-h-[400px] flex-col items-center justify-center gap-2  p-8 text-center">
+                        <Package2 className="size-12 text-muted-foreground" />
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-semibold">Nenhum produto encontrado</h3>
+                          <p className="text-sm text-muted-foreground">Comece criando sua primeiro produto</p>
+                        </div>
+                        <Button asChild className="mt-4">
+                          <Link href="/admin/products/new">
+                            <Plus className="mr-2 size-4" />
+                            Novo Produto
+                          </Link>
+                        </Button>
                       </div>
-                      <Button asChild className="mt-4">
-                        <Link href="/admin/products/new">
-                          <Plus className="mr-2 size-4" />
-                          Novo Produto
-                        </Link>
-                      </Button>
-                    </div>
-                  </TableCell>
+                    </TableCell>
+                  </TableRow>
 
-                  : filteredProducts.map((product) => (
-                    <TableRow key={product.id} className="hover:bg-gray-50/50">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Image
-                            src={product.images[0].url}
-                            alt={product.name}
-                            width={40}
-                            height={40}
-                            className="size-10 object-cover rounded-lg"
-                          />
-                          <div>
-                            <p className="font-medium text-gray-900">{product.name}</p>
+                  : filteredProducts.map((product) => {
+                    return (
+                      <TableRow key={product.id} className="hover:bg-gray-50/50">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Image
+                              src={product.images[0].url}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                              className="size-10 object-cover rounded-lg"
+                            />
+                            <div>
+                              <p className="font-medium text-gray-900">{product.name}</p>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">{product.variants[0]?.sku}</code>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600">{product.categories[0]?.category.name}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getStockIcon(product.variants.reduce((acc, variant) => acc + variant.stock, 0))}
-                          <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600">{product.sales}</span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
-                              <Edit className="size-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-red-600" onSelect={(e) => {
-                                  e.preventDefault()
-                                  handleDeleteProduct(product)
-                                }}>
-                                  <Trash2 className="size-4 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-sm bg-gray-100 px-2 py-1 rounded">{product.variants[0]?.sku}</code>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-600">{product.categories[0]?.category.name}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getStockIcon(product.variants.reduce((acc, variant) => acc + variant.stock, 0))}
+                            <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-600">{product.sales}</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
+                                <Edit className="size-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem className="text-red-600" onSelect={(e) => {
+                                    e.preventDefault()
+                                    handleDeleteProduct(product)
+                                  }}>
+                                    <Trash2 className="size-4 mr-2" />
                                     Excluir
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                                      Excluir
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
               </TableBody>
             </Table>
           </div>

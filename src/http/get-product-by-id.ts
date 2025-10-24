@@ -5,44 +5,35 @@ export interface GetProductByIdResponse {
   product: {
     id: string;
     name: string;
-    slug: string;
-    sales: number;
-    featured: boolean | null;
     description: string | null;
-    price: number;
-    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-    createdAt: Date;
-    updatedAt: Date;
-    categories: {
-      categoryId: string;
-      productId: string;
-      category: {
+    price: number
+    weight: number | null;
+    variants: {
+      id: string;
+      price: number | null;
+      sku: string;
+      stock: number;
+      comparePrice: number | null;
+    }[];
+    productOptions: {
+      option: {
         id: string;
         name: string;
-        slug: string;
-        createdAt: Date;
-        updatedAt: Date;
+        values: {
+          value: string;
+          content: string | null;
+        }[];
       };
     }[];
     images: {
       id: string;
       url: string;
       alt: string | null;
+      fileKey: string | null;
       sortOrder: number;
-      productId: string;
-      fileKey: string;
-      createdAt: Date;
-      optionValueId: string | null;
     }[];
-    variants: {
-      id: string;
-      price?: number;
-      sku: string;
-      stock: number;
-      productId: string;
-      createdAt: Date;
-      updatedAt: Date;
-    }[];
+    comparePrice: number | null;
+    featured: boolean | null;
   }
 }
 interface GetProductRequest {

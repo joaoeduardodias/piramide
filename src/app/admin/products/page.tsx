@@ -53,8 +53,6 @@ export default async function ProductsPage() {
           </CardContent>
         </Card>
 
-
-
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">

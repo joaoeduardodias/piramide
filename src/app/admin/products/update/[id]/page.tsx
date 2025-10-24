@@ -17,7 +17,7 @@ export default async function UpdateProductPage({ params }: PageProps) {
   const permissions = await ability()
 
   if (permissions?.cannot('update', 'Product')) {
-    redirect('/admin/product')
+    redirect('/admin/products')
   }
   const { categories } = await getCategories()
   const { product } = await getProductById({ id })

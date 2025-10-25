@@ -29,6 +29,7 @@ interface Variant {
 }
 
 
+
 interface Image {
   id: string;
   url: string;

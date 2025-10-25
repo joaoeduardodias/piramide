@@ -3,40 +3,31 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
-import { AlertCircle, AlertTriangle, Check, ImageIcon, Loader2, Palette, Ruler, Trash2, X } from "lucide-react"
+import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, X } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
-import { updateProductAction } from "../[id]/actions"
+import { useState } from "react"
+import { updateProductAction } from "../../actions"
 
 
+type OptionValue = { id: string, value: string, content: string | null }
+type SelectedOptions = Record<string, OptionValue[]>
 
-const defaultColors = [
-  { name: "Preto", value: "#000000" },
-  { name: "Branco", value: "#FFFFFF" },
-  { name: "Marrom", value: "#8B4513" },
-  { name: "Azul", value: "#0000FF" },
-  { name: "Vermelho", value: "#FF0000" },
-  { name: "Verde", value: "#008000" },
-  { name: "Cinza", value: "#808080" },
-  { name: "Bege", value: "#F5F5DC" },
-]
-const defaultSizes = ["33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45"]
 
 interface Variant {
-  id: string;
-  price: number | null;
-  sku: string;
-  stock: number;
-  comparePrice: number | null;
+  id: string
+  sku: string
+  price: number | null
+  comparePrice: number | null
+  stock: number | null
+  options?: Record<string, { value: string; content: string | null } | string>
+  optionValueIds?: string[]
 }
+
 
 interface Image {
   id: string;
@@ -51,57 +42,89 @@ interface FormUpdateProps {
   categories: {
     id: string
     name: string
-  }[],
+  }[]
+  options: {
+    name: string
+    values: {
+      id: string
+      content: string | null
+      value: string
+    }[]
+  }[]
   initialData: {
     id: string;
     name: string;
     description: string | null;
+    featured: boolean;
     price: number;
-    weight: number | null;
-    variants: Variant[]
-    images: Image[]
     comparePrice: number | null;
-    featured: boolean | null;
-    productOptions: {
-      option: {
+    weight: number | null;
+    images: {
+      id: string;
+      url: string;
+      alt: string | null;
+      fileKey: string | null;
+      sortOrder: number;
+    }[];
+    variants: {
+      id: string;
+      price: number | null;
+      comparePrice: number | null;
+      sku: string;
+      stock: number;
+    }[];
+    categories: string[]
+    options: {
+      id: string;
+      name: string;
+      values: {
         id: string;
-        name: string;
-        values: {
-          value: string;
-          content: string | null;
-        }[];
-      };
+        value: string;
+        content: string | null;
+      }[];
     }[];
   }
 }
 
-export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) {
-  const colorOption = initialData.productOptions.find(opt => opt.option.name === "color")
-  const sizeOption = initialData.productOptions.find(opt => opt.option.name === "size")
+type ImageOrFile = File | Image
 
-  const [selectedColors, setSelectedColors] = useState<string[]>(
-    colorOption ? colorOption.option.values.map(v => v.value) : []
+
+export function FormUpdateProduct({ categories, options, initialData }: FormUpdateProps) {
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProductAction)
+  const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(
+    options.map(opt => {
+      const key = opt.name.toLowerCase();
+      const values: OptionValue[] = opt.values.map(v => ({
+        id: v.id,
+        value: v.value,
+        content: v.content
+      }));
+      return [key, values];
+    })
+  );
+
+
+  const [featured, setFeatured] = useState<boolean>(initialData.featured)
+  const [images, setImages] = useState<ImageOrFile[]>(initialData.images)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories)
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(
+    Object.fromEntries(
+      (initialData.options || []).map((opt) => [opt.name.toLowerCase(), opt.values])
+    )
   )
-
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(
-    sizeOption ? sizeOption.option.values.map(v => v.value) : []
-  )
-  const [colors, setColors] = useState(defaultColors)
-  const [sizes, setSizes] = useState(defaultSizes)
-  const [variants, setVariants] = useState<Variant[]>(initialData.variants)
-  const [images, setImages] = useState<File[] | Image[]>(initialData.images)
-  const [featured, setFeatured] = useState(initialData.featured)
-
-
-  const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false)
-  const [newSize, setNewSize] = useState("")
-  const [isColorDialogOpen, setIsColorDialogOpen] = useState(false)
-  const [newColorName, setNewColorName] = useState("")
-  const [newColorValue, setNewColorValue] = useState("#000000")
-
+  const [variants, setVariants] = useState<Variant[]>(initialData.variants.map(variant => {
+    return {
+      id: variant.id,
+      price: Number(variant.price),
+      comparePrice: Number(variant.comparePrice),
+      sku: variant.sku,
+      stock: Number(variant.stock)
+    }
+  }))
 
   function getInitials(name: string): string {
     if (!name.trim()) return "";
+
     const parts = name.trim().split(/\s+/);
     const initials = parts
       .slice(0, 2)
@@ -110,47 +133,83 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
 
     return initials;
   }
-  const generateVariantId = (color: string, size: string) => `${color}-${size}`.toLowerCase().replace(/\s+/g, "-")
-  const generateVariantSku = (baseSku: string, color: string, size: string) => `${baseSku}-${color.substring(0, 3).toUpperCase()}-${size}`
 
-  const updateVariants = (colorsToUpdate: string[], sizesToUpdate: string[], baseSku: string) => {
-    const newVariants: Variant[] = []
-    colorsToUpdate.forEach((color) => {
-      sizesToUpdate.forEach((size) => {
-        const id = generateVariantId(color, size)
-        const existingVariant = variants.find((v) => v.id === id)
-        newVariants.push({
-          id,
-          color,
-          size,
-          stock: existingVariant?.stock ?? 0, // ok deixar 0 para estoque
-          sku: existingVariant?.sku || generateVariantSku(baseSku || "PROD", color, size),
-          price: existingVariant?.price ?? null,
-          comparePrice: existingVariant?.comparePrice ?? null,
-        })
-      })
-    })
-    setVariants(newVariants)
+  const handleCategoryToggle = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
+    )
   }
 
-  const handleColorToggle = (colorName: string) => {
-    const newSelectedColors = selectedColors.includes(colorName)
-      ? selectedColors.filter((c) => c !== colorName)
-      : [...selectedColors, colorName]
-    setSelectedColors(newSelectedColors)
-    const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || ""
-    const baseSku = getInitials(baseSkuName)
-    updateVariants(newSelectedColors, selectedSizes, baseSku)
+  const handleOptionToggle = (optionName: string, optionValue: OptionValue) => {
+    setSelectedOptions(prev => {
+      const currentValues = prev[optionName] || [];
+      const exists = currentValues.some(v => v.id === optionValue.id);
+
+      const updatedValues = exists
+        ? currentValues.filter(v => v.id !== optionValue.id)
+        : [...currentValues, optionValue];
+
+      const newSelected = { ...prev, [optionName]: updatedValues };
+
+      // Gerar variants
+      const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || "";
+      const baseSku = getInitials(baseSkuName);
+
+      const optionNames = Object.keys(newSelected);
+      const optionValues = Object.values(newSelected).filter(arr => arr.length > 0) as OptionValue[][];
+
+      const allCombinations = generateCombinations(optionValues);
+      const newVariants = buildVariantsGeneric(allCombinations, optionNames, baseSku);
+      setVariants(newVariants);
+
+      return newSelected;
+    });
+  };
+
+  function generateCombinations<T>(arrays: T[][]): T[][] {
+    if (arrays.length === 0) return []
+    return arrays.reduce<T[][]>(
+      (acc, curr) => acc.flatMap((a) => curr.map((b) => [...a, b])),
+      [[]]
+    )
   }
 
-  const handleSizeToggle = (size: string) => {
-    const newSelectedSizes = selectedSizes.includes(size)
-      ? selectedSizes.filter((s) => s !== size)
-      : [...selectedSizes, size]
-    setSelectedSizes(newSelectedSizes)
-    const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || ""
-    const baseSku = getInitials(baseSkuName)
-    updateVariants(selectedColors, newSelectedSizes, baseSku)
+  function buildVariantsGeneric(
+    combinations: OptionValue[][],
+    optionNames: string[],
+    baseSku: string
+  ): Variant[] {
+    return combinations.map(combo => {
+      const options: Record<string, OptionValue> = {};
+      const optionValueIds: string[] = [];
+
+      combo.forEach((opt, i) => {
+        const name = optionNames[i];
+        options[name] = { ...opt };
+        optionValueIds.push(opt.id);
+      });
+
+      const sku = [baseSku, ...combo.map(v => v.value)].filter(Boolean).join("-").toUpperCase();
+
+      return {
+        id: sku,
+        sku,
+        price: 0,
+        comparePrice: 0,
+        stock: 0,
+        options,
+        optionValueIds
+      };
+    });
+  }
+
+
+  const updateVariantField = (id: string, field: keyof Variant, value: any) => {
+    setVariants((prev) =>
+      prev.map((varItem) =>
+        varItem.id === id ? { ...varItem, [field]: value } : varItem
+      )
+    )
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,73 +221,17 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
   }
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
+    setImages(prev => prev.filter((_, i) => i !== index))
   }
-
-  const handleVariantChange = (id: string, field: keyof Variant, value: string | number) => {
-    setVariants((prev) =>
-      prev.map((v) => (v.id === id ? { ...v, [field]: value } : v))
-    )
-  }
-
-  const removeVariant = (id: string) => {
-    setVariants((prev) => prev.filter((v) => v.id !== id))
-  }
-
-  const addNewSize = () => {
-    if (newSize.trim() && !sizes.includes(newSize.trim())) {
-      setSizes((prev) =>
-        [...prev, newSize.trim()].sort((a, b) => {
-          const aNum = Number.parseInt(a)
-          const bNum = Number.parseInt(b)
-          if (!isNaN(aNum) && !isNaN(bNum)) {
-            return aNum - bNum
-          }
-          return a.localeCompare(b)
-        }),
-      )
-      setNewSize("")
-      setIsSizeDialogOpen(false)
-    }
-  }
-
-  const addNewColor = () => {
-    if (newColorName.trim() && !colors.find((c) => c.name === newColorName.trim())) {
-      const newColor = {
-        name: newColorName.trim(),
-        value: newColorValue,
-      }
-      setColors((prev) => [...prev, newColor])
-      setNewColorName("")
-      setNewColorValue("#000000")
-      setIsColorDialogOpen(false)
-    }
-  }
-
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProductAction)
-
-
-  const options = [
-    {
-      name: "color",
-      values: selectedColors,
-    },
-    {
-      name: "size",
-      values: selectedSizes,
-    },
-  ]
-  useEffect(() => {
-    if (success === true) {
-      toast.success("Produto atualizado com sucesso!")
-    }
-  }, [success])
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
-        <input type="hidden" name="options" value={JSON.stringify(options)} />
+        <input type="hidden" name="options" value={JSON.stringify(selectedOptions)} />
         <input type="hidden" name="variants" value={JSON.stringify(variants)} />
+        <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
+        <input type="hidden" name="id" value={initialData.id} />
+
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle>Informações Básicas</CardTitle>
@@ -247,42 +250,84 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
             )}
             <div>
               <Label htmlFor="name">Nome do Produto *</Label>
-              <Input id="name" name="name" defaultValue={initialData.name} placeholder="Ex: Tênis Urbano Premium" className={`mt-2 ${errors?.name ? "border-red-500" : ""}`} />
+              <Input id="name" defaultValue={initialData.name} name="name" placeholder="Ex: Tênis Urbano Premium" className={`mt-2 ${errors?.name ? "border-red-500" : ""}`} />
               {errors?.name && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.name[0]}</p>}
             </div>
             <div>
               <Label htmlFor="description">Descrição *</Label>
-              <Textarea id="description" defaultValue={initialData?.description} name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
+              <Textarea id="description" defaultValue={initialData?.description ?? ''} name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
               {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category">Categoria *</Label>
-                <Select name="category" defaultValue={initialData.category}>
-                  <SelectTrigger className={`mt-2 ${errors?.categories ? "border-red-500" : ""}`}>
-                    <SelectValue placeholder={`Selecione uma categoria`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors?.category && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.category[0]}</p>}
-              </div>
             </div>
           </CardContent>
         </Card>
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="font-semibold text-gray-900 flex items-center gap-2">
+              <FolderTree className="size-5" />
+              Categorias do Produto *
+            </CardTitle>
+            <p className="text-sm text-gray-600">Selecione uma ou mais categorias para classificar este produto</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {categories.map((category) => {
+                const isSelected = selectedCategories.includes(category.id)
+                return (
+                  <div
+                    key={category.id}
+                    onClick={() => handleCategoryToggle(category.id)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all  ${isSelected
+                      ? "bg-black  text-white border-black hover:bg-black"
+                      : "border-gray-200 bg-white hover:bg-gray-200"
+                      }`}
+                  >
 
+                    <Label
+                      htmlFor={category.name}
+                      className={`flex items-center gap-2 cursor-pointer flex-1 text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}
+                    >
+                      <span>{category.name}</span>
+                    </Label>
+                    <Check className={`size-5 text-black ${isSelected && 'sr-only'}`} />
+                    {isSelected && <X className={`size-5 ${isSelected ? 'text-white' : 'text-gray-700'}`} />}
+                  </div>
+                )
+              })}
+            </div>
+
+            {errors?.categories && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
+                <AlertCircle className="size-4" />
+                {errors.categories[0]}
+              </p>
+            )}
+          </CardContent>
+        </Card>
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Imagens do Produto *</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {images.map((file, index) => (
                 <div key={index} className="relative group">
-                  <Image src={URL.createObjectURL(file)} alt={`Preview ${index + 1}`} width={150} height={150} className="w-full h-32 object-cover rounded-lg border" onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} />
+                  {images.map((file, index) => {
+                    const src =
+                      file instanceof File
+                        ? URL.createObjectURL(file)
+                        : file.url
+
+                    return (
+                      <img
+                        key={index}
+                        src={src}
+                        alt={'alt' in file ? (file.alt ?? undefined) : `Preview ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border"
+                        onLoad={(e) => {
+                          if (file instanceof File) URL.revokeObjectURL(e.currentTarget.src)
+                        }}
+                      />
+                    )
+                  })}
+
                   <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 size-6 opacity-0 group-hover:opacity-100" onClick={() => removeImage(index)}><X size={12} /></Button>
                   {index === 0 && <Badge className="absolute bottom-2 left-2">Principal</Badge>}
                 </div>
@@ -298,255 +343,171 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
         </Card>
 
         <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Seleção de Variações *</CardTitle></CardHeader>
+          <CardHeader className="flex justify-between">
+            <CardTitle>Seleção de Variações *</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-8">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Label>Cores Disponíveis *</Label>
-                <Dialog open={isColorDialogOpen} onOpenChange={setIsColorDialogOpen}>
-                  <DialogTrigger asChild><Button variant="outline" size="sm"><Palette size={16} /> Nova Cor</Button></DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Adicionar Nova Cor</DialogTitle></DialogHeader>
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <Label className="text-sm font-medium text-gray-700">Cores Disponíveis *</Label>
-                        <Dialog open={isColorDialogOpen} onOpenChange={setIsColorDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-                              <Palette className="size-4" />
-                              Nova Cor
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Adicionar Nova Cor</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="colorName">Nome da Cor</Label>
-                                <Input
-                                  id="colorName"
-                                  name="colorName"
-                                  value={newColorName}
-                                  onChange={(e) => setNewColorName(e.target.value)}
-                                  placeholder="Ex: Azul Marinho"
-                                  className="mt-2"
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="colorValue">Cor</Label>
-                                <div className="flex items-center gap-3 mt-2">
-                                  <input
-                                    type="color"
-                                    id="colorValue"
-                                    name="colorValue"
-                                    value={newColorValue}
-                                    onChange={(e) => setNewColorValue(e.target.value)}
-                                    className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer"
-                                  />
-                                  <Input
-                                    value={newColorValue}
-                                    onChange={(e) => setNewColorValue(e.target.value)}
-                                    placeholder="#000000"
-                                    className="flex-1"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setIsColorDialogOpen(false)}>
-                                  Cancelar
-                                </Button>
-                                <Button onClick={addNewColor} className="bg-black hover:bg-gray-800">
-                                  Adicionar Cor
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+            {Object.entries(defaultValues).map(([optionName, values]) => {
+              const selected = selectedOptions[optionName] || []
+              const isColorOption = values.some((v: any) => v && v.content)
 
-                      <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                        {colors.map((color) => (
+              return (
+                <div key={optionName}>
+                  <Label className="capitalize mb-4">{optionName} *</Label>
+                  <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
+                    {values.map((val: OptionValue) => {
+                      const valObj = { ...val, content: val.content || "#ccc" }
+                      const isSelected = selected.some(v => v.id === valObj.id)
+
+                      if (isColorOption) {
+                        return (
                           <div
-                            key={color.name}
-                            className={`relative cursor-pointer p-3 rounded-lg border-2 transition-all hover:scale-105 ${selectedColors.includes(color.name)
-                              ? "border-black shadow-md bg-gray-50"
-                              : "border-gray-200 hover:border-gray-300 bg-white"
-                              }`}
-                            onClick={() => handleColorToggle(color.name)}
+                            key={valObj.id}
+                            className={`relative cursor-pointer p-3 rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
+                            onClick={() => handleOptionToggle(optionName, valObj)}
                           >
                             <div
-                              className="size-8 rounded-full mx-auto mb-2 border-2 border-gray-300 shadow-sm"
-                              style={{ backgroundColor: color.value }}
+                              className="size-8 rounded-full mx-auto mb-2 border"
+                              style={{ backgroundColor: valObj.content }}
                             />
-                            <p className="text-xs text-center font-medium text-gray-700">{color.name}</p>
-                            {selectedColors.includes(color.name) && (
+                            <p className="text-xs text-center">{valObj.value}</p>
+                            {isSelected && (
                               <div className="absolute top-1 right-1 size-5 bg-black rounded-full flex items-center justify-center">
-                                <Check className="size-3 text-white" />
+                                <Check size={12} className="text-white" />
                               </div>
                             )}
                           </div>
-                        ))}
-                      </div>
-                      {errors?.colors && (
-                        <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
-                          <AlertCircle className="size-4" />
-                          {errors.colors[0]}
-                        </p>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                {colors.map((color) => (
-                  <div key={color.name} className={`relative cursor-pointer p-3 rounded-lg border-2 ${selectedColors.includes(color.name) ? "border-black" : "border-gray-200"}`} onClick={() => handleColorToggle(color.name)}>
-                    <div className="size-8 rounded-full mx-auto mb-2 border" style={{ backgroundColor: color.value }} />
-                    <p className="text-xs text-center">{color.name}</p>
-                    {selectedColors.includes(color.name) && <div className="absolute top-1 right-1 size-5 bg-black rounded-full flex items-center justify-center"><Check size={12} className="text-white" /></div>}
-                  </div>
-                ))}
-              </div>
-            </div>
+                        )
+                      }
 
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Label>Tamanhos Disponíveis *</Label>
-                <Dialog open={isSizeDialogOpen} onOpenChange={setIsSizeDialogOpen}>
-                  <DialogTrigger asChild><Button variant="outline" size="sm"><Ruler size={16} /> Novo Tamanho</Button></DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Adicionar Novo Tamanho</DialogTitle></DialogHeader>
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <Label className="text-sm font-medium text-gray-700">Tamanhos Disponíveis *</Label>
-                        <Dialog open={isSizeDialogOpen} onOpenChange={setIsSizeDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
-                              <Ruler className="size-4" />
-                              Novo Tamanho
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Adicionar Novo Tamanho</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="sizeName">Tamanho</Label>
-                                <Input
-                                  id="sizeName"
-                                  name="sizeName"
-                                  value={newSize}
-                                  onChange={(e) => setNewSize(e.target.value)}
-                                  placeholder="Ex: 46, XL, P"
-                                  className="mt-2"
-                                />
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setIsSizeDialogOpen(false)}>
-                                  Cancelar
-                                </Button>
-                                <Button onClick={addNewSize} className="bg-black hover:bg-gray-800">
-                                  Adicionar Tamanho
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-
-                      <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
-                        {sizes.map((size) => (
-                          <Button
-                            key={size}
-                            type="button"
-                            variant={selectedSizes.includes(size) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleSizeToggle(size)}
-                            className={`h-12 transition-all hover:scale-105 ${selectedSizes.includes(size)
-                              ? "bg-black text-white shadow-md"
-                              : "bg-white hover:bg-gray-50 border-gray-200"
-                              }`}
-                          >
-                            {size}
-                          </Button>
-                        ))}
-                      </div>
-                      {errors?.sizes && (
-                        <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
-                          <AlertCircle className="size-4" />
-                          {errors.sizes[0]}
-                        </p>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
-                {sizes.map((size) => (
-                  <Button key={size} type="button" variant={selectedSizes.includes(size) ? "default" : "outline"} onClick={() => handleSizeToggle(size)}>{size}</Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {variants.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader><CardTitle>Controle de Estoque</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              {errors?.variants && <p className="text-sm text-red-600 mb-2 flex items-center gap-1"><AlertCircle size={16} />{errors?.variants}</p>}
-              {variants.map((v) => (
-                <div key={v.id} className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border">
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="size-8 rounded-full border" style={{ backgroundColor: colors.find(c => c.name === v.color)?.value }} />
-                    <div>
-                      <p className="font-medium">{v.color} - {v.size}</p>
-                      <p className="text-xs text-gray-500">ID: {v.id}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-36">
-                      <Label className="text-xs">SKU</Label>
-                      <Input value={v.sku} onChange={(e) => handleVariantChange(v.id, "sku", e.target.value)} className="mt-1 h-9" />
-                    </div>
-                    <div className="w-24">
-                      <Label className="text-xs">Preço (R$)</Label>
-                      <Input type="number" step="0.01" value={v.price === undefined ? "" : v.price} onChange={(e) => {
-                        const inputValue = e.target.value;
-                        handleVariantChange(
-                          v.id,
-                          "price",
-                          inputValue === "" ? "" : Number(inputValue)
-                        );
-                      }}
-                        className="mt-1 h-9" />
-                    </div> <div className="w-28">
-                      <Label className="text-xs">Preço Comp. (R$)</Label>
-                      <Input type="number" step="0.01" value={v.comparePrice === undefined ? "" : v.comparePrice}
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          handleVariantChange(
-                            v.id,
-                            "comparePrice",
-                            inputValue === "" ? "" : Number(inputValue)
-                          );
-                        }}
-                        className="mt-1 h-9" />
-                    </div>
-                    <div className="w-24">
-                      <Label className="text-xs">Estoque</Label>
-                      <Input type="number" value={v.stock} onChange={(e) => handleVariantChange(v.id, "stock", Number(e.target.value))} className="mt-1 h-9" />
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(v.id)} className="text-red-500"><Trash2 size={16} /></Button>
+                      return (
+                        <Button
+                          key={valObj.id}
+                          type="button"
+                          variant={isSelected ? "default" : "outline"}
+                          onClick={() => handleOptionToggle(optionName, valObj)}
+                        >
+                          {valObj.value}
+                        </Button>
+                      )
+                    })}
                   </div>
                 </div>
-              ))}
+              )
+            })}
+
+          </CardContent>
+        </Card>
+        {variants.length > 0 && (
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Controle de Estoque</CardTitle>
+            </CardHeader>
+
+            <CardContent className="space-y-3">
+              {errors?.variants && (
+                <p className="text-sm text-red-600 mb-2 flex items-center gap-1">
+                  <AlertCircle size={16} />
+                  {errors?.variants[0]}
+                </p>
+              )}
+
+              {variants.map((v) => {
+                return (
+                  <div
+                    key={v.id}
+                    className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border"
+                  >
+
+                    <div className="flex items-center gap-3 flex-1">
+                      {v?.options?.color && (
+                        <div
+                          className="size-8 rounded-full border"
+                          style={{
+                            backgroundColor:
+                              typeof v?.options.color === "string"
+                                ? v?.options.color
+                                : v?.options.color?.content || "#ccc",
+                          }}
+                        />
+                      )}
+
+                      <div>
+                        <p className="font-medium">
+                          {v.options && Object.entries(v?.options)
+                            .map(([_, value]) => {
+                              const displayValue = typeof value === "string" ? value : value.value
+                              return `${displayValue}`
+                            })
+                            .join(" - ")}
+                        </p>
+                        <p className="text-xs text-gray-500">ID: {v.id}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-36">
+                        <Label className="text-xs">SKU</Label>
+                        <Input
+                          value={v.sku}
+                          onChange={(e) => updateVariantField(v.id, "sku", e.target.value)}
+                          className="mt-1 h-9"
+                        />
+                      </div>
+
+                      <div className="w-24">
+                        <Label className="text-xs">Preço (R$)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={v.price === null ? "" : Number(v.price)}
+                          onChange={(e) =>
+                            updateVariantField(
+                              v.id,
+                              "price",
+                              e.target.value === "" ? 0 : Number(e.target.value)
+                            )
+                          }
+                          className="mt-1 h-9"
+                        />
+                      </div>
+
+                      <div className="w-28">
+                        <Label className="text-xs">Preço Comp. (R$)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={v.comparePrice === null ? "" : Number(v.comparePrice)}
+                          onChange={(e) =>
+                            updateVariantField(
+                              v.id,
+                              "comparePrice",
+                              e.target.value === "" ? 0 : Number(e.target.value)
+                            )
+                          }
+                          className="mt-1 h-9"
+                        />
+                      </div>
+
+                      <div className="w-24">
+                        <Label className="text-xs">Estoque</Label>
+                        <Input
+                          type="number"
+                          value={v.stock === null ? "" : v.stock}
+                          onChange={(e) =>
+                            updateVariantField(v.id, "stock", Number(e.target.value))
+                          }
+                          className="mt-1 h-9"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </CardContent>
           </Card>
         )}
       </div>
-
       <div className="space-y-8">
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Status do Produto</CardTitle></CardHeader>
@@ -565,14 +526,15 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="price">Preço de Venda *</Label>
-              <Input id="price" name="price" defaultValue={initialData.price} type="number" step="0.01" placeholder="0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
+              <Input id="price" defaultValue={initialData.price} name="price" type="number" step="0.01" placeholder="0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
               {errors?.price && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.price[0]}</p>}
             </div>
             <div>
               <Label htmlFor="comparePrice">Preço Comparativo *</Label>
-              <Input id="comparePrice" name="comparePrice" defaultValue={initialData.comparePrice} type="number" step="0.01" placeholder="0,00" className="mt-2" />
+              <Input id="comparePrice" defaultValue={initialData.comparePrice ?? ''} name="comparePrice" type="number" step="0.01" placeholder="0,00" className="mt-2" />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>
+
           </CardContent>
         </Card>
 
@@ -580,12 +542,16 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Informações Gerais</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <Label htmlFor="weight">Peso (kg)</Label>
-            <Input id="weight" defaultValue={initialData.weight} name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
+
+
+            <div>
+              <Label htmlFor="weight">Peso (kg)</Label>
+              <Input id="weight" defaultValue={initialData.weight ?? ''} name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Ações */}
+
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Ações</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -597,6 +563,6 @@ export function FormUpdateProduct({ categories, initialData }: FormUpdateProps) 
           </CardContent>
         </Card>
       </div>
-    </form>
+    </form >
   )
 }

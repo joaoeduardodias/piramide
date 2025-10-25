@@ -6,25 +6,10 @@ export interface GetProductByIdResponse {
     id: string;
     name: string;
     description: string | null;
-    price: number
+    featured: boolean;
+    price: number;
+    comparePrice: number | null;
     weight: number | null;
-    variants: {
-      id: string;
-      price: number | null;
-      sku: string;
-      stock: number;
-      comparePrice: number | null;
-    }[];
-    productOptions: {
-      option: {
-        id: string;
-        name: string;
-        values: {
-          value: string;
-          content: string | null;
-        }[];
-      };
-    }[];
     images: {
       id: string;
       url: string;
@@ -32,8 +17,23 @@ export interface GetProductByIdResponse {
       fileKey: string | null;
       sortOrder: number;
     }[];
-    comparePrice: number | null;
-    featured: boolean | null;
+    variants: {
+      id: string;
+      price: number | null;
+      comparePrice: number | null;
+      sku: string;
+      stock: number;
+    }[];
+    categories: string[]
+    options: {
+      id: string;
+      name: string;
+      values: {
+        id: string;
+        value: string;
+        content: string | null;
+      }[];
+    }[];
   }
 }
 interface GetProductRequest {

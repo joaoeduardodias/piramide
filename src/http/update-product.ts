@@ -12,6 +12,7 @@ interface ProductImage {
 interface ProductOption {
   name: string
   values: {
+    id: string
     content?: string
     value: string
   }[]
@@ -33,15 +34,29 @@ interface updateProductRequest {
   featured: boolean
   price: number
   comparePrice?: number
-  status?: ProductStatus
   weight?: number
   categoryIds: string[]
   images: ProductImage[]
-  // options: ProductOption[]
+  options: ProductOption[]
   variants?: ProductVariant[]
 }
 
-export async function updateProduct({ id, name, slug }: updateProductRequest) {
-  const result = await api.put(`categories/${id}`, { json: { name, slug } })
+export async function updateProduct({ id, name, slug, categoryIds, featured, images, options, price, comparePrice, description, tags, variants, weight }: updateProductRequest) {
+  const result = await api.put(`products/${id}`, {
+    json: {
+      name,
+      slug,
+      categoryIds,
+      featured,
+      images,
+      options,
+      price,
+      comparePrice,
+      description,
+      tags,
+      variants,
+      weight
+    }
+  })
   return result
 }

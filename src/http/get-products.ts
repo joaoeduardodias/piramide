@@ -2,47 +2,32 @@ import { api } from "./api-client";
 
 
 export interface Product {
-
   id: string;
   name: string;
   slug: string;
-  sales: number;
   featured: boolean | null;
   description: string | null;
   price: number;
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-  createdAt: Date;
-  updatedAt: Date;
+  comparePrice: number | null;
+  sales: number;
   categories: {
-    categoryId: string;
-    productId: string;
     category: {
       id: string;
       name: string;
       slug: string;
-      createdAt: Date;
-      updatedAt: Date;
     };
   }[];
   images: {
     id: string;
     url: string;
     alt: string | null;
-    sortOrder: number;
-    productId: string;
-    createdAt: Date;
-    optionValueId: string | null;
   }[];
   variants: {
     id: string;
-    price?: number;
+    price: number | null;
     sku: string;
     stock: number;
-    productId: string;
-    createdAt: Date;
-    updatedAt: Date;
   }[];
-
 }
 
 interface GetProducts {

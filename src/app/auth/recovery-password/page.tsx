@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { authService } from "@/lib/services/auth"
 import {
   confirmPasswordResetSchema,
   requestPasswordResetSchema,
@@ -17,7 +16,6 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
 export default function RecoveryPasswordPage() {
   const searchParams = useSearchParams()
@@ -43,42 +41,41 @@ export default function RecoveryPasswordPage() {
     },
   })
 
-  const onRequestReset = async (data: RequestPasswordResetFormData) => {
-    try {
-      const response = await authService.requestPasswordReset(data)
-      if (response.success) {
-        setIsSuccess(true)
-        toast('Email enviado!', {
-          description: "Verifique sua caixa de entrada para redefinir sua senha.",
-        })
-      }
-    } catch (error: any) {
-      toast('Erro ao enviar email', {
-        description: error.response?.data?.message || "Não foi possível enviar o email. Tente novamente.",
+  // const onRequestReset = async (data: RequestPasswordResetFormData) => {
+  //   try {
+  //     if (response.success) {
+  //       setIsSuccess(true)
+  //       toast('Email enviado!', {
+  //         description: "Verifique sua caixa de entrada para redefinir sua senha.",
+  //       })
+  //     }
+  //   } catch (error: any) {
+  //     toast('Erro ao enviar email', {
+  //       description: error.response?.data?.message || "Não foi possível enviar o email. Tente novamente.",
 
-      })
-    }
-  }
+  //     })
+  //   }
+  // }
 
-  const onConfirmReset = async (data: ConfirmPasswordResetFormData) => {
-    try {
-      const response = await authService.confirmPasswordReset({
-        token: token!,
-        ...data,
-      })
+  // const onConfirmReset = async (data: ConfirmPasswordResetFormData) => {
+  //   try {
+  //     const response = await authService.confirmPasswordReset({
+  //       token: token!,
+  //       ...data,
+  //     })
 
-      if (response.success) {
-        setIsSuccess(true)
-        toast('Senha redefinida!', {
-          description: "Sua senha foi alterada com sucesso.",
-        })
-      }
-    } catch (error: any) {
-      toast('Erro ao redefinir senha', {
-        description: error.response?.data?.message || "Não foi possível redefinir sua senha. Tente novamente.",
-      })
-    }
-  }
+  //     if (response.success) {
+  //       setIsSuccess(true)
+  //       toast('Senha redefinida!', {
+  //         description: "Sua senha foi alterada com sucesso.",
+  //       })
+  //     }
+  //   } catch (error: any) {
+  //     toast('Erro ao redefinir senha', {
+  //       description: error.response?.data?.message || "Não foi possível redefinir sua senha. Tente novamente.",
+  //     })
+  //   }
+  // }
 
   if (isSuccess) {
     return (
@@ -125,7 +122,9 @@ export default function RecoveryPasswordPage() {
           </CardDescription>
         </CardHeader>
         {!isResetMode ? (
-          <form className="space-y-4" onSubmit={requestForm.handleSubmit(onRequestReset)}>
+          <form className="space-y-4"
+          // onSubmit={requestForm.handleSubmit(onRequestReset)}
+          >
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -163,7 +162,9 @@ export default function RecoveryPasswordPage() {
             </CardFooter>
           </form>
         ) : (
-          <form onSubmit={confirmForm.handleSubmit(onConfirmReset)}>
+          <form
+          // onSubmit={confirmForm.handleSubmit(onConfirmReset)}
+          >
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="password">Nova senha</Label>

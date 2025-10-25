@@ -10,8 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
 import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, X } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { useState } from "react"
 import { createProductAction } from "../../actions"
 import { FormCreateOption } from "./form-create-option"
 
@@ -169,12 +168,6 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
-
-  useEffect(() => {
-    if (success === true) {
-      toast.success("Produto criado com sucesso!")
-    }
-  }, [success])
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">

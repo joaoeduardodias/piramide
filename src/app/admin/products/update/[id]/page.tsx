@@ -1,6 +1,7 @@
 import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { getCategories } from "@/http/get-categories"
+import { getOptions } from "@/http/get-options"
 import { getProductById } from "@/http/get-product-by-id"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -21,6 +22,7 @@ export default async function UpdateProductPage({ params }: PageProps) {
   }
   const { categories } = await getCategories()
   const { product } = await getProductById({ id })
+  const { options } = await getOptions()
 
 
   return (
@@ -40,7 +42,7 @@ export default async function UpdateProductPage({ params }: PageProps) {
 
       </div>
 
-      <FormUpdateProduct categories={categories} initialData={product} />
+      <FormUpdateProduct options={options} categories={categories} initialData={product} />
     </div>
   )
 }

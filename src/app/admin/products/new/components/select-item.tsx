@@ -13,7 +13,7 @@ export interface SelectItemProps {
 }
 
 export async function SelectItem({ errors = false }: SelectItemProps) {
-  const categories = await getCategories()
+  const { categories } = await getCategories()
   return (
     <Select name="category">
       <SelectTrigger className={`mt-2 ${errors ? "border-red-500" : ""}`}>

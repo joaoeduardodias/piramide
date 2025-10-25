@@ -95,13 +95,12 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
       product.categories?.some(
         (c) => c.category?.name === selectedCategory
       )
-    const matchesStatus =
-      selectedStatus === "Todos" || product.status === selectedStatus
+    // const matchesStatus =
+    //   selectedStatus === "Todos" || product.status === selectedStatus
 
-    return matchesSearch && matchesCategory && matchesStatus
+    // return matchesSearch && matchesCategory && matchesStatus
+    return matchesSearch && matchesCategory
   })
-
-
 
   const statusOptions = ["Todos", "Baixo Estoque", "Esgotado"]
 
@@ -226,9 +225,10 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
                             <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
+                        <TableCell>{getStatusBadge('', product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
+                        {/* <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell> */}
                         <TableCell>
-                          <span className="text-sm text-gray-600">{product.sales}</span>
+                          <span className="text-sm text-gray-600 ">{product.sales}</span>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

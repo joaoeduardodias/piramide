@@ -15,10 +15,35 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CheckCircle, Clock, DollarSign, Edit, Eye, Filter, Package, Search, Truck, XCircle } from "lucide-react"
+import {
+  CheckCircle,
+  Clock,
+  DollarSign,
+  Edit,
+  Eye,
+  Filter,
+  Package,
+  Search,
+  Truck,
+  XCircle,
+} from "lucide-react"
 import { useState } from "react"
 
-const orders = [
+type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+
+type Order = {
+  id: string
+  customer: string
+  email: string
+  phone: string
+  total: number
+  status: OrderStatus
+  date: string
+  items: number
+  address: string
+}
+
+const orders: Order[] = [
   {
     id: "#001",
     customer: "Maria Silva",
@@ -76,18 +101,18 @@ const orders = [
   },
 ]
 
-const statusConfig = {
-  pending: { label: "Pendente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-  processing: { label: "Processando", color: "bg-blue-100 text-blue-800", icon: Package },
-  shipped: { label: "Enviado", color: "bg-purple-100 text-purple-800", icon: Truck },
-  delivered: { label: "Entregue", color: "bg-green-100 text-green-800", icon: CheckCircle },
-  cancelled: { label: "Cancelado", color: "bg-red-100 text-red-800", icon: XCircle },
-}
-
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+
+  const statusConfig: Record<OrderStatus, { label: string; color: string; icon: any }> = {
+    pending: { label: "Pendente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
+    processing: { label: "Processando", color: "bg-blue-100 text-blue-800", icon: Package },
+    shipped: { label: "Enviado", color: "bg-purple-100 text-purple-800", icon: Truck },
+    delivered: { label: "Entregue", color: "bg-green-100 text-green-800", icon: CheckCircle },
+    cancelled: { label: "Cancelado", color: "bg-red-100 text-red-800", icon: XCircle },
+  }
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -109,121 +134,55 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
         <p className="text-gray-600">Gerencie todos os pedidos da loja</p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <Card className="border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-              <Package className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pendentes</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Processando</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.processing}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Enviados</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.shipped}</p>
-              </div>
-              <Truck className="h-8 w-8 text-purple-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Entregues</p>
-                <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Receita</p>
-                <p className="text-2xl font-bold text-green-600">R$ {stats.revenue.toFixed(2)}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-4 flex justify-between items-center"><div><p className="text-sm text-gray-600">Total</p><p className="text-2xl font-bold">{stats.total}</p></div><Package className="h-8 w-8 text-gray-400" /></CardContent></Card>
+        <Card><CardContent className="p-4 flex justify-between items-center"><div><p className="text-sm text-gray-600">Pendentes</p><p className="text-2xl font-bold text-yellow-600">{stats.pending}</p></div><Clock className="h-8 w-8 text-yellow-400" /></CardContent></Card>
+        <Card><CardContent className="p-4 flex justify-between items-center"><div><p className="text-sm text-gray-600">Processando</p><p className="text-2xl font-bold text-blue-600">{stats.processing}</p></div><Package className="h-8 w-8 text-blue-400" /></CardContent></Card>
+        <Card><CardContent className="p-4 flex justify-between items-center"><div><p className="text-sm text-gray-600">Enviados</p><p className="text-2xl font-bold text-purple-600">{stats.shipped}</p></div><Truck className="h-8 w-8 text-purple-400" /></CardContent></Card>
+        <Card><CardContent className="p-4 flex justify-between items-center"><div><p className="text-sm text-gray-600">Entregues</p><p className="text-2xl font-bold text-green-600">{stats.delivered}</p></div><CheckCircle className="h-8 w-8 text-green-400" /></CardContent></Card>
+        <Card><CardContent className="p-4 flex justify-between items-center"><div><p className="text-sm text-gray-600">Receita</p><p className="text-2xl font-bold text-green-600">R$ {stats.revenue.toFixed(2)}</p></div><DollarSign className="h-8 w-8 text-green-400" /></CardContent></Card>
       </div>
 
       {/* Filters */}
       <Card className="border border-gray-200">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-4" />
-              <Input
-                placeholder="Buscar por cliente, pedido ou email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-gray-300"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48 border-gray-300">
-                <Filter className="size-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="processing">Processando</SelectItem>
-                <SelectItem value="shipped">Enviado</SelectItem>
-                <SelectItem value="delivered">Entregue</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
+            <Input
+              placeholder="Buscar por cliente, pedido ou email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-gray-300"
+            />
           </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-48 border-gray-300">
+              <Filter className="size-4 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="pending">Pendente</SelectItem>
+              <SelectItem value="processing">Processando</SelectItem>
+              <SelectItem value="shipped">Enviado</SelectItem>
+              <SelectItem value="delivered">Entregue</SelectItem>
+              <SelectItem value="cancelled">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
       {/* Orders Table */}
       <Card className="border border-gray-200">
         <CardHeader>
-          <CardTitle className="text-gray-900">Lista de Pedidos</CardTitle>
+          <CardTitle>Lista de Pedidos</CardTitle>
           <CardDescription>{filteredOrders.length} pedido(s) encontrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
@@ -233,7 +192,7 @@ export default function OrdersPage() {
                 <TableHead>Pedido</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Data</TableHead>
-                <TableHead>Items</TableHead>
+                <TableHead>Itens</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Ações</TableHead>
@@ -244,7 +203,7 @@ export default function OrdersPage() {
                 const StatusIcon = statusConfig[order.status].icon
                 return (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell>{order.id}</TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium text-gray-900">{order.customer}</p>
@@ -281,47 +240,32 @@ export default function OrdersPage() {
                             <div className="space-y-4">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="text-sm font-medium text-gray-700">Cliente</Label>
-                                  <p className="text-gray-900">{order.customer}</p>
+                                  <Label>Cliente</Label>
+                                  <p>{order.customer}</p>
                                 </div>
                                 <div>
-                                  <Label className="text-sm font-medium text-gray-700">Email</Label>
-                                  <p className="text-gray-900">{order.email}</p>
+                                  <Label>Email</Label>
+                                  <p>{order.email}</p>
                                 </div>
                                 <div>
-                                  <Label className="text-sm font-medium text-gray-700">Telefone</Label>
-                                  <p className="text-gray-900">{order.phone}</p>
+                                  <Label>Telefone</Label>
+                                  <p>{order.phone}</p>
                                 </div>
                                 <div>
-                                  <Label className="text-sm font-medium text-gray-700">Data</Label>
-                                  <p className="text-gray-900">{new Date(order.date).toLocaleDateString("pt-BR")}</p>
+                                  <Label>Data</Label>
+                                  <p>{new Date(order.date).toLocaleDateString("pt-BR")}</p>
                                 </div>
                               </div>
                               <div>
-                                <Label className="text-sm font-medium text-gray-700">Endereço de Entrega</Label>
-                                <p className="text-gray-900">{order.address}</p>
+                                <Label>Endereço de Entrega</Label>
+                                <p>{order.address}</p>
                               </div>
                               <div>
-                                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                                <Label>Status</Label>
                                 <Badge className={statusConfig[order.status].color}>
                                   <StatusIcon className="h-3 w-3 mr-1" />
                                   {statusConfig[order.status].label}
                                 </Badge>
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium text-gray-700">Atualizar Status</Label>
-                                <Select defaultValue={order.status}>
-                                  <SelectTrigger className="border-gray-300">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pending">Pendente</SelectItem>
-                                    <SelectItem value="processing">Processando</SelectItem>
-                                    <SelectItem value="shipped">Enviado</SelectItem>
-                                    <SelectItem value="delivered">Entregue</SelectItem>
-                                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                                  </SelectContent>
-                                </Select>
                               </div>
                             </div>
                           </DialogContent>

@@ -97,8 +97,6 @@ const createOptionSchema = z.object({
 export async function createProductAction(data: FormData) {
 
   const optionsData = data.get("options") as string
-
-
   const formattedOptions = Object.entries(JSON.parse(optionsData)).map(([name, values]) => ({
     name,
     values
@@ -123,15 +121,12 @@ export async function createProductAction(data: FormData) {
     variants: formattedVariants
   };
 
-  console.log(formattedData);
 
   const result = createProductSchema.safeParse(formattedData);
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors;
-    console.log(errors);
     return { success: false, message: null, errors }
   };
-
   const {
     featured,
     name,
@@ -204,12 +199,6 @@ export async function createProductAction(data: FormData) {
     revalidatePath("/admin/products")
     revalidatePath("/products")
 
-    // return {
-    //   success: true,
-    //   message: 'Produto Criado',
-    //   errors: null
-    // }
-
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
@@ -275,23 +264,39 @@ export async function updateProductAction(data: FormData) {
     return { success: false, message: "ID do produto ausente", errors: null }
   }
 
+  // Processa options
   const optionsData = data.get("options") as string
-  const formattedOptions = JSON.parse(optionsData)
+  const formattedOptions = Object.entries(JSON.parse(optionsData)).map(([name, values]) => ({
+    name,
+    values: (values as any[])
+      .filter(v => v.content != null)
+      .map(v => ({ id: v.id, value: v.value, content: v.content })),
+  }))
 
-  const variantsData = data.get("variations") as string
+  // Processa variants
+  const variantsData = data.get("variants") as string
   const formattedVariants = JSON.parse(variantsData)
 
+  // Processa categorias
+  const categoriesData = data.get("categories") as string
+  const categoryIds = JSON.parse(categoriesData)
+
+  // Dados brutos
   const rawData = Object.fromEntries(data.entries())
+  const imagesFromForm = data
+    .getAll("images")
+    .filter((f): f is File | string => f instanceof File || typeof f === "string")
+
+
+  // Formata dados
   const formattedData = {
     ...rawData,
-    price: Number(rawData.price),
+    price: rawData.price ? Number(rawData.price) : undefined,
     comparePrice: rawData.comparePrice ? Number(rawData.comparePrice) : undefined,
     weight: rawData.weight ? Number(rawData.weight) : undefined,
     featured: rawData.featured === "true",
-    category: Array.isArray(rawData.category)
-      ? rawData.category
-      : [rawData.category].filter(Boolean),
-    images: data.getAll("images"),
+    category: categoryIds,
+    images: imagesFromForm,
     options: formattedOptions,
     variants: formattedVariants,
   }
@@ -306,126 +311,109 @@ export async function updateProductAction(data: FormData) {
     featured,
     name,
     price,
-    status,
     category,
     comparePrice,
     description,
     images,
     weight,
-    // options,
+    options,
     variants,
     tags,
   } = result.data
 
   try {
-
     const { product } = await getProductById({ id: productId })
+    const existingImages = product.images || []
 
-    const existingImages = product.images
-    const existingUrls = existingImages.map((i) => i.url)
+    const finalImages: Array<{
+      id?: string
+      url: string
+      alt: string
+      sortOrder: number
+      fileKey?: string
+    }> = []
 
-    const finalImages: any[] = []
     const uploadedUrls: string[] = []
 
     for (let i = 0; i < images.length; i++) {
       const item = images[i]
 
       if (item instanceof File) {
+        // Upload de novos arquivos
         const sanitizedName = item.name.replace(/\s+/g, "-")
-        const fileKey = `${randomUUID()}-${sanitizedName}`
-        const contentType = item.type
-
+        const fileKey = `${crypto.randomUUID()}-${sanitizedName}`
         const signedUrl = await getSignedUrl(
           r2,
           new PutObjectCommand({
             Bucket: "piramide",
             Key: fileKey,
-            ContentType: contentType,
+            ContentType: item.type,
             ACL: "public-read",
           }),
           { expiresIn: 600 }
         )
-
-        const arrayBuffer = await item.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        const uploadRes = await fetch(signedUrl, {
-          method: "PUT",
-          headers: { "Content-Type": contentType },
-          body: buffer,
-        })
-
+        const buffer = Buffer.from(await item.arrayBuffer())
+        const uploadRes = await fetch(signedUrl, { method: "PUT", headers: { "Content-Type": item.type }, body: buffer })
         if (!uploadRes.ok) throw new Error(`Falha ao enviar ${item.name}`)
 
         const publicUrl = `${process.env.CLOUDFARE_PUBLIC_URL}/${fileKey}`
         uploadedUrls.push(publicUrl)
-
+        finalImages.push({ url: publicUrl, alt: item.name.split(".")[0], sortOrder: i, fileKey })
+      } else if (typeof item === "string") {
+        // Mantém imagens existentes sem alterar
+        const existing = existingImages.find(img => img.url === item)
         finalImages.push({
-          url: publicUrl,
-          alt: item.name.split(".")[0],
-          sortOrder: i,
-          fileKey,
-        })
-      } else if (typeof item === "string" && String(item).startsWith("http")) {
-        // Já existe no bucket → mantém
-        finalImages.push({
+          id: existing?.id,
           url: item,
-          alt: String(item).split("/").pop()?.split(".")[0] ?? "",
+          alt: existing?.alt ?? (String(item).split("/").pop()?.split(".")[0] ?? ""),
           sortOrder: i,
+          fileKey: existing?.fileKey ?? undefined,
         })
         uploadedUrls.push(item)
       }
     }
 
-    // 🗑️ 3. Deletar imagens que não estão mais no form
-    const removed = existingUrls.filter((url) => !uploadedUrls.includes(url))
+    // Remover apenas imagens que não estão mais no front
+    const removed = existingImages.filter(img => !uploadedUrls.includes(img.url))
     if (removed.length > 0) {
       await Promise.all(
-        removed.map(async (url) => {
-          const key = url.split("/").pop()!
-          await r2.send(
-            new DeleteObjectCommand({
-              Bucket: "piramide",
-              Key: key,
-            })
-          )
+        removed.map(async img => {
+          const key = img.fileKey ?? img.url.split("/").pop()!
+          await r2.send(new DeleteObjectCommand({ Bucket: "piramide", Key: key }))
         })
       )
     }
 
-
+    // Atualiza produto com apenas os campos que mudaram
     await updateProduct({
       id: productId,
-      categoryIds: category,
-      comparePrice,
-      description,
-      featured,
-      images: finalImages,
       name,
-      price,
       slug: generateSlug(name),
-      status,
+      price,
+      comparePrice,
       weight,
+      featured,
+      description,
       tags,
-      // options,
+      categoryIds: category,
+      images: finalImages,
+      options,
       variants,
     })
 
     revalidatePath("/admin/products")
     revalidatePath("/products")
-
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
-      return { success: false, message, errors: null };
+      return { success: false, message, errors: null }
     }
-    return {
-      success: false,
-      message: 'Unexpected error, try again in a few minutes.',
-      errors: null
-    }
+    return { success: false, message: "Unexpected error, try again in a few minutes.", errors: null }
   }
-  redirect('/admin/products')
+
+  redirect("/admin/products")
 }
+
 
 
 export async function createOptionAction(data: FormData) {

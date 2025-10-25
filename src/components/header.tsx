@@ -1,13 +1,16 @@
 "use client"
-import { Menu, Search, X } from "lucide-react";
+import { LogIn, LogOut, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { CartButton } from "./cart-button";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
+interface HeaderProps {
+  isAuthenticated?: boolean;
+}
 
-export function Header() {
+export function Header({ isAuthenticated }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -45,6 +48,23 @@ export function Header() {
                 />
               </div>
             </div>
+            {!isAuthenticated ? (
+              <Link href="/auth/sign-in">
+                <Button variant="outline" >
+                  <LogIn className="size-5" />
+                  Fazer Login
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/api/auth/sign-out">
+                <Button variant="outline" >
+                  <LogOut className="size-5" />
+                  Sair
+                </Button>
+              </Link>
+            )
+
+            }
 
             <CartButton />
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>

@@ -16,7 +16,6 @@ interface PageProps {
 export default async function UpdateProductPage({ params }: PageProps) {
   const { id } = await params
   const permissions = await ability()
-
   if (permissions?.cannot('update', 'Product')) {
     redirect('/admin/products')
   }

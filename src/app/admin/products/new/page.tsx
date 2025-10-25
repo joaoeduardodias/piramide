@@ -15,10 +15,10 @@ export const metadata = {
 
 export default async function NewProductPage() {
   const permissions = await ability()
-
   if (permissions?.cannot('create', 'Product')) {
-    redirect('/admin/product')
+    redirect('/admin/products')
   }
+
   const { categories } = await getCategories()
   const { options } = await getOptions()
 

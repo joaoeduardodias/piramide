@@ -22,7 +22,6 @@ export default function RootLayout({
     <html lang="pt-BR">
 
       <body className={`${inter.className}  antialiased`}>
-        {/* <AuthProvider> */}
         <CartProvider>
           {children}
           <Toaster
@@ -32,7 +31,6 @@ export default function RootLayout({
             theme="light"
           />
         </CartProvider>
-        {/* </AuthProvider> */}
       </body>
 
     </html>

@@ -1,12 +1,11 @@
-"use client"
 
+import { auth, isAuthenticated } from "@/auth/auth"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   ArrowDownRight,
   ArrowUpRight,
-  Calendar,
   CheckCircle,
   Clock,
   DollarSign,
@@ -19,6 +18,7 @@ import {
   Users
 } from "lucide-react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 const stats = [
   {
@@ -162,7 +162,14 @@ const quickActions = [
   },
 ]
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  if (await isAuthenticated()) {
+    const { user } = await auth()
+    if (user.role !== 'ADMIN' || 'MANAGER') {
+      redirect('/')
+    }
+  }
+
   return (
     <main className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -171,10 +178,10 @@ export default function AdminDashboard() {
           <p className="text-gray-600 mt-1">Bem-vindo de volta! Aqui está o resumo da sua loja.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+          {/* <Button variant="outline" className="flex items-center gap-2 bg-transparent">
             <Calendar className="size-4" />
             Últimos 30 dias
-          </Button>
+          </Button> */}
           <Link href="/admin/products/new">
             <Button className="bg-black hover:bg-gray-800 text-white flex items-center gap-2">
               <Plus className="size-4" />
@@ -276,11 +283,11 @@ export default function AdminDashboard() {
                   <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center text-sm font-semibold text-gray-600">
                     {index + 1}
                   </div>
-                  <img
+                  {/* <img
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
                     className="size-12 object-cover rounded-lg"
-                  />
+                  /> */}
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{product.name}</p>
                     <p className="text-sm text-gray-500">{product.sales} vendas</p>

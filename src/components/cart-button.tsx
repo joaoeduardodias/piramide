@@ -13,9 +13,9 @@ export function CartButton() {
   return (
     <CartDrawer>
       <Button variant="ghost" size="icon" className="relative" onClick={() => setIsOpen(true)}>
-        <ShoppingCart className="w-5 h-5" />
+        <ShoppingCart className="size-5" />
         {totalItems > 0 && (
-          <Badge className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center p-0 bg-black text-white text-xs">
+          <Badge className="absolute -top-2 -right-2 size-5 flex items-center justify-center p-0 bg-black text-white text-xs">
             {totalItems > 99 ? "99+" : totalItems}
           </Badge>
         )}

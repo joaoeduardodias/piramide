@@ -1,3 +1,4 @@
+import { isAuthenticated } from "@/auth/auth"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Product } from "@/components/product"
@@ -9,11 +10,13 @@ import { ArrowRight, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-export default function Home() {
+export default async function Home() {
+
+
 
   return (
     <main className="min-h-screen bg-white">
-      <Header />
+      <Header isAuthenticated={await isAuthenticated()} />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background with gradient */}

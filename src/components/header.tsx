@@ -73,12 +73,12 @@ export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
 
 
             ) : (
-              <Link href="/api/auth/sign-out">
-                <Button variant="outline" >
-                  <LogOut className="size-5" />
-                  Sair
-                </Button>
-              </Link>
+              // <Link href="/api/auth/sign-out">
+              <Button variant="outline" >
+                <LogOut className="size-5" />
+                Sair
+              </Button>
+              // </Link>
             )}
             {isAdmin && (
               <Link href="/admin">

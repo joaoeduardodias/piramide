@@ -12,14 +12,14 @@ import Link from "next/link"
 
 export default async function Home() {
   let isAdmin = false
-  if (await isAuthenticated()) {
-
+  const isAuth = await isAuthenticated()
+  if (isAuth) {
     const { user } = await auth()
     isAdmin = user?.role === 'ADMIN'
   }
   return (
     <main className="min-h-screen bg-white">
-      <Header isAuthenticated={await isAuthenticated()} isAdmin={isAdmin} />
+      <Header isAuthenticated={isAuth} isAdmin={isAdmin} />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background with gradient */}

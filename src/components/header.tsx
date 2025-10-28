@@ -4,6 +4,7 @@ import logoImg from '@/assets/logo.png';
 import { LayoutDashboard, LogIn, LogOut, Menu, Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { useState } from "react";
 import { CartButton } from "./cart-button";
 import { Button } from "./ui/button";
@@ -17,6 +18,11 @@ interface HeaderProps {
 
 export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const router = useRouter()
+
+  function handleSignOut() {
+    router.push('/api/auth/sign-out')
+  }
 
   return (
     <header
@@ -70,15 +76,11 @@ export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
                   Fazer Login
                 </Button>
               </Link>
-
-
             ) : (
-              // <Link href="/api/auth/sign-out">
-              <Button variant="outline" >
+              <Button variant="outline" onClick={handleSignOut}>
                 <LogOut className="size-5" />
                 Sair
               </Button>
-              // </Link>
             )}
             {isAdmin && (
               <Link href="/admin">

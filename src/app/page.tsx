@@ -11,10 +11,12 @@ import Image from "next/image"
 import Link from "next/link"
 
 export default async function Home() {
-  const { user } = await auth()
-  const isAdmin = user?.role === 'ADMIN'
+  let isAdmin = false
+  if (await isAuthenticated()) {
 
-
+    const { user } = await auth()
+    isAdmin = user?.role === 'ADMIN'
+  }
   return (
     <main className="min-h-screen bg-white">
       <Header isAuthenticated={await isAuthenticated()} isAdmin={isAdmin} />

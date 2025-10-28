@@ -1,15 +1,15 @@
 import { getProfile } from '@/http/get-profile';
 import { defineAbilityFor } from '@/permissions/ability';
-import { type JwtPayload } from 'jwt-decode';
 import { cookies } from "next/headers";
 import { redirect } from 'next/navigation';
 
-interface JWTDecode extends JwtPayload {
-  role: 'ADMIN' | 'MANAGER' | 'EDITOR' | 'USER'
-}
+// interface JWTDecode extends JwtPayload {
+//   role: 'ADMIN' | 'MANAGER' | 'EDITOR' | 'USER'
+// }
 
 export async function isAuthenticated() {
-  return !!(await cookies()).get('token')?.value
+  const cookiesStore = await cookies()
+  return !!cookiesStore.get('token')?.value
 }
 
 export async function ability() {
@@ -25,10 +25,9 @@ export async function ability() {
   return ability
 }
 
-
-
 export async function auth() {
-  const token = (await cookies()).get('token')?.value
+  const cookiesStore = await cookies()
+  const token = cookiesStore.get('token')?.value
   if (!token) {
     redirect("/auth/sign-in")
   }

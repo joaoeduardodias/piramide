@@ -1,10 +1,7 @@
 "use server"
 
 import { signInWithPassword } from "@/http/sign-in-with-password";
-import type { Role } from "@/permissions/roles";
-import { jwtDecode } from 'jwt-decode';
 import { HTTPError } from "ky";
-import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod/v4";
@@ -24,12 +21,12 @@ export async function signInAction(data: FormData) {
 
 
   const { email, password } = result.data
-  let decodedToken: {
-    sub: string;
-    role: Role
-    iat: number;
-    exp: number;
-  }
+  // let decodedToken: {
+  //   sub: string;
+  //   role: Role
+  //   iat: number;
+  //   exp: number;
+  // }
 
   try {
     const { token } = await signInWithPassword({ email, password });
@@ -39,9 +36,9 @@ export async function signInAction(data: FormData) {
       maxAge: 60 * 60 * 24 * 7,
     })
 
-    decodedToken = jwtDecode(token);
-    revalidatePath("/")
-    revalidatePath("/auth/sign-in")
+    // decodedToken = jwtDecode(token);
+    // revalidatePath("/")
+    // revalidatePath("/auth/sign-in")
   }
   catch (err: any) {
     if (err instanceof HTTPError) {
@@ -54,12 +51,6 @@ export async function signInAction(data: FormData) {
       errors: null
     }
   }
-  if (decodedToken && decodedToken.role === 'ADMIN' || decodedToken.role === 'MANAGER' || decodedToken.role === 'EDITOR') {
-    redirect("/admin")
-
-  } else {
-    redirect("/")
-
-  }
+  redirect("/")
 
 }

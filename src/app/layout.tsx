@@ -20,7 +20,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-
       <body className={`${inter.className}  antialiased`}>
         <CartProvider>
           {children}

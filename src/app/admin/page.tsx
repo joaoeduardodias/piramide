@@ -165,7 +165,7 @@ const quickActions = [
 export default async function AdminDashboard() {
   if (await isAuthenticated()) {
     const { user } = await auth()
-    if (user.role !== 'ADMIN' || 'MANAGER') {
+    if (user.role !== 'ADMIN') {
       redirect('/')
     }
   }
@@ -178,10 +178,6 @@ export default async function AdminDashboard() {
           <p className="text-gray-600 mt-1">Bem-vindo de volta! Aqui está o resumo da sua loja.</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* <Button variant="outline" className="flex items-center gap-2 bg-transparent">
-            <Calendar className="size-4" />
-            Últimos 30 dias
-          </Button> */}
           <Link href="/admin/products/new">
             <Button className="bg-black hover:bg-gray-800 text-white flex items-center gap-2">
               <Plus className="size-4" />

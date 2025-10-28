@@ -1,7 +1,7 @@
 "use client"
 import logoText from '@/assets/logo-piramide.svg';
 import logoImg from '@/assets/logo.png';
-import { LogIn, LogOut, Menu, Search, X } from "lucide-react";
+import { LayoutDashboard, LogIn, LogOut, Menu, Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,9 +12,10 @@ import { Input } from "./ui/input";
 
 interface HeaderProps {
   isAuthenticated?: boolean;
+  isAdmin?: boolean;
 }
 
-export function Header({ isAuthenticated }: HeaderProps) {
+export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -37,7 +38,6 @@ export function Header({ isAuthenticated }: HeaderProps) {
               width={230}
               height={55}
             />
-
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
@@ -70,6 +70,8 @@ export function Header({ isAuthenticated }: HeaderProps) {
                   Fazer Login
                 </Button>
               </Link>
+
+
             ) : (
               <Link href="/api/auth/sign-out">
                 <Button variant="outline" >
@@ -77,9 +79,16 @@ export function Header({ isAuthenticated }: HeaderProps) {
                   Sair
                 </Button>
               </Link>
-            )
+            )}
+            {isAdmin && (
+              <Link href="/admin">
+                <Button variant="outline" >
+                  <LayoutDashboard className="size-5" />
+                  Dashboard
+                </Button>
+              </Link>
+            )}
 
-            }
 
             <CartButton />
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>

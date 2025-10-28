@@ -10,6 +10,7 @@ import { useFormState } from "@/hooks/use-form-state"
 import { AlertTriangle, Eye, EyeOff, Loader2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { signInWithGoogle } from "../../actions"
 import { signInAction } from "../actions"
@@ -17,8 +18,12 @@ import { signInAction } from "../actions"
 export function FormSignIn() {
   const [showPassword, setShowPassword] = useState(false)
   // const [{ success, message, errors }, formAction, isPending] = useActionState(signInAction, { success: false, message: null, errors: null });
-
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signInAction)
+  const router = useRouter();
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signInAction,
+    () => {
+      router.push('/')
+    }
+  )
   return (
     <form onSubmit={handleSubmit}>
       <CardContent className="space-y-4">

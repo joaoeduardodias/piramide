@@ -1,4 +1,4 @@
-import { isAuthenticated } from "@/auth/auth"
+import { auth, isAuthenticated } from "@/auth/auth"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Product } from "@/components/product"
@@ -11,12 +11,13 @@ import Image from "next/image"
 import Link from "next/link"
 
 export default async function Home() {
-
+  const { user } = await auth()
+  const isAdmin = user?.role === 'ADMIN'
 
 
   return (
     <main className="min-h-screen bg-white">
-      <Header isAuthenticated={await isAuthenticated()} />
+      <Header isAuthenticated={await isAuthenticated()} isAdmin={isAdmin} />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background with gradient */}

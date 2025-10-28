@@ -31,7 +31,6 @@ export async function signInAction(data: FormData) {
     exp: number;
   }
 
-
   try {
     const { token } = await signInWithPassword({ email, password });
     const cookieStore = await cookies()

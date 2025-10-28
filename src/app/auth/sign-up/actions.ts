@@ -14,7 +14,7 @@ const signUpSchema = z
       (value) => value.trim().split(" ").length >= 2,
       "Por favor insira seu nome completo",
     ),
-    email: z.string().email("Por favor, insira um email válido"),
+    email: z.email("Por favor, insira um email válido"),
     password: z
       .string()
       .min(6, "A senha deve ter no mínimo 6 caracteres")

@@ -4,6 +4,7 @@ import { signInWithPassword } from "@/http/sign-in-with-password";
 import type { Role } from "@/permissions/roles";
 import { jwtDecode } from 'jwt-decode';
 import { HTTPError } from "ky";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import z from "zod/v4";
@@ -33,14 +34,15 @@ export async function signInAction(data: FormData) {
 
   try {
     const { token } = await signInWithPassword({ email, password });
-
-    (await cookies()).set('token', token, {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+    const cookieStore = await cookies()
+    cookieStore.set("token", token, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
     })
 
     decodedToken = jwtDecode(token);
-
+    revalidatePath("/")
+    revalidatePath("/auth/sign-in")
   }
   catch (err: any) {
     if (err instanceof HTTPError) {
@@ -49,7 +51,7 @@ export async function signInAction(data: FormData) {
     }
     return {
       success: false,
-      message: 'Unexpected error, try again in a few minutes.',
+      message: 'Erro encontrado. Tente novamente mais tarde.',
       errors: null
     }
   }

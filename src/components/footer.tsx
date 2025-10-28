@@ -1,3 +1,6 @@
+import logoTextWhite from '@/assets/logo-piramide-white.svg';
+import logoImg from '@/assets/logo.png';
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
@@ -7,14 +10,24 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           <div className="inline-grid items-center justify-center">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="size-8 bg-white text-black flex items-center justify-center font-bold text-sm rounded-sm">P</div>
-              <span className="font-bold text-xl">Pirâmide Calçados</span>
+              <Image
+                src={logoImg}
+                alt="Pirâmide Calçados Logo"
+                width={40}
+                height={40}
+              />
+              <Image
+                src={logoTextWhite}
+                alt="Pirâmide Calçados Logo Text"
+                width={230}
+                height={55}
+              />
             </div>
-            <p className="text-gray-400 mb-4">Qualidade e estilo em cada passo. Sua loja de confiança desde 2020.</p>
+            <p className="text-gray-400 mb-4">Qualidade e estilo em cada passo.</p>
             <div className="text-sm text-gray-400">
-              <p>📍 Rua das Palmeiras, 123</p>
-              <p>Centro - São Paulo, SP</p>
-              <p>📞 (11) 99999-9999</p>
+              <p>📍 Av Francisco Jales, 2465</p>
+              <p>Centro - Jales, SP</p>
+              <p>📞 (17) 3632-2574</p>
             </div>
           </div>
 
@@ -72,7 +85,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 Pirâmide Calçados. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Pirâmide Calçados. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

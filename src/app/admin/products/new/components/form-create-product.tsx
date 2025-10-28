@@ -62,7 +62,7 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
 
 
   const [images, setImages] = useState<File[]>([])
-  const [featured, setFeatured] = useState(true)
+  const [featured, setFeatured] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({})
   const [variants, setVariants] = useState<Variant[]>([])
@@ -439,13 +439,14 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
       <div className="space-y-8">
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Status do Produto</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
 
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <Label htmlFor="featured">Produto em Destaque</Label>
               <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
               <input type="hidden" name="featured" value={featured ? "true" : "false"} />
             </div>
+            <span className="text-xs text-muted-foreground ml-2 ">Aparecerá na página inicial</span>
           </CardContent>
         </Card>
 
@@ -469,17 +470,10 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
         {/* Informações Gerais */}
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Informações Gerais</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {/* <div>
-              <Label htmlFor="sku">SKU Base *</Label>
-              <Input id="sku" name="sku" placeholder="TENIS-001" className={`mt-2 ${errors?.sku ? "border-red-500" : ""}`} />
-              {errors?.sku && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors?.sku}</p>}
-            </div> */}
+          <CardContent >
+            <Label htmlFor="weight">Peso (kg)</Label>
+            <Input id="weight" name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
 
-            <div>
-              <Label htmlFor="weight">Peso (kg)</Label>
-              <Input id="weight" name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
-            </div>
           </CardContent>
         </Card>
 

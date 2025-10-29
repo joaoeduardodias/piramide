@@ -1,5 +1,6 @@
 import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
+import { getBrands } from "@/http/get-brands"
 import { getCategories } from "@/http/get-categories"
 import { getOptions } from "@/http/get-options"
 import { ArrowLeft } from "lucide-react"
@@ -21,6 +22,7 @@ export default async function NewProductPage() {
 
   const { categories } = await getCategories()
   const { options } = await getOptions()
+  const { brands } = await getBrands()
 
   return (
     <div className="space-y-8">
@@ -39,7 +41,7 @@ export default async function NewProductPage() {
 
       </div>
 
-      <FormCreateProduct options={options} categories={categories} />
+      <FormCreateProduct brands={brands} options={options} categories={categories} />
     </div>
   )
 }

@@ -6,6 +6,10 @@ export interface Product {
   name: string;
   slug: string;
   featured: boolean | null;
+  brand: {
+    id: string;
+    name: string;
+  };
   description: string | null;
   price: number;
   comparePrice: number | null;

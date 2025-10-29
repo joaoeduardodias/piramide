@@ -27,6 +27,7 @@ const createProductSchema = z.object({
   status: ProductStatusEnum.default('DRAFT'),
   weight: z.number().positive("Peso deve ser positivo.").optional(),
   category: z.array(z.uuid('Selecione uma categoria')),
+  brandId: z.uuid("Selecione uma marca"),
   images: z.array(z.instanceof(File))
     .nonempty("Envie pelo menos uma imagem")
     .refine(
@@ -54,37 +55,7 @@ const deleteProductSchema = z.object({
   id: z.uuid()
 })
 
-// const updateProductSchema = z.object({
-//   name: z.string().min(1, 'Digite o nome do produto'),
-//   description: z.string().optional(),
-//   featured: z.boolean().default(false),
-//   price: z.number('Preço é obrigatório.').positive('Preço deve ser positivo'),
-//   comparePrice: z.number('Preço é obrigatório.').positive('Preço deve ser positivo'),
-//   status: ProductStatusEnum.default('DRAFT'),
-//   weight: z.number().positive("Peso deve ser positivo.").optional(),
-//   category: z.array(z.uuid('Selecione uma categoria')),
-//   images: z.array(z.instanceof(File))
-//     .nonempty("Envie pelo menos uma imagem")
-//     .refine(
-//       (files) => files.every((f) => f.size < 5 * 1024 * 1024),
-//       "Cada imagem deve ter menos de 5MB"
-//     ),
-//   tags: z.string().optional(),
-//   options: z.array(z.object({
-//     name: z.string(),
-//     values: z.array(z.object({
-//       content: z.string().optional(),
-//       value: z.string()
-//     })),
-//   })),
-//   variants: z.array(z.object({
-//     sku: z.string().optional(),
-//     price: z.number().optional(),
-//     comparePrice: z.number().optional(),
-//     stock: z.number().int().default(0),
-//     optionValueIds: z.array(z.string().uuid()).optional(),
-//   })).optional(),
-// })
+
 
 const createOptionSchema = z.object({
   name: z.string("Nome é obrigatório."),
@@ -137,6 +108,7 @@ export async function createProductAction(data: FormData) {
     description,
     images,
     weight,
+    brandId,
     options,
     variants,
     tags,
@@ -193,6 +165,7 @@ export async function createProductAction(data: FormData) {
       status,
       weight,
       tags,
+      brandId,
       options,
       variants
     })

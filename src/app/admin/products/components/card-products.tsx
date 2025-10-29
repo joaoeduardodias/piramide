@@ -168,15 +168,15 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
                   <TableHead>Preço</TableHead>
                   <TableHead>Estoque</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Marca</TableHead>
                   <TableHead>Vendas</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.length === 0 ?
-
                   <TableRow>
-                    <TableCell colSpan={8} className="col-span-8">
+                    <TableCell colSpan={9} className="col-span-9">
                       <div className="flex min-h-[400px] flex-col items-center justify-center gap-2  p-8 text-center">
                         <Package2 className="size-12 text-muted-foreground" />
                         <div className="space-y-1">
@@ -226,7 +226,7 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge('', product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
-                        {/* <TableCell>{getStatusBadge(product.status, product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell> */}
+                        <TableCell>{product.brand.name}</TableCell>
                         <TableCell>
                           <span className="text-sm text-gray-600 ">{product.sales}</span>
                         </TableCell>

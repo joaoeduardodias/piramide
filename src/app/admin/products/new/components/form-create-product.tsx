@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
-import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, X } from "lucide-react"
+import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, Plus, X } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { useState } from "react"
 import { createProductAction } from "../../actions"
 import { FormCreateOption } from "./form-create-option"
@@ -34,6 +36,10 @@ interface FormCreateProps {
     id: string
     name: string
   }[]
+  brands: {
+    id: string
+    name: string
+  }[]
   options: {
     name: string
     values: {
@@ -45,9 +51,8 @@ interface FormCreateProps {
 }
 
 
-export function FormCreateProduct({ categories, options }: FormCreateProps) {
+export function FormCreateProduct({ categories, options, brands }: FormCreateProps) {
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createProductAction)
-
   const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(
     options.map(opt => {
       const key = opt.name.toLowerCase();
@@ -66,6 +71,8 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({})
   const [variants, setVariants] = useState<Variant[]>([])
+  const [brand, setBrand] = useState<string>("")
+
 
   function getInitials(name: string): string {
     if (!name.trim()) return "";
@@ -175,6 +182,8 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
         <input type="hidden" name="options" value={JSON.stringify(selectedOptions)} />
         <input type="hidden" name="variants" value={JSON.stringify(variants)} />
         <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
+        <input type="hidden" name="brandId" value={brand} />
+
 
         <Card className="border-0 shadow-sm">
           <CardHeader>
@@ -202,6 +211,32 @@ export function FormCreateProduct({ categories, options }: FormCreateProps) {
               <Textarea id="description" name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
               {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
             </div>
+            <Select
+              value={brand}
+              onValueChange={setBrand}
+            >
+              <SelectTrigger >
+                <SelectValue placeholder="Selecione a Marca do Produto *" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {brands && brands.length > 0 ? (
+                  brands.map((brand) => (
+                    <SelectItem
+                      key={brand.id}
+                      value={brand.id}
+                      className="p-2 hover:bg-gray-100"
+                    >
+                      {brand.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <Link href="/admin/brands/new">
+                    <div className="p-2 text-sm text-gray-500 flex items-center justify-center">Crie uma Marca <Plus className="size-3 ml-1" /> </div>
+                  </Link>
+                )}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">

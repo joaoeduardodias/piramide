@@ -29,6 +29,7 @@ interface CreateProductRequest {
   slug: string
   description?: string
   tags?: string
+  brandId: string
   featured: boolean
   price: number
   comparePrice?: number
@@ -56,6 +57,7 @@ export async function createProduct({
   status,
   tags,
   weight,
+  brandId,
   options,
   variants
 }: CreateProductRequest) {
@@ -73,6 +75,7 @@ export async function createProduct({
       tags,
       weight,
       options,
+      brandId,
       variants
     }
   }).json<CreateProductResponse>()

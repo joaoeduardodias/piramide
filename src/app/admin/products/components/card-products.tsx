@@ -42,7 +42,7 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
   const getStatusBadge = (status: string, stock: number) => {
     if (status === "Ativo" && stock > 10) {
       return <Badge className="bg-emerald-100 text-emerald-700 border-0">Ativo</Badge>
-    } else if (status === "Baixo Estoque" || (stock > 0 && stock <= 10)) {
+    } else if (status === "Baixo Estoque" || (stock > 0 && stock <= 5)) {
       return <Badge className="bg-amber-100 text-amber-700 border-0">Baixo Estoque</Badge>
     } else if (status === "Esgotado" || stock === 0) {
       return <Badge className="bg-red-100 text-red-700 border-0">Esgotado</Badge>

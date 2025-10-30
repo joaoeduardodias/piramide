@@ -1,23 +1,18 @@
 "use client"
 
-import { AddToCartButton } from "@/components/add-to-cart-button"
 import { Header } from "@/components/header"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { products } from "@/utils/products"
-import { Heart, MessageCircle, RotateCcw, Share2, Shield, Star, Truck } from "lucide-react"
+import { getProductBySlug } from "@/http/get-product-by-slug"
+import { Heart, MessageCircle, RotateCcw, Share2, Shield, Truck } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { use, useState } from "react"
 
 
-export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const product = products.find(p => p.slug === slug)
-  const relatedProducts = products.filter(p => p.category === product?.category && p.slug !== slug).slice(0, 3)
+  const { product } = await getProductBySlug({ slug })
+
   if (!product) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -28,7 +23,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState("")
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
+  const [selectedColor, setSelectedColor] = useState(product.options[0].name)
   const [quantity, setQuantity] = useState(1)
 
   const handleWhatsAppOrder = () => {
@@ -37,7 +32,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 📦 *${product.name}*
 💰 Preço: R$ ${product.price.toFixed(2).replace(".", ",")}
 📏 Tamanho: ${selectedSize}
-🎨 Cor: ${selectedColor.name}
+🎨 Cor: ${selectedColor}
 📊 Quantidade: ${quantity}
 
 Total: R$ ${(product.price * quantity).toFixed(2).replace(".", ",")}
@@ -52,24 +47,18 @@ Poderia me ajudar com o pedido?`
     <main className="min-h-screen bg-white">
       <Header />
 
-      {/* Breadcrumb */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Link href="/" className="hover:text-black">
-            Início
-          </Link>
-          <span>/</span>
-          <Link href="/produtos" className="hover:text-black">
-            Produtos
-          </Link>
-          <span>/</span>
-          <Link href="/tenis" className="hover:text-black">
-            {product.category}
-          </Link>
-          <span>/</span>
-          <span className="text-black">{product.name}</span>
-        </div>
+      <div className="flex items-center space-x-2 text-sm text-gray-600 container mx-auto px-4 py-4">
+        <Link href="/" className="hover:text-black">
+          Início
+        </Link>
+        <span>/</span>
+        <Link href="/products" className="hover:text-black">
+          Produtos
+        </Link>
+        <span>/</span>
+        <span className="text-black">{product.name}</span>
       </div>
+
 
       {/* Product Section */}
       <div className="container mx-auto px-4 py-8">
@@ -78,16 +67,11 @@ Poderia me ajudar com o pedido?`
           <div className="space-y-4">
             <div className="relative aspect-square bg-gray-50 rounded-lg overflow-hidden">
               <Image
-                src={product.images[selectedImage] || "/placeholder.svg"}
+                src={product.images[selectedImage].url}
                 alt={product.name}
                 fill
                 className="object-cover"
               />
-              {product.discount > 0 && (
-                <Badge className="absolute top-4 left-4 bg-red-500 hover:bg-red-600 text-white">
-                  -{product.discount}%
-                </Badge>
-              )}
             </div>
 
             <div className="grid grid-cols-4 gap-2">
@@ -99,7 +83,7 @@ Poderia me ajudar com o pedido?`
                     }`}
                 >
                   <Image
-                    src={image || "/placeholder.svg"}
+                    src={image.url}
                     alt={`${product.name} - Imagem ${index + 1}`}
                     width={100}
                     height={100}
@@ -113,39 +97,24 @@ Poderia me ajudar com o pedido?`
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              {/* <div className="flex items-center gap-2 mb-2">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                        }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm text-gray-600">
-                  {product.rating} ({product.reviews} avaliações)
-                </span>
-              </div> */}
-
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
 
-              <p className="text-gray-600 mb-4">SKU: {product.sku}</p>
+              <p className="text-gray-600 mb-4">SKU: {product.variants.map(v => v.sku)}</p>
 
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-3xl font-bold text-gray-900">
                   R$ {product.price.toFixed(2).replace(".", ",")}
                 </span>
-                {product.originalPrice > product.price && (
+                {product.comparePrice && product.comparePrice > product.price && (
                   <span className="text-xl text-gray-500 line-through">
-                    R$ {product.originalPrice.toFixed(2).replace(".", ",")}
+                    R$ {product.comparePrice.toFixed(2).replace(".", ",")}
                   </span>
                 )}
               </div>
             </div>
 
             {/* Color Selection */}
-            <div>
+            {/* <div>
               <h3 className="font-semibold mb-3">Cor: {selectedColor.name}</h3>
               <div className="flex gap-2">
                 {product.colors.map((color) => (
@@ -161,10 +130,10 @@ Poderia me ajudar com o pedido?`
                   />
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Size Selection */}
-            <div>
+            {/* <div>
               <h3 className="font-semibold mb-3">Tamanho</h3>
               <Select value={selectedSize} onValueChange={setSelectedSize}>
                 <SelectTrigger className="w-full">
@@ -178,7 +147,7 @@ Poderia me ajudar com o pedido?`
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* Quantity */}
             <div>
@@ -196,33 +165,47 @@ Poderia me ajudar com o pedido?`
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                  disabled={quantity >= product.stock}
+                  onClick={() =>
+                    setQuantity(
+                      Math.min(
+                        product.variants.reduce((max, item) => Math.max(max, item.stock), 0),
+                        quantity + 1
+                      )
+                    )
+                  }
+
+                  disabled={quantity >= product.variants.reduce((max, item) => Math.max(max, item.stock), 0)}
                 >
                   +
                 </Button>
-                <span className="text-sm text-gray-600 ml-4">{product.stock} disponíveis</span>
+                <span className="text-sm text-gray-600 ml-4">{product.variants.reduce((max, item) => Math.max(max, item.stock), 0)} disponíveis</span>
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-4">
-              <AddToCartButton
+              {/* <AddToCartButton
                 product={{
                   id: product.id,
                   name: product.name,
                   price: product.price,
-                  originalPrice: product.originalPrice,
+                  comparePrice: product.comparePrice,
                   images: product.images,
-                  category: product.category,
-                  discount: product.discount,
+                  // categories: product.categories
+                  categories:{
+                    category: {
+                      id: "",
+                      name: product.category[0] || "",
+                      slug: ""
+                    }
+                  }
+                  discount: product.price && product.comparePrice ? ((product.comparePrice - product.price) / product.comparePrice) * 100 : 0,
                 }}
                 selectedSize={selectedSize}
                 selectedColor={selectedColor.name}
                 quantity={quantity}
                 size="lg"
                 className="w-full"
-              />
+              /> */}
 
               <Button
                 size="lg"
@@ -281,152 +264,9 @@ Poderia me ajudar com o pedido?`
             </div>
           </div>
         </div>
-
         {/* Product Details Tabs */}
-        <div className="mt-16">
-          <Tabs defaultValue="description" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="description">Descrição</TabsTrigger>
-              <TabsTrigger value="specifications">Especificações</TabsTrigger>
-              {/* <TabsTrigger value="reviews">Avaliações ({product.reviews})</TabsTrigger> */}
-            </TabsList>
-
-            <TabsContent value="description" className="mt-6">
-              <div className="prose max-w-none">
-                <p className="text-gray-700 leading-relaxed mb-4">{product.description}</p>
-                <h4 className="font-semibold mb-3">Características:</h4>
-                <ul className="space-y-2">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-black rounded-full" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="specifications" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-3">Informações do Produto</h4>
-                  <dl className="space-y-2">
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">Categoria:</dt>
-                      <dd className="font-medium">{product.category}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">SKU:</dt>
-                      <dd className="font-medium">{product.sku}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">Tamanhos:</dt>
-                      <dd className="font-medium">{product.sizes.join(", ")}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">Cores:</dt>
-                      <dd className="font-medium">{product.colors.map((c) => c.name).join(", ")}</dd>
-                    </div>
-                  </dl>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-3">Cuidados</h4>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li>• Limpe com pano úmido</li>
-                    <li>• Não deixe de molho</li>
-                    <li>• Seque à sombra</li>
-                    <li>• Guarde em local arejado</li>
-                  </ul>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="reviews" className="mt-6">
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl font-bold">{product.rating}</div>
-                  {/* <div>
-                    <div className="flex mb-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-5 h-5 ${i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                            }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-gray-600">{product.reviews} avaliações</p>
-                  </div> */}
-                </div>
-
-                <div className="space-y-4">
-                  {[1, 2, 3].map((review) => (
-                    <div key={review} className="border-b pb-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                          ))}
-                        </div>
-                        <span className="font-semibold">Cliente {review}</span>
-                        <span className="text-gray-500 text-sm">há 2 dias</span>
-                      </div>
-                      <p className="text-gray-700">
-                        Produto excelente! Muito confortável e com ótimo acabamento. Recomendo para quem busca qualidade
-                        e estilo.
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Related Products */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold mb-8">Produtos Relacionados</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedProducts.map((relatedProduct) => (
-              <Card key={relatedProduct.id} className="group hover:shadow-lg transition-shadow">
-                <CardContent className="p-0">
-                  <Link href={`/produto/${relatedProduct.id}`}>
-                    <Image
-                      src={relatedProduct.images[0] || "/placeholder.svg"}
-                      alt={relatedProduct.name}
-                      width={200}
-                      height={200}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </Link>
-                  <div className="p-4">
-                    <div className="flex items-center gap-1 mb-2">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${i < Math.floor(relatedProduct.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                              }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-600">{relatedProduct.rating}</span>
-                    </div>
-                    <Link href={`/produto/${relatedProduct.id}`}>
-                      <h3 className="font-semibold text-gray-900 mb-2 hover:text-gray-600 transition-colors">
-                        {relatedProduct.name}
-                      </h3>
-                    </Link>
-                    <p className="text-lg font-bold text-gray-900">
-                      R$ {relatedProduct.price.toFixed(2).replace(".", ",")}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
       </div>
-    </main>
+
+    </main >
   )
 }

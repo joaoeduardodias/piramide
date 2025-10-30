@@ -3,7 +3,7 @@ import { auth, isAuthenticated } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCategories } from "@/http/get-categories"
-import { getProducts, type Product } from "@/http/get-products"
+import { getProducts, type ProductType } from "@/http/get-products"
 import { AlertTriangle, Package, Plus } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -21,7 +21,7 @@ export default async function ProductsPage() {
   const { categories } = await getCategories()
   const { products } = await getProducts()
 
-  function countLowStockProducts(products: Product[], limit = 5) {
+  function countLowStockProducts(products: ProductType[], limit = 5) {
     return products.filter((p) => {
       const totalStock = p.variants.reduce((acc: any, v: any) => acc + v.stock, 0)
       return totalStock < limit

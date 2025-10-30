@@ -66,7 +66,6 @@ export function AddToCartButton({
       ) : (
         <>
           <ShoppingCart className="w-4 h-4 mr-2" />
-
         </>
       )}
     </Button>

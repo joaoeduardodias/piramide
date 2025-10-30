@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { Category } from "@/http/get-categories"
-import type { Product } from "@/http/get-products"
+import type { ProductType } from "@/http/get-products"
 import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -18,7 +18,7 @@ import { toast } from "sonner"
 import { deleteProductAction } from "../actions"
 
 interface CardProductsProps {
-  products: Product[]
+  products: ProductType[]
   categories: Category[]
 }
 
@@ -37,7 +37,7 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
   const [selectedStatus, setSelectedStatus] = useState("Todos")
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+  const [productToDelete, setProductToDelete] = useState<ProductType | null>(null)
 
   const getStatusBadge = (status: string, stock: number) => {
     if (status === "Ativo" && stock > 10) {
@@ -65,7 +65,7 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
     router.push(`/admin/products/update/${productId}`)
   }
 
-  const handleDeleteProduct = (product: Product) => {
+  const handleDeleteProduct = (product: ProductType) => {
     setProductToDelete(product)
   }
 

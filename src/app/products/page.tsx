@@ -2,7 +2,6 @@
 
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-import { Product } from "@/components/product"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -332,7 +331,8 @@ export default function ProductsPage() {
                 }
               >
                 {paginatedProducts.map((product) => (
-                  <Product key={product.id} {...product} />
+                  <div></div>
+                  // <Product key={product.id} {...product} />
                   // <Card
                   //   key={product.id}
                   //   className={`group hover:shadow-xl transition-all duration-300 ${viewMode === "list" ? "flex flex-row" : ""

@@ -24,8 +24,8 @@ type SelectedOptions = Record<string, OptionValue[]>
 interface Variant {
   id: string
   sku: string
-  price: number
-  comparePrice: number
+  price?: number
+  comparePrice?: number
   stock: number
   options: Record<string, { value: string; content: string | null } | string>
   optionValueIds?: string[]
@@ -496,7 +496,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
               {errors?.price && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.price[0]}</p>}
             </div>
             <div>
-              <Label htmlFor="comparePrice">Preço Comparativo *</Label>
+              <Label htmlFor="comparePrice">Preço Comparativo</Label>
               <Input id="comparePrice" name="comparePrice" type="number" step="0.01" placeholder="0,00" className="mt-2" />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>

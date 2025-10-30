@@ -19,8 +19,8 @@ interface ProductOption {
 }
 interface ProductVariant {
   sku?: string
-  price?: number
-  comparePrice?: number
+  price?: number | null
+  comparePrice?: number | null
   stock?: number
   optionValueIds?: string[]
 }
@@ -33,7 +33,7 @@ interface updateProductRequest {
   tags?: string
   featured: boolean
   price: number
-  comparePrice?: number
+  comparePrice?: number | null
   weight?: number
   categoryIds: string[]
   images: ProductImage[]

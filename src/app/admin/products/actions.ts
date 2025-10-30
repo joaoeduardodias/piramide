@@ -24,7 +24,7 @@ const createProductSchema = z.object({
   description: z.string().optional(),
   featured: z.boolean().default(false),
   price: z.number('Preço é obrigatório.').positive('Preço deve ser positivo'),
-  comparePrice: z.number('Preço é obrigatório.').positive('Preço deve ser positivo'),
+  comparePrice: z.number().positive('Preço deve ser positivo').nullable().optional(),
   status: ProductStatusEnum.default('DRAFT'),
   weight: z.number().positive("Peso deve ser positivo.").optional(),
   category: z.array(z.uuid('Selecione uma categoria')),

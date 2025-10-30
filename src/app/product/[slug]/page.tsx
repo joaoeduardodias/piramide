@@ -107,7 +107,7 @@ Poderia me ajudar com o pedido?`
                 </span>
                 {product.comparePrice && product.comparePrice > product.price && (
                   <span className="text-xl text-gray-500 line-through">
-                    R$ {product.comparePrice.toFixed(2).replace(".", ",")}
+                    R$ {Number(product.comparePrice).toFixed(2).replace(".", ",")}
                   </span>
                 )}
               </div>

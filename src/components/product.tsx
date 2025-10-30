@@ -46,7 +46,7 @@ export function Product(product: ProductType) {
               </span>
               {product.comparePrice && product.comparePrice > product.price && (
                 <span className="text-sm text-gray-500 line-through">
-                  R$ {product.comparePrice.toFixed(2).replace(".", ",")}
+                  R$ {Number(product.comparePrice).toFixed(2).replace(".", ",")}
                 </span>
               )}
             </div>

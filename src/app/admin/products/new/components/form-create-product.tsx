@@ -15,6 +15,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { createProductAction } from "../../actions"
 import { FormCreateOption } from "./form-create-option"
+import { FormCreateOptionValue } from "./form-create-option-value"
 
 type OptionValue = { id: string, value: string, content: string | null }
 type SelectedOptions = Record<string, OptionValue[]>
@@ -215,10 +216,9 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
               value={brand}
               onValueChange={setBrand}
             >
-              <SelectTrigger >
+              <SelectTrigger>
                 <SelectValue placeholder="Selecione a Marca do Produto *" />
               </SelectTrigger>
-
               <SelectContent>
                 {brands && brands.length > 0 ? (
                   brands.map((brand) => (
@@ -311,15 +311,17 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
           <CardContent className="space-y-8">
             {Object.entries(defaultValues).map(([optionName, values]) => {
               const selected = selectedOptions[optionName] || []
-
               const isColorOption = values.some((v: any) => v && v.content)
 
               return (
                 <div key={optionName}>
-                  <Label className="capitalize mb-4">{optionName} *</Label>
+                  <div className=" flex items-center justify-between  mb-4">
+                    <Label className="capitalize">{optionName} *</Label>
+                    <FormCreateOptionValue optionName={optionName} />
+                  </div>
                   <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
                     {values.map((val: OptionValue) => {
-                      const valObj = { ...val, content: val.content || "#ccc" }
+                      const valObj = { ...val, content: val.content || "#f5f5f5" }
                       const isSelected = selected.some(v => v.id === valObj.id)
 
                       if (isColorOption) {

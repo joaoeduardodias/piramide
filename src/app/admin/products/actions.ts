@@ -1,6 +1,7 @@
 "use server"
 
 import { createOption } from "@/http/create-option"
+import { createOptionValue } from "@/http/create-option-value"
 import { createProduct } from "@/http/create-product"
 import { deleteProduct } from "@/http/delete-product"
 import { getProductById } from "@/http/get-product-by-id"
@@ -59,6 +60,13 @@ const deleteProductSchema = z.object({
 
 const createOptionSchema = z.object({
   name: z.string("Nome é obrigatório."),
+  values: z.array(z.object({
+    content: z.string().nullable(),
+    value: z.string("Valor é obrigatório"),
+  })),
+})
+const createOptionValueSchema = z.object({
+  optionName: z.string("OptionName é obrigatório."),
   values: z.array(z.object({
     content: z.string().nullable(),
     value: z.string("Valor é obrigatório"),
@@ -406,6 +414,50 @@ export async function createOptionAction(data: FormData) {
   try {
     await createOption({
       name,
+      values
+    })
+
+    revalidatePath("/admin/products/new")
+    revalidatePath("/admin/products/update/:id")
+
+    return {
+      success: true,
+      message: 'Opção Criada',
+      errors: null
+    }
+
+  } catch (err: any) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json()
+      return { success: false, message, errors: null };
+    }
+    return {
+      success: false,
+      message: 'Unexpected error, try again in a few minutes.',
+      errors: null
+    }
+  }
+
+}
+
+export async function createOptionValueAction(data: FormData) {
+  const optionNameData = data.get("optionName") as string
+
+  const valuesRaw = data.get("valuesData") as string | null
+  const valuesItem = valuesRaw ? JSON.parse(valuesRaw) : []
+  const payload = { optionName: optionNameData, values: valuesItem }
+  const result = createOptionValueSchema.safeParse(payload)
+
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors
+    return { success: false, message: null, errors }
+  }
+
+  const { optionName, values } = result.data
+
+  try {
+    await createOptionValue({
+      optionName,
       values
     })
 

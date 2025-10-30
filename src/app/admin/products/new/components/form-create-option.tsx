@@ -18,7 +18,9 @@ export function FormCreateOption() {
   const [colors, setColors] = useState<string[]>([])
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createOptionAction)
 
-  const isColorOption = optionName.toLowerCase() === "cor"
+  const isColorOption = ["cor", "color"].includes(optionName.toLowerCase());
+
+
 
   const handleValuesChange = (text: string) => {
     setValuesText(text)
@@ -46,7 +48,6 @@ export function FormCreateOption() {
       .map(v => v.trim())
       .filter(Boolean)
 
-    const isColorOption = name.toLowerCase() === "cor"
 
     const values = valuesText.map((value, i) => {
 

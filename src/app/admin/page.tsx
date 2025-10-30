@@ -3,143 +3,28 @@ import { auth, isAuthenticated } from "@/auth/auth"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getOrders } from "@/http/get-orders"
+import { getProducts } from "@/http/get-products"
 import {
-  ArrowDownRight,
-  ArrowUpRight,
   CheckCircle,
+  CircleX,
   Clock,
-  DollarSign,
   Eye,
   Package,
   Plus,
   ShoppingCart,
   TrendingUp,
-  Truck,
-  Users
+  Truck
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { EmptyState } from "./components/empty-state"
+import { StatsDashboard } from "./components/stats-dashboard"
 
-const stats = [
-  {
-    title: "Vendas Hoje",
-    value: "R$ 12.450",
-    change: "+12.5%",
-    changeType: "positive" as const,
-    icon: DollarSign,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50",
-  },
-  {
-    title: "Pedidos",
-    value: "156",
-    change: "+8.2%",
-    changeType: "positive" as const,
-    icon: ShoppingCart,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-  },
-  {
-    title: "Produtos",
-    value: "1.234",
-    change: "+2.1%",
-    changeType: "positive" as const,
-    icon: Package,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-  {
-    title: "Clientes",
-    value: "8.945",
-    change: "-1.2%",
-    changeType: "negative" as const,
-    icon: Users,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-  },
-]
 
-const recentOrders = [
-  {
-    id: "#12345",
-    customer: "João Silva",
-    product: "Tênis Urbano Premium",
-    value: "R$ 299,90",
-    status: "Pago",
-    date: "Hoje, 14:30",
-    statusColor: "bg-emerald-100 text-emerald-700",
-    statusIcon: CheckCircle,
-  },
-  {
-    id: "#12344",
-    customer: "Maria Santos",
-    product: "Sapato Social Clássico",
-    value: "R$ 189,90",
-    status: "Pendente",
-    date: "Hoje, 13:15",
-    statusColor: "bg-amber-100 text-amber-700",
-    statusIcon: Clock,
-  },
-  {
-    id: "#12343",
-    customer: "Pedro Costa",
-    product: "Bota Coturno Feminina",
-    value: "R$ 159,90",
-    status: "Enviado",
-    date: "Ontem, 16:45",
-    statusColor: "bg-blue-100 text-blue-700",
-    statusIcon: Truck,
-  },
-  {
-    id: "#12342",
-    customer: "Ana Oliveira",
-    product: "Sandália Comfort",
-    value: "R$ 89,90",
-    status: "Entregue",
-    date: "Ontem, 10:20",
-    statusColor: "bg-emerald-100 text-emerald-700",
-    statusIcon: CheckCircle,
-  },
-]
 
-const topProducts = [
-  {
-    name: "Tênis Urbano Premium",
-    sales: 45,
-    revenue: "R$ 13.495,50",
-    image: "/placeholder.svg?height=60&width=60&text=Tênis",
-    trend: "+15%",
-    trendColor: "text-emerald-600",
-    trendBg: "bg-emerald-100",
-  },
-  {
-    name: "Sapato Social Clássico",
-    sales: 32,
-    revenue: "R$ 6.076,80",
-    image: "/placeholder.svg?height=60&width=60&text=Social",
-    trend: "+8%",
-    trendColor: "text-emerald-600",
-    trendBg: "bg-emerald-100",
-  },
-  {
-    name: "Bota Coturno Feminina",
-    sales: 28,
-    revenue: "R$ 4.477,20",
-    image: "/placeholder.svg?height=60&width=60&text=Bota",
-    trend: "-2%",
-    trendColor: "text-red-600",
-    trendBg: "bg-red-100",
-  },
-  {
-    name: "Sandália Comfort",
-    sales: 24,
-    revenue: "R$ 2.157,60",
-    image: "/placeholder.svg?height=60&width=60&text=Sandália",
-    trend: "+5%",
-    trendColor: "text-emerald-600",
-    trendBg: "bg-emerald-100",
-  },
-]
+
 
 const quickActions = [
   {
@@ -169,6 +54,65 @@ export default async function AdminDashboard() {
       redirect('/')
     }
   }
+  const { products } = await getProducts()
+  const topSalesProducts = products
+    .map(product => {
+      const stock = product.variants.reduce((acc, variant) => acc + variant.stock, 0);
+      const sales = product.sales || 0;
+      const percentSold = stock > 0 ? sales / stock : 0;
+
+      return {
+        id: product.id,
+        name: product.name,
+        img: product.images[0]?.url || "",
+        sales,
+        stock,
+        revenue: `R$ ${sales * product.price}`,
+        trend: percentSold > 0.5 ? "+15%" : "-5%",
+        trendColor: percentSold > 0.5 ? "text-emerald-600" : "text-red-600",
+        trendBg: percentSold > 0.5 ? "bg-emerald-100" : "bg-red-100",
+        percentSold
+      };
+    })
+    .filter(product => product.sales > 0)
+    .sort((a, b) => (b.percentSold || 0) - (a.percentSold || 0))
+    .slice(0, 10);
+
+  const { orders } = await getOrders()
+
+  const recentOrders = orders
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map(order => {
+      let statusColor = "bg-yellow-100 text-yellow-700"
+      let statusIcon = Clock
+      if (order.status === "DELIVERED") {
+        statusColor = "bg-green-100 text-green-700"
+        statusIcon = CheckCircle
+      } else if (order.status === "CONFIRMED") {
+        statusColor = "bg-blue-100 text-blue-700"
+        statusIcon = Truck
+      } else if (order.status === "PENDING") {
+        statusColor = "bg-yellow-100 text-yellow-700"
+        statusIcon = Clock
+      } else if (order.status === "CANCELLED") {
+        statusColor = "bg-red-100 text-red-700"
+        statusIcon = CircleX
+      }
+
+      return {
+        id: order.id.slice(0, 8).toUpperCase(),
+        customer: order.customer?.name,
+        product: order.items.map(item => item.product.name).join(", "),
+        value: `R$ ${order.total.toFixed(2)}`,
+        status: order.status,
+        date: new Date(order.createdAt).toLocaleDateString("pt-BR"),
+        statusColor,
+        statusIcon,
+      }
+    })
+
+
 
   return (
     <main className="space-y-8">
@@ -188,35 +132,7 @@ export default async function AdminDashboard() {
       </div>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardContent className="p-6 flex items-start justify-between">
-              <div className="flex-1">
-                <h2 className="text-sm font-medium text-gray-600 mb-1">{stat.title}</h2>
-                <p className="text-2xl font-bold text-gray-900 mb-3">{stat.value}</p>
-                <div className="flex items-center">
-                  {stat.changeType === "positive" ? (
-                    <ArrowUpRight className="size-4 text-emerald-500" />
-                  ) : (
-                    <ArrowDownRight className="size-4 text-red-500" />
-                  )}
-                  <span
-                    className={`text-sm font-medium ml-1 ${stat.changeType === "positive" ? "text-emerald-600" : "text-red-600"
-                      }`}
-                  >
-                    {stat.change}
-                  </span>
-                  <span className="text-sm text-gray-500 ml-1">em relação ao mês anterior</span>
-                </div>
-              </div>
-              <div className={`size-12 mt-1 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                <stat.icon className={`size-6 ${stat.color}`} />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <StatsDashboard />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* orders */}
@@ -232,7 +148,14 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentOrders.map((order) => (
+              {recentOrders.length === 0 ? (
+                <EmptyState
+                  icon={ShoppingCart}
+                  title="Nenhum pedido ainda"
+                  description="Quando você receber pedidos, eles aparecerão aqui. Comece divulgando sua loja!"
+                  illustration="orders"
+                />
+              ) : recentOrders.map((order) => (
                 <div
                   key={order.id}
                   className="flex items-center justify-between p-4 bg-gray-50/50 rounded-lg hover:bg-gray-50 transition-colors"
@@ -271,19 +194,29 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {topProducts.map((product, index) => (
+              {topSalesProducts.length === 0 ? (
+                <EmptyState
+                  icon={Package}
+                  title="Nenhum produto vendeu ainda"
+                  description="Divulgue à sua loja para começar a vender e acompanhar o desempenho."
+                  actionHref="/admin/products/new"
+                  illustration="products"
+                />
+              ) : topSalesProducts.map((product, index) => (
                 <div
-                  key={product.name}
+                  key={product.id}
                   className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center text-sm font-semibold text-gray-600">
                     {index + 1}
                   </div>
-                  {/* <img
-                    src={product.image || "/placeholder.svg"}
+                  <Image
+                    src={product.img}
                     alt={product.name}
+                    width={48}
+                    height={48}
                     className="size-12 object-cover rounded-lg"
-                  /> */}
+                  />
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">{product.name}</p>
                     <p className="text-sm text-gray-500">{product.sales} vendas</p>

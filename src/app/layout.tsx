@@ -1,8 +1,8 @@
 import { Toaster } from "@/components/ui/sonner";
-import { CartProvider } from "@/context/cart-context";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.className}  antialiased`}>
-        <CartProvider>
+        <Providers>
           {children}
           <Toaster
             position="top-right"
@@ -29,7 +29,7 @@ export default function RootLayout({
             closeButton
             theme="light"
           />
-        </CartProvider>
+        </Providers>
       </body>
 
     </html>

@@ -2,16 +2,14 @@
 
 import type React from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/context/cart-context"
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 import Image from "next/image"
 
 export function CartDrawer({ children }: { children: React.ReactNode }) {
-  const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, getTotalDiscount, isOpen, setIsOpen } =
+  const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } =
     useCart()
 
   const handleWhatsAppCheckout = () => {
@@ -28,19 +26,18 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
       )
       .join("\n\n")
 
-    const totalDiscount = getTotalDiscount()
+
     const totalPrice = getTotalPrice()
 
     const message = `🛍️ *Pedido - Pirâmide Calçados*
 
 ${orderDetails}
 
-${totalDiscount > 0 ? `💰 Desconto: R$ ${totalDiscount.toFixed(2).replace(".", ",")}` : ""}
 💳 *Total: R$ ${totalPrice.toFixed(2).replace(".", ",")}*
 
 Gostaria de finalizar este pedido!`
 
-    const whatsappUrl = `https://wa.me/5511999999999?text=${encodeURIComponent(message)}`
+    const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, "_blank")
   }
 
@@ -82,11 +79,7 @@ Gostaria de finalizar este pedido!`
                           fill
                           className="object-cover rounded-md"
                         />
-                        {item.discount && item.discount > 0 && (
-                          <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 py-0">
-                            -{item.discount}%
-                          </Badge>
-                        )}
+
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -98,11 +91,6 @@ Gostaria de finalizar este pedido!`
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-sm">R$ {item.price.toFixed(2).replace(".", ",")}</span>
-                            {item.originalPrice && item.originalPrice > item.price && (
-                              <span className="text-xs text-gray-500 line-through">
-                                R$ {item.originalPrice.toFixed(2).replace(".", ",")}
-                              </span>
-                            )}
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -147,7 +135,7 @@ Gostaria de finalizar este pedido!`
               {/* Cart Summary */}
               <div className="border-t pt-4 space-y-4">
                 <div className="space-y-2">
-                  {getTotalDiscount() > 0 && (
+                  {/* {getTotalDiscount() > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal:</span>
                       <span className="text-gray-600">
@@ -160,8 +148,8 @@ Gostaria de finalizar este pedido!`
                       <span className="text-green-600">Desconto:</span>
                       <span className="text-green-600">-R$ {getTotalDiscount().toFixed(2).replace(".", ",")}</span>
                     </div>
-                  )}
-                  <Separator />
+                  )} */}
+                  {/* <Separator /> */}
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
                     <span>R$ {getTotalPrice().toFixed(2).replace(".", ",")}</span>

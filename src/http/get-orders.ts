@@ -5,8 +5,8 @@ export interface Order {
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "DELIVERED";
   total: number;
   itemsCount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   customer: {
     id: string;
     email: string;

@@ -4,27 +4,24 @@ import { destroyCookie, parseCookies, setCookie } from "nookies"
 import { createContext, useContext, useEffect, useState } from "react"
 
 export interface CartItem {
-  id: number
+  id: string
   name: string
   price: number
-  originalPrice?: number
   image: string
-  category: string
+  categories: string[]
   selectedSize: string
   selectedColor: string
   quantity: number
-  discount?: number
 }
 
 interface CartContextType {
   items: CartItem[]
   addItem: (item: Omit<CartItem, "quantity">) => void
-  removeItem: (id: number, size: string, color: string) => void
-  updateQuantity: (id: number, size: string, color: string, quantity: number) => void
+  removeItem: (id: string, size: string, color: string) => void
+  updateQuantity: (id: string, size: string, color: string, quantity: number) => void
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
-  getTotalDiscount: () => number
   isOpen: boolean
   setIsOpen: (open: boolean) => void
 }
@@ -39,7 +36,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load cart from cookies on mount
+
   useEffect(() => {
     const cookies = parseCookies()
     const savedCart = cookies[CART_COOKIE_NAME]
@@ -55,7 +52,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsLoaded(true)
   }, [])
 
-  // Save cart to cookies whenever items change
+
   useEffect(() => {
     if (isLoaded) {
       if (items.length > 0) {
@@ -80,24 +77,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       )
 
       if (existingItemIndex > -1) {
-        // Item already exists, increase quantity
+
         const updatedItems = [...prevItems]
         updatedItems[existingItemIndex].quantity += 1
         return updatedItems
       } else {
-        // New item, add to cart
+
         return [...prevItems, { ...newItem, quantity: 1 }]
       }
     })
   }
 
-  const removeItem = (id: number, size: string, color: string) => {
+  const removeItem = (id: string, size: string, color: string) => {
     setItems((prevItems) =>
       prevItems.filter((item) => !(item.id === id && item.selectedSize === size && item.selectedColor === color)),
     )
   }
 
-  const updateQuantity = (id: number, size: string, color: string, quantity: number) => {
+  const updateQuantity = (id: string, size: string, color: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(id, size, color)
       return
@@ -122,14 +119,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return items.reduce((total, item) => total + item.price * item.quantity, 0)
   }
 
-  const getTotalDiscount = () => {
-    return items.reduce((total, item) => {
-      if (item.originalPrice && item.originalPrice > item.price) {
-        return total + (item.originalPrice - item.price) * item.quantity
-      }
-      return total
-    }, 0)
-  }
+
 
   const value: CartContextType = {
     items,
@@ -139,7 +129,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     clearCart,
     getTotalItems,
     getTotalPrice,
-    getTotalDiscount,
     isOpen,
     setIsOpen,
   }

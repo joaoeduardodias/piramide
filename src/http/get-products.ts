@@ -1,11 +1,12 @@
 import { api } from "./api-client";
 
 
-export interface Product {
+export interface ProductType {
   id: string;
   name: string;
   slug: string;
   featured: boolean | null;
+  createdAt: string;
   brand: {
     id: string;
     name: string;
@@ -35,7 +36,7 @@ export interface Product {
 }
 
 interface GetProducts {
-  products: Product[],
+  products: ProductType[],
   pagination: {
     page: number;
     limit: number;
@@ -46,8 +47,28 @@ interface GetProducts {
   },
 }
 
-export async function getProducts() {
-  const result = await api.get('products').json<GetProducts>()
+
+interface GetProductsParams {
+  featured?: boolean;
+  page?: number;
+  limit?: number;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
+  categoryId?: string;
+  search?: string;
+}
+
+export async function getProducts(params?: GetProductsParams) {
+  const query = new URLSearchParams();
+  if (params?.featured) query.set("featured", "true");
+  else query.delete("featured");
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.status) query.set("status", params.status);
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.search) query.set("search", params.search);
+
+  const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
+  const result = await api.get(url).json<GetProducts>()
   return result
 
 }

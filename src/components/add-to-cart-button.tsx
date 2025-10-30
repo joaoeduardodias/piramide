@@ -2,19 +2,12 @@
 
 import { Button } from "@/components/ui/button"
 import { useCart, type CartItem } from "@/context/cart-context"
+import type { ProductType } from "@/http/get-products"
 import { Check, ShoppingCart } from "lucide-react"
 import { useState } from "react"
 
 interface AddToCartButtonProps {
-  product: {
-    id: number
-    name: string
-    price: number
-    originalPrice?: number
-    images: string[]
-    category: string
-    discount?: number
-  }
+  product: ProductType
   selectedSize: string
   selectedColor: string
   quantity?: number
@@ -42,24 +35,18 @@ export function AddToCartButton({
       id: product.id,
       name: product.name,
       price: product.price,
-      originalPrice: product.originalPrice,
-      image: product.images[0],
-      category: product.category,
+      image: product.images[0].url,
+      categories: product.categories.map(c => c.category.name),
       selectedSize,
       selectedColor,
-      discount: product.discount,
     }
 
-    // Add multiple quantities if specified
+
     for (let i = 0; i < quantity; i++) {
       addItem(cartItem)
     }
-
-    // Show success state
     setIsAdded(true)
     setTimeout(() => setIsAdded(false), 2000)
-
-    // Open cart drawer after a short delay
     setTimeout(() => setIsOpen(true), 500)
   }
 

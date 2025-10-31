@@ -320,7 +320,6 @@ export async function updateProductAction(data: FormData) {
       const item = images[i]
 
       if (item instanceof File) {
-        // Upload de novos arquivos
         const sanitizedName = item.name.replace(/\s+/g, "-")
         const fileKey = `${crypto.randomUUID()}-${sanitizedName}`
         const signedUrl = await getSignedUrl(
@@ -341,7 +340,6 @@ export async function updateProductAction(data: FormData) {
         uploadedUrls.push(publicUrl)
         finalImages.push({ url: publicUrl, alt: item.name.split(".")[0], sortOrder: i, fileKey })
       } else if (typeof item === "string") {
-        // Mantém imagens existentes sem alterar
         const existing = existingImages.find(img => img.url === item)
         finalImages.push({
           id: existing?.id,
@@ -354,7 +352,6 @@ export async function updateProductAction(data: FormData) {
       }
     }
 
-    // Remover apenas imagens que não estão mais no front
     const removed = existingImages.filter(img => !uploadedUrls.includes(img.url))
     if (removed.length > 0) {
       await Promise.all(
@@ -365,7 +362,6 @@ export async function updateProductAction(data: FormData) {
       )
     }
 
-    // Atualiza produto com apenas os campos que mudaram
     await updateProduct({
       id: productId,
       name,
@@ -401,7 +397,7 @@ export async function createOptionAction(data: FormData) {
   const nameItem = data.get("name") as string
   const valuesRaw = data.get("values") as string | null
   const valuesItem = valuesRaw ? JSON.parse(valuesRaw) : []
-  const payload = { name: nameItem, values: valuesItem }
+  const payload = { name: nameItem.toLowerCase(), values: valuesItem }
   const result = createOptionSchema.safeParse(payload)
 
   if (!result.success) {

@@ -152,9 +152,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     setHasChanged(currentState !== originalState)
   }, [images, originalState])
 
-
-
-
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(
     Object.fromEntries(
       (initialData.options || []).map((opt) => [opt.name.toLowerCase(), opt.values])
@@ -359,10 +356,17 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   }
 
   const [price, setPrice] = useState(() => formatReal(String(initialData.price ?? "")))
+  const [comparePrice, setComparePrice] = useState(() => formatReal(String(initialData.comparePrice ?? "")))
 
   function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatReal(e.target.value)
     setPrice(formatted)
+  }
+
+
+  function handleComparePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatReal(e.target.value)
+    setComparePrice(formatted)
   }
 
   return (
@@ -698,7 +702,19 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
             </div>
             <div>
               <Label htmlFor="comparePrice">Preço Comparativo</Label>
-              <Input id="comparePrice" defaultValue={initialData.comparePrice ?? ''} name="comparePrice" type="number" step="0.01" placeholder="0,00" className="mt-2" />
+              <Input
+                id="comparePrice"
+                name="comparePrice"
+                value={comparePrice}
+                onChange={handleComparePriceChange}
+                placeholder="R$ 0,00"
+                className={`mt-2 ${errors?.comparePrice ? "border-red-500" : ""}`}
+              />
+              <input
+                type="hidden"
+                name="comparePrice"
+                value={price.replace(/[^\d,]/g, "").replace(",", ".")}
+              />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>
             <div>

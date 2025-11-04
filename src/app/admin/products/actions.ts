@@ -96,7 +96,6 @@ export async function createProductAction(data: FormData) {
     featured: rawData.featured === "true",
     category: categoriesIds,
     uploads: formattedFilesUploads,
-
     options: formattedOptions,
     variants: formattedVariants
   };
@@ -131,7 +130,7 @@ export async function createProductAction(data: FormData) {
       description,
       featured,
       name,
-      price,
+      price: price * 100,
       slug: generateSlug(name),
       status,
       weight,
@@ -245,7 +244,7 @@ export async function updateProductAction(data: FormData) {
       const parsed = JSON.parse(filesUpload)
       formattedFilesUploads = Array.isArray(parsed) ? parsed : [parsed]
     } catch {
-      console.warn("Erro ao parsear filesUpload, ignorando valor inválido.")
+      console.warn("Erro filesUpload, ignorando valor inválido.")
       formattedFilesUploads = []
     }
   }
@@ -286,7 +285,7 @@ export async function updateProductAction(data: FormData) {
       id: productId,
       name,
       slug: generateSlug(name),
-      price,
+      price: price * 100,
       comparePrice,
       weight,
       featured,

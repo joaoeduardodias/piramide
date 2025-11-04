@@ -55,7 +55,7 @@ export function formatReal(value: string): string {
   const numbers = value.replace(/\D/g, "")
   if (!numbers) return ""
 
-  const numberValue = (parseInt(numbers, 10) / 100).toFixed(2)
+  const numberValue = (Number(numbers) / 100).toFixed(2)
   const [integer, decimal] = numberValue.split(".")
 
   const withThousands = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ".")

@@ -97,7 +97,6 @@ export default async function ProductsPage() {
         </Card>
       </section>
       <HydrationBoundary state={dehydrate(queryClient)}>
-
         <CardProducts categories={categories} />
       </HydrationBoundary>
 

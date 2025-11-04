@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { Category } from "@/http/get-categories"
 import { useProducts, type ProductType } from "@/http/get-products"
+import { formatReal } from "@/lib/validations"
 import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -203,7 +204,6 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
         </CardContent>
       </Card>
 
-
       <Card className="border-0 shadow-sm h-[48rem]">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-900">
@@ -270,7 +270,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
                           <span className="text-sm text-gray-600">{product.categories[0]?.category.name}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium">R$ {Number(product.price).toFixed(2).replace(".", ",")}</span>
+                          <span className="font-medium">{formatReal(String(product.price))}</span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">

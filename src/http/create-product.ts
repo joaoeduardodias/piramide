@@ -17,6 +17,15 @@ interface ProductVariant {
   optionValueIds?: string[]
 }
 
+interface ProductImages {
+  url: string
+  alt?: string
+  sortOrder: number
+  fileKey: string
+}
+
+
+
 interface CreateProductRequest {
   name: string
   slug: string
@@ -31,6 +40,7 @@ interface CreateProductRequest {
   categoryIds: string[]
   options: ProductOption[]
   variants?: ProductVariant[]
+  images: ProductImages[]
 }
 
 interface CreateProductResponse {
@@ -50,7 +60,8 @@ export async function createProduct({
   weight,
   brandId,
   options,
-  variants
+  variants,
+  images
 }: CreateProductRequest) {
   const result = await api.post('products', {
     json: {
@@ -58,7 +69,7 @@ export async function createProduct({
       comparePrice,
       description,
       featured,
-      // images,
+      images,
       name,
       price,
       slug,

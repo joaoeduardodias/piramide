@@ -7,7 +7,6 @@ import { deleteProduct } from "@/http/delete-product"
 import { getProductById } from "@/http/get-product-by-id"
 import { updateImages } from "@/http/update-images"
 import { updateProduct } from "@/http/update-product"
-import { uploadsAttach } from "@/http/uploads-attach"
 import { r2 } from "@/lib/cloudfare"
 import { generateSlug } from "@/utils/generate-slug"
 import { DeleteObjectsCommand } from "@aws-sdk/client-s3"
@@ -77,9 +76,21 @@ export async function createProductAction(data: FormData) {
   }))
 
 
-  const filesUpload = data.get("filesUpload") as string
-  const parsed = JSON.parse(filesUpload)
-  const formattedFilesUploads = Array.isArray(parsed) ? parsed : [parsed]
+  const filesUpload = data.get("filesUpload") as string | null
+  console.log(filesUpload);
+
+  let formattedFilesUploads: any[] = []
+
+  if (filesUpload) {
+    try {
+      const parsed = JSON.parse(filesUpload)
+      console.log(filesUpload);
+      formattedFilesUploads = Array.isArray(parsed) ? parsed : [parsed]
+    } catch {
+      console.warn("Erro filesUpload, ignorando valor inválido.")
+      formattedFilesUploads = []
+    }
+  }
 
   const variantsData = data.get("variants") as string
   const formattedVariants = JSON.parse(variantsData)
@@ -104,6 +115,7 @@ export async function createProductAction(data: FormData) {
   const result = createProductSchema.safeParse(formattedData);
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors;
+    console.log(errors);
     return { success: false, message: null, errors }
   };
   const {
@@ -124,7 +136,7 @@ export async function createProductAction(data: FormData) {
 
 
   try {
-    const { productId } = await createProduct({
+    await createProduct({
       categoryIds: category,
       comparePrice,
       description,
@@ -137,26 +149,19 @@ export async function createProductAction(data: FormData) {
       tags,
       brandId,
       options,
-      variants
-    })
-
-
-
-
-    await uploadsAttach({
-      productId: productId,
-      files: uploads!.map((u, i) => ({
+      variants,
+      images: uploads!.map((u, i) => ({
         fileKey: u.fileKey,
         url: u.url,
         sortOrder: i + 1,
       })),
-
     })
 
     revalidatePath("/admin/products")
     revalidatePath("/products")
 
   } catch (err: any) {
+
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
       return { success: false, message, errors: null };

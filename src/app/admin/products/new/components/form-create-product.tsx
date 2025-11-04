@@ -12,7 +12,7 @@ import { getSignedUrl } from "@/http/get-signed-url"
 import { formatReal } from "@/lib/validations"
 import { AlertCircle, AlertTriangle, Check, FolderTree, Loader2, Plus, X } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { createProductAction } from "../../actions"
 import ImageUpload from "../../components/image-upload"
 import { FormCreateOption } from "./form-create-option"
@@ -54,7 +54,10 @@ interface FormCreateProps {
 
 
 export function FormCreateProduct({ categories, options, brands }: FormCreateProps) {
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createProductAction)
+  const [isPending, setIsPending] = useState(false)
+  const [{ success, message, errors }, handleSubmit] = useFormState(createProductAction)
+  const formRef = useRef<HTMLFormElement>(null);
+
   const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(
     options.map(opt => {
       const key = opt.name.toLowerCase();
@@ -74,7 +77,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({})
   const [variants, setVariants] = useState<Variant[]>([])
   const [brand, setBrand] = useState<string>("")
-  const [filesUpload, setFilesUpload] = useState({})
+
 
   function getInitials(name: string): string {
     if (!name.trim()) return "";
@@ -175,7 +178,6 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
           sortOrder: i + 1,
         }))
       })
-
       await Promise.all(
         uploads.map((u, i) =>
           fetch(u.presignedUrl, {
@@ -185,7 +187,17 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
           }),
         ),
       )
-      setFilesUpload(uploads)
+      const json = JSON.stringify(uploads)
+      const form = formRef.current
+      let input = form?.querySelector<HTMLInputElement>('input[name="filesUpload"]')
+      if (!input) {
+        input = document.createElement("input")
+        input.type = "input"
+        input.name = "filesUpload"
+        form?.appendChild(input)
+      }
+      input.value = json
+      return
 
     }
   }
@@ -197,13 +209,13 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
         <input type="hidden" name="options" value={JSON.stringify(selectedOptions)} />
         <input type="hidden" name="variants" value={JSON.stringify(variants)} />
         <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
-        <input type="hidden" name="filesUpload" value={JSON.stringify(filesUpload)} />
         <input type="hidden" name="brandId" value={brand} />
+        <input type="hidden" name="filesUpload" />
 
 
         <Card className="border-0 shadow-sm">
@@ -276,6 +288,12 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
             <p className="text-sm text-gray-600">Selecione uma ou mais categorias para classificar este produto</p>
           </CardHeader>
           <CardContent className="space-y-4">
+            {errors?.categories && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
+                <AlertCircle className="size-4" />
+                {errors.categories[0]}
+              </p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {categories.map((category) => {
                 const isSelected = selectedCategories.includes(category.id)
@@ -299,12 +317,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                   </div>
                 )
               })}
-              {errors?.categories && (
-                <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
-                  <AlertCircle className="size-4" />
-                  {errors.categories[0]}
-                </p>
-              )}
+
             </div>
           </CardContent>
         </Card>
@@ -545,9 +558,21 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Ações</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <Button type="submit" className="w-full" onClick={handleUploadImage} disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Criar Produto
+            <Button
+              type="button"
+              className="w-full"
+              onClick={async () => {
+                try {
+                  setIsPending(true)
+                  await handleUploadImage()
+                  formRef.current?.requestSubmit()
+                } finally {
+                  setIsPending(false)
+                }
+              }}
+              disabled={isPending}
+            >
+              {isPending ? <span className="flex items-center justify-center gap-2">Criando <Loader2 className="mr-2 size-4 animate-spin" /></span> : 'Criar Produto'}
             </Button>
             {errors?.form && <p className="text-sm text-red-600 text-center">{errors.form[0]}</p>}
           </CardContent>

@@ -102,6 +102,8 @@ interface FormUpdateProps {
 export function FormUpdateProduct({ categories, options, brands, initialData }: FormUpdateProps) {
   const hasConvertedRef = useRef(false)
   const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, setIsPending] = useState(false)
+  const [{ success, message, errors }, handleSubmit] = useFormState(updateProductAction)
 
   const [hasChanged, setHasChanged] = useState(false)
   const [featured, setFeatured] = useState<boolean>(initialData.featured)
@@ -110,7 +112,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   const [images, setImages] = useState<File[]>([])
   const [originalState, setOriginalState] = useState<string>("")
 
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProductAction)
   const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(
     options.map(opt => {
       const key = opt.name.toLowerCase();
@@ -730,12 +731,25 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
             <Button
               type="button"
               className="w-full"
-              onClick={async (e) => {
-                await handleUploadImage();
-                formRef.current?.requestSubmit()
+              onClick={async () => {
+                try {
+                  setIsPending(true)
+                  await handleUploadImage()
+                  formRef.current?.requestSubmit()
+                } finally {
+                  setIsPending(false)
+                }
               }}
-              disabled={isPending}>
-              {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : 'Atualizar Produto'}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  Atualizando
+                  <Loader2 className="size-4 animate-spin" />
+                </span>
+              ) : (
+                'Atualizar Produto'
+              )}
             </Button>
             {errors?.form && <p className="text-sm text-red-600 text-center">{errors.form[0]}</p>}
           </CardContent>

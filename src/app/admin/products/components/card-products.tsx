@@ -251,13 +251,15 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
                       <TableRow key={product.id} className="hover:bg-gray-50/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Image
-                              src={product.images[0].url}
-                              alt={product.name}
-                              width={40}
-                              height={40}
-                              className="size-10 object-cover rounded-lg"
-                            />
+                            {product.images.length > 0 && (
+                              <Image
+                                src={product.images[0].url}
+                                alt={product.name}
+                                width={40}
+                                height={40}
+                                className="size-10 object-cover rounded-lg"
+                              />
+                            )}
                             <div>
                               <p className="font-medium text-gray-900">{product.name}</p>
                             </div>

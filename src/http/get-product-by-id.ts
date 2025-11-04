@@ -10,6 +10,10 @@ export interface GetProductByIdResponse {
     price: number;
     comparePrice: number | null;
     weight: number | null;
+    brand: {
+      id: string;
+      name: string;
+    }
     images: {
       id: string;
       url: string;

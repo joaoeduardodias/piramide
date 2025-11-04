@@ -5,19 +5,18 @@ import { createOptionValue } from "@/http/create-option-value"
 import { createProduct } from "@/http/create-product"
 import { deleteProduct } from "@/http/delete-product"
 import { getProductById } from "@/http/get-product-by-id"
+import { updateImages } from "@/http/update-images"
 import { updateProduct } from "@/http/update-product"
+import { uploadsAttach } from "@/http/uploads-attach"
 import { r2 } from "@/lib/cloudfare"
 import { generateSlug } from "@/utils/generate-slug"
-import { DeleteObjectCommand, DeleteObjectsCommand, PutObjectCommand } from "@aws-sdk/client-s3"
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import { DeleteObjectsCommand } from "@aws-sdk/client-s3"
 import { HTTPError } from "ky"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { randomUUID } from "node:crypto"
 import z from "zod/v4"
 
 const ProductStatusEnum = z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
-
 
 const createProductSchema = z.object({
   name: z.string().min(1, 'Digite o nome do produto'),
@@ -29,12 +28,11 @@ const createProductSchema = z.object({
   weight: z.number().positive("Peso deve ser positivo.").optional(),
   category: z.array(z.uuid('Selecione uma categoria')),
   brandId: z.uuid("Selecione uma marca"),
-  images: z.array(z.instanceof(File))
-    .nonempty("Envie pelo menos uma imagem")
-    .refine(
-      (files) => files.every((f) => f.size < 5 * 1024 * 1024),
-      "Cada imagem deve ter menos de 5MB"
-    ),
+  uploads: z.array(z.object({
+    fileKey: z.string(),
+    presignedUrl: z.string().optional(),
+    url: z.url(),
+  })).optional(),
   tags: z.string().optional(),
   options: z.array(z.object({
     name: z.string(),
@@ -55,9 +53,6 @@ const createProductSchema = z.object({
 const deleteProductSchema = z.object({
   id: z.uuid()
 })
-
-
-
 const createOptionSchema = z.object({
   name: z.string("Nome é obrigatório."),
   values: z.array(z.object({
@@ -81,6 +76,11 @@ export async function createProductAction(data: FormData) {
     values
   }))
 
+
+  const filesUpload = data.get("filesUpload") as string
+  const parsed = JSON.parse(filesUpload)
+  const formattedFilesUploads = Array.isArray(parsed) ? parsed : [parsed]
+
   const variantsData = data.get("variants") as string
   const formattedVariants = JSON.parse(variantsData)
 
@@ -95,7 +95,8 @@ export async function createProductAction(data: FormData) {
     weight: rawData.weight ? Number(rawData.weight) : undefined,
     featured: rawData.featured === "true",
     category: categoriesIds,
-    images: data.getAll("images").filter((f): f is File => f instanceof File),
+    uploads: formattedFilesUploads,
+
     options: formattedOptions,
     variants: formattedVariants
   };
@@ -114,59 +115,21 @@ export async function createProductAction(data: FormData) {
     category,
     comparePrice,
     description,
-    images,
     weight,
     brandId,
     options,
     variants,
+    uploads,
     tags,
   } = result.data
 
 
   try {
-
-    const uploads = await Promise.all(
-      images.map(async (image, index) => {
-        const sanitizedName = image.name.replace(/\s+/g, "-")
-        const fileKey = `${randomUUID()}-${sanitizedName}`
-        const contentType = image.type
-
-        const signedUrl = await getSignedUrl(
-          r2,
-          new PutObjectCommand({
-            Bucket: "piramide",
-            Key: fileKey,
-            ContentType: contentType,
-            ACL: "public-read",
-          }),
-          { expiresIn: 600 }
-        )
-        const arrayBuffer = await image.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        const uploadRes = await fetch(signedUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": contentType,
-          },
-          body: buffer,
-        })
-
-        if (!uploadRes.ok) throw new Error(`Falha ao enviar ${image.name}`)
-        const publicUrl = `${process.env.CLOUDFARE_PUBLIC_URL}/${fileKey}`
-        return {
-          url: publicUrl,
-          alt: image.name.split(".")[0],
-          sortOrder: index,
-          fileKey,
-        }
-      })
-    )
-    await createProduct({
+    const { productId } = await createProduct({
       categoryIds: category,
       comparePrice,
       description,
       featured,
-      images: uploads,
       name,
       price,
       slug: generateSlug(name),
@@ -177,6 +140,20 @@ export async function createProductAction(data: FormData) {
       options,
       variants
     })
+
+
+
+
+    await uploadsAttach({
+      productId: productId,
+      files: uploads!.map((u, i) => ({
+        fileKey: u.fileKey,
+        url: u.url,
+        sortOrder: i + 1,
+      })),
+
+    })
+
     revalidatePath("/admin/products")
     revalidatePath("/products")
 
@@ -245,46 +222,48 @@ export async function updateProductAction(data: FormData) {
     return { success: false, message: "ID do produto ausente", errors: null }
   }
 
-  // Processa options
   const optionsData = data.get("options") as string
   const formattedOptions = Object.entries(JSON.parse(optionsData)).map(([name, values]) => ({
     name,
-    values: (values as any[])
-      .filter(v => v.content != null)
-      .map(v => ({ id: v.id, value: v.value, content: v.content })),
+    values,
   }))
 
-  // Processa variants
   const variantsData = data.get("variants") as string
   const formattedVariants = JSON.parse(variantsData)
 
-  // Processa categorias
   const categoriesData = data.get("categories") as string
-  const categoryIds = JSON.parse(categoriesData)
+  const categoriesIds = JSON.parse(categoriesData)
 
-  // Dados brutos
   const rawData = Object.fromEntries(data.entries())
-  const imagesFromForm = data
-    .getAll("images")
-    .filter((f): f is File | string => f instanceof File || typeof f === "string")
 
+  const filesUpload = data.get("filesUpload") as string | null
 
-  // Formata dados
+  let formattedFilesUploads: any[] = []
+
+  if (filesUpload) {
+    try {
+      const parsed = JSON.parse(filesUpload)
+      formattedFilesUploads = Array.isArray(parsed) ? parsed : [parsed]
+    } catch {
+      console.warn("Erro ao parsear filesUpload, ignorando valor inválido.")
+      formattedFilesUploads = []
+    }
+  }
   const formattedData = {
     ...rawData,
     price: rawData.price ? Number(rawData.price) : undefined,
     comparePrice: rawData.comparePrice ? Number(rawData.comparePrice) : undefined,
     weight: rawData.weight ? Number(rawData.weight) : undefined,
     featured: rawData.featured === "true",
-    category: categoryIds,
-    images: imagesFromForm,
+    category: categoriesIds,
     options: formattedOptions,
     variants: formattedVariants,
-  }
 
+  }
   const result = createProductSchema.safeParse(formattedData)
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors
+    console.log(errors);
     return { success: false, message: null, errors }
   }
 
@@ -295,73 +274,14 @@ export async function updateProductAction(data: FormData) {
     category,
     comparePrice,
     description,
-    images,
     weight,
+    brandId,
     options,
     variants,
     tags,
   } = result.data
 
   try {
-    const { product } = await getProductById({ id: productId })
-    const existingImages = product.images || []
-
-    const finalImages: Array<{
-      id?: string
-      url: string
-      alt: string
-      sortOrder: number
-      fileKey?: string
-    }> = []
-
-    const uploadedUrls: string[] = []
-
-    for (let i = 0; i < images.length; i++) {
-      const item = images[i]
-
-      if (item instanceof File) {
-        const sanitizedName = item.name.replace(/\s+/g, "-")
-        const fileKey = `${crypto.randomUUID()}-${sanitizedName}`
-        const signedUrl = await getSignedUrl(
-          r2,
-          new PutObjectCommand({
-            Bucket: "piramide",
-            Key: fileKey,
-            ContentType: item.type,
-            ACL: "public-read",
-          }),
-          { expiresIn: 600 }
-        )
-        const buffer = Buffer.from(await item.arrayBuffer())
-        const uploadRes = await fetch(signedUrl, { method: "PUT", headers: { "Content-Type": item.type }, body: buffer })
-        if (!uploadRes.ok) throw new Error(`Falha ao enviar ${item.name}`)
-
-        const publicUrl = `${process.env.CLOUDFARE_PUBLIC_URL}/${fileKey}`
-        uploadedUrls.push(publicUrl)
-        finalImages.push({ url: publicUrl, alt: item.name.split(".")[0], sortOrder: i, fileKey })
-      } else if (typeof item === "string") {
-        const existing = existingImages.find(img => img.url === item)
-        finalImages.push({
-          id: existing?.id,
-          url: item,
-          alt: existing?.alt ?? (String(item).split("/").pop()?.split(".")[0] ?? ""),
-          sortOrder: i,
-          fileKey: existing?.fileKey ?? undefined,
-        })
-        uploadedUrls.push(item)
-      }
-    }
-
-    const removed = existingImages.filter(img => !uploadedUrls.includes(img.url))
-    if (removed.length > 0) {
-      await Promise.all(
-        removed.map(async img => {
-          const key = img.fileKey ?? img.url.split("/").pop()!
-          await r2.send(new DeleteObjectCommand({ Bucket: "piramide", Key: key }))
-        })
-      )
-    }
-
     await updateProduct({
       id: productId,
       name,
@@ -371,27 +291,41 @@ export async function updateProductAction(data: FormData) {
       weight,
       featured,
       description,
+      brandId,
       tags,
       categoryIds: category,
-      images: finalImages,
       options,
       variants,
     })
+    const uploads = formattedFilesUploads
+
+
+    if (uploads && uploads.length > 0) {
+
+      await updateImages({
+        productId,
+        images: uploads.map((u, i) => ({
+          fileKey: u.fileKey,
+          url: u.url,
+          sortOrder: i + 1,
+        }))
+      })
+    }
 
     revalidatePath("/admin/products")
     revalidatePath("/products")
+
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
       return { success: false, message, errors: null }
     }
-    return { success: false, message: "Unexpected error, try again in a few minutes.", errors: null }
+    console.log(err);
+    return { success: false, message: "Erro inesperado. Tente novamente.", errors: null }
   }
-
   redirect("/admin/products")
+
 }
-
-
 
 export async function createOptionAction(data: FormData) {
   const nameItem = data.get("name") as string
@@ -399,7 +333,6 @@ export async function createOptionAction(data: FormData) {
   const valuesItem = valuesRaw ? JSON.parse(valuesRaw) : []
   const payload = { name: nameItem.toLowerCase(), values: valuesItem }
   const result = createOptionSchema.safeParse(payload)
-
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors
     return { success: false, message: null, errors }

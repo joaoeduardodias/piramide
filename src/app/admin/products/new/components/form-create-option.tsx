@@ -40,31 +40,24 @@ export function FormCreateOption() {
     e.stopPropagation()
 
     const form = e.currentTarget
-    const formData = new FormData(form)
 
-    const name = (formData.get("name") as string) || ""
-    const valuesText = ((formData.get("value") as string) || "")
-      .split(",")
+    const name = (form.querySelector('input[name="name"]') as HTMLInputElement)?.value || ""
+    const valuesText = (form.querySelector('input[name="value"]') as HTMLInputElement)?.value
+      ?.split(",")
       .map(v => v.trim())
-      .filter(Boolean)
+      .filter(Boolean) || []
 
 
     const values = valuesText.map((value, i) => {
-
-      const contentKey = `content[${i}]`
-      const contentRaw = formData.get(contentKey) as string | null
+      const contentEl = form.querySelector<HTMLInputElement>(`input[name="content[${i}]"]`)
+      const contentRaw = contentEl?.value || ""
       const content = isColorOption
-        ? (contentRaw && contentRaw.trim() !== "" ? contentRaw : null)
+        ? (contentRaw.trim() !== "" ? contentRaw : null)
         : null
 
-      return {
-        value,
-        content,
-      }
+      return { value, content }
     })
 
-    const contentInputs = Array.from(form.querySelectorAll('input[name^="content["]'))
-    contentInputs.forEach((el) => el.remove())
 
     let hidden = form.querySelector<HTMLInputElement>('input[name="values"]')
     const json = JSON.stringify(values)
@@ -75,10 +68,12 @@ export function FormCreateOption() {
       hidden.name = "values"
       form.appendChild(hidden)
     }
+
     hidden.value = json
 
     await handleSubmit(e)
   }
+
 
   useEffect(() => {
     if (success) {
@@ -166,11 +161,13 @@ export function FormCreateOption() {
                         <span className="w-24 text-sm text-gray-700">{value}</span>
                         <input
                           type="color"
+                          name={`content[${i}]`}
                           value={colors[i] ?? "#000000"}
                           onChange={(e) => handleColorChange(i, e.target.value)}
                           className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer"
                         />
                         <Input
+                          name={`content[${i}]`}
                           value={colors[i] ?? "#000000"}
                           onChange={(e) => handleColorChange(i, e.target.value)}
                           placeholder="#000000"

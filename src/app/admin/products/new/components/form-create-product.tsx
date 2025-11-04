@@ -1,6 +1,5 @@
 "use client"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
-import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, Plus, X } from "lucide-react"
-import Image from "next/image"
+import { getSignedUrl } from "@/http/get-signed-url"
+import { formatReal } from "@/lib/validations"
+import { AlertCircle, AlertTriangle, Check, FolderTree, Loader2, Plus, X } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { createProductAction } from "../../actions"
+import ImageUpload from "../../components/image-upload"
 import { FormCreateOption } from "./form-create-option"
 import { FormCreateOptionValue } from "./form-create-option-value"
 
@@ -73,7 +74,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({})
   const [variants, setVariants] = useState<Variant[]>([])
   const [brand, setBrand] = useState<string>("")
-
+  const [filesUpload, setFilesUpload] = useState({})
 
   function getInitials(name: string): string {
     if (!name.trim()) return "";
@@ -165,16 +166,34 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
     )
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (files) {
-      const newImages = Array.from(files)
-      setImages((prev) => [...prev, ...newImages])
+  const handleUploadImage = async () => {
+    if (images) {
+      const { uploads } = await getSignedUrl({
+        files: images.map((file, i) => ({
+          fileName: file.name,
+          contentType: file.type,
+          sortOrder: i + 1,
+        }))
+      })
+
+      await Promise.all(
+        uploads.map((u, i) =>
+          fetch(u.presignedUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': u.contentType, 'x-mime-type': u.contentType, },
+            body: images[i],
+          }),
+        ),
+      )
+      setFilesUpload(uploads)
+
     }
   }
+  const [price, setPrice] = useState<string>("")
 
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
+  function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatReal(e.target.value)
+    setPrice(formatted)
   }
 
   return (
@@ -183,6 +202,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
         <input type="hidden" name="options" value={JSON.stringify(selectedOptions)} />
         <input type="hidden" name="variants" value={JSON.stringify(variants)} />
         <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
+        <input type="hidden" name="filesUpload" value={JSON.stringify(filesUpload)} />
         <input type="hidden" name="brandId" value={brand} />
 
 
@@ -212,31 +232,39 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
               <Textarea id="description" name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
               {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
             </div>
-            <Select
-              value={brand}
-              onValueChange={setBrand}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a Marca do Produto *" />
-              </SelectTrigger>
-              <SelectContent>
-                {brands && brands.length > 0 ? (
-                  brands.map((brand) => (
-                    <SelectItem
-                      key={brand.id}
-                      value={brand.id}
-                      className="p-2 hover:bg-gray-100"
-                    >
-                      {brand.name}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <Link href="/admin/brands/new">
-                    <div className="p-2 text-sm text-gray-500 flex items-center justify-center">Crie uma Marca <Plus className="size-3 ml-1" /> </div>
-                  </Link>
-                )}
-              </SelectContent>
-            </Select>
+            <div>
+              <Select
+                value={brand}
+                onValueChange={setBrand}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a Marca do Produto *" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands && brands.length > 0 ? (
+                    brands.map((brand) => (
+                      <SelectItem
+                        key={brand.id}
+                        value={brand.id}
+                        className="p-2 hover:bg-gray-100"
+                      >
+                        {brand.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <Link href="/admin/brands/new">
+                      <div className="p-2 text-sm text-gray-500 flex items-center justify-center">Crie uma Marca <Plus className="size-3 ml-1" /> </div>
+                    </Link>
+                  )}
+                </SelectContent>
+              </Select>
+              {errors?.brand && (
+                <p className="text-sm text-red-600 mb-2 flex items-center gap-1">
+                  <AlertCircle size={16} />
+                  {errors?.brand[0]}
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
@@ -260,7 +288,6 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                       : "border-gray-200 bg-white hover:bg-gray-200"
                       }`}
                   >
-
                     <Label
                       htmlFor={category.name}
                       className={`flex items-center gap-2 cursor-pointer flex-1 text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}
@@ -272,34 +299,25 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                   </div>
                 )
               })}
+              {errors?.categories && (
+                <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
+                  <AlertCircle className="size-4" />
+                  {errors.categories[0]}
+                </p>
+              )}
             </div>
-
-            {errors?.categories && (
-              <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
-                <AlertCircle className="size-4" />
-                {errors.categories[0]}
-              </p>
-            )}
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Imagens do Produto *</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Imagens do Produto *</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              A primeira imagem será usada como imagem principal. Arraste as imagens para reordená-las.
+            </p>
+          </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((file, index) => (
-                <div key={index} className="relative group">
-                  <Image src={URL.createObjectURL(file)} alt={`Preview ${index + 1}`} width={150} height={150} className="w-full h-32 object-cover rounded-lg border" onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} />
-                  <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 size-6 opacity-0 group-hover:opacity-100" onClick={() => removeImage(index)}><X size={12} /></Button>
-                  {index === 0 && <Badge className="absolute bottom-2 left-2">Principal</Badge>}
-                </div>
-              ))}
-              <label className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400">
-                <ImageIcon className="size-8 text-gray-400" />
-                <span className="text-sm text-gray-600">Adicionar</span>
-                <input name="images" type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
-              </label>
-            </div>
-            {errors?.images && <p className="text-sm text-red-600 mt-2 flex items-center gap-1"><AlertCircle size={16} />{errors.images[0]}</p>}
+            <ImageUpload images={images} setImages={setImages} />
+            {errors?.images && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.images[0]}</p>}
           </CardContent>
         </Card>
 
@@ -360,6 +378,12 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                 </div>
               )
             })}
+            {errors?.options && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
+                <AlertCircle className="size-4" />
+                {errors.options[0]}
+              </p>
+            )}
 
           </CardContent>
         </Card>
@@ -383,7 +407,6 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                     key={v.id}
                     className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border"
                   >
-
                     <div className="flex items-center gap-3 flex-1">
                       {v.options.color && (
                         <div
@@ -477,7 +500,6 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Status do Produto</CardTitle></CardHeader>
           <CardContent>
-
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <Label htmlFor="featured">Produto em Destaque</Label>
               <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
@@ -488,11 +510,23 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
         </Card>
 
         <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Preços</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Informações Gerais</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="price">Preço de Venda *</Label>
-              <Input id="price" name="price" type="number" step="0.01" placeholder="0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
+              <Input
+                id="price"
+                name="price"
+                value={price}
+                onChange={handlePriceChange}
+                placeholder="R$ 0,00"
+                className={`mt-2 ${errors?.price ? "border-red-500" : ""}`}
+              />
+              <input
+                type="hidden"
+                name="price"
+                value={price?.replace(/[^\d,]/g, "").replace(",", ".")}
+              />
               {errors?.price && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.price[0]}</p>}
             </div>
             <div>
@@ -500,25 +534,18 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
               <Input id="comparePrice" name="comparePrice" type="number" step="0.01" placeholder="0,00" className="mt-2" />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>
-
+            <div>
+              <Label htmlFor="weight">Peso (kg)</Label>
+              <Input id="weight" name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
+              {errors?.weight && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.weight[0]}</p>}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Informações Gerais */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Informações Gerais</CardTitle></CardHeader>
-          <CardContent >
-            <Label htmlFor="weight">Peso (kg)</Label>
-            <Input id="weight" name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
-
-          </CardContent>
-        </Card>
-
-        {/* Ações */}
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Ações</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button type="submit" className="w-full" onClick={handleUploadImage} disabled={isPending}>
               {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Criar Produto
             </Button>

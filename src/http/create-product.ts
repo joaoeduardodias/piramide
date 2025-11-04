@@ -1,13 +1,6 @@
 import { api } from "./api-client";
 type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED"
 
-interface ProductImage {
-  url: string
-  alt?: string
-  sortOrder?: number
-  fileKey?: string
-}
-
 interface ProductOption {
   name: string
   values: {
@@ -36,7 +29,6 @@ interface CreateProductRequest {
   status?: ProductStatus
   weight?: number
   categoryIds: string[]
-  images: ProductImage[]
   options: ProductOption[]
   variants?: ProductVariant[]
 }
@@ -50,7 +42,6 @@ export async function createProduct({
   comparePrice,
   description,
   featured,
-  images,
   name,
   price,
   slug,
@@ -67,7 +58,7 @@ export async function createProduct({
       comparePrice,
       description,
       featured,
-      images,
+      // images,
       name,
       price,
       slug,

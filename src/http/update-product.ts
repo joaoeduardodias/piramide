@@ -2,13 +2,6 @@ import { api } from "./api-client";
 
 type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED"
 
-interface ProductImage {
-  url: string
-  alt?: string
-  sortOrder?: number
-  fileKey?: string
-}
-
 interface ProductOption {
   name: string
   values: {
@@ -31,31 +24,31 @@ interface updateProductRequest {
   slug: string
   description?: string
   tags?: string
+  brandId: string
   featured: boolean
   price: number
   comparePrice?: number | null
   weight?: number
   categoryIds: string[]
-  images: ProductImage[]
   options: ProductOption[]
   variants?: ProductVariant[]
 }
 
-export async function updateProduct({ id, name, slug, categoryIds, featured, images, options, price, comparePrice, description, tags, variants, weight }: updateProductRequest) {
+export async function updateProduct({ id, name, slug, categoryIds, featured, options, price, comparePrice, description, brandId, tags, variants, weight }: updateProductRequest) {
   const result = await api.put(`products/${id}`, {
     json: {
       name,
       slug,
       categoryIds,
       featured,
-      images,
       options,
       price,
       comparePrice,
       description,
       tags,
       variants,
-      weight
+      weight,
+      brandId
     }
   })
   return result

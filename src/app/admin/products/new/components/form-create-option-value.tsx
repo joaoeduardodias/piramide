@@ -48,6 +48,7 @@ export function FormCreateOptionValue({ optionName }: OptionValueProps) {
 
   const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    e.stopPropagation()
 
     const form = e.currentTarget;
 

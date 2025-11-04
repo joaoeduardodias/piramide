@@ -1,17 +1,22 @@
 "use client"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
-import { AlertCircle, AlertTriangle, Check, FolderTree, ImageIcon, Loader2, X } from "lucide-react"
+import { getSignedUrl } from "@/http/get-signed-url"
+import { formatReal } from "@/lib/validations"
+import { convertToFile } from "@/utils/convert-object-to-file"
+import { AlertCircle, AlertTriangle, Check, FolderTree, Loader2, Plus, X } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 import { updateProductAction } from "../../actions"
+import ImageUpload from "../../components/image-upload"
 
 
 type OptionValue = { id: string, value: string, content: string | null }
@@ -28,8 +33,6 @@ interface Variant {
   optionValueIds?: string[]
 }
 
-
-
 interface Image {
   id: string;
   url: string;
@@ -38,9 +41,18 @@ interface Image {
   sortOrder: number;
 }
 
+interface FileUpload {
+  fileKey: string;
+  url: string;
+  sortOrder: number;
+}
 
 interface FormUpdateProps {
   categories: {
+    id: string
+    name: string
+  }[]
+  brands: {
     id: string
     name: string
   }[]
@@ -60,13 +72,11 @@ interface FormUpdateProps {
     price: number;
     comparePrice: number | null;
     weight: number | null;
-    images: {
+    images: Image[]
+    brand: {
       id: string;
-      url: string;
-      alt: string | null;
-      fileKey: string | null;
-      sortOrder: number;
-    }[];
+      name: string;
+    }
     variants: {
       id: string;
       price: number | null;
@@ -87,10 +97,17 @@ interface FormUpdateProps {
   }
 }
 
-type ImageOrFile = File | Image
+export function FormUpdateProduct({ categories, options, brands, initialData }: FormUpdateProps) {
+  const hasConvertedRef = useRef(false)
+  const formRef = useRef<HTMLFormElement>(null);
 
+  const [hasChanged, setHasChanged] = useState(false)
+  const [featured, setFeatured] = useState<boolean>(initialData.featured)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories)
+  const [brand, setBrand] = useState<string>(String(initialData?.brand.id))
+  const [images, setImages] = useState<File[]>([])
+  const [originalState, setOriginalState] = useState<string>("")
 
-export function FormUpdateProduct({ categories, options, initialData }: FormUpdateProps) {
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProductAction)
   const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(
     options.map(opt => {
@@ -104,10 +121,38 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
     })
   );
 
+  async function convertImagesToFiles(images: Image[]): Promise<File[]> {
+    return Promise.all(
+      images.map((img, i) => convertToFile(img.url, img.fileKey ?? `image-${i}.jpg`))
+    )
+  }
 
-  const [featured, setFeatured] = useState<boolean>(initialData.featured)
-  const [images, setImages] = useState<ImageOrFile[]>(initialData.images)
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories)
+  useEffect(() => {
+    if (hasConvertedRef.current) return
+    hasConvertedRef.current = true
+
+    if (initialData.images.length > 0) {
+      convertImagesToFiles(initialData.images)
+        .then(resultado => {
+          setImages(resultado)
+          setOriginalState(JSON.stringify(resultado.map(f => f.name)))
+
+        })
+        .catch(erro => {
+          console.error("Falha na conversão de imagens:", erro);
+        });
+    }
+
+  }, [initialData.images])
+
+  useEffect(() => {
+    const currentState = JSON.stringify(images.map(f => f.name))
+    setHasChanged(currentState !== originalState)
+  }, [images, originalState])
+
+
+
+
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(
     Object.fromEntries(
       (initialData.options || []).map((opt) => [opt.name.toLowerCase(), opt.values])
@@ -213,25 +258,121 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
     )
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (files) {
-      const newImages = Array.from(files)
-      setImages((prev) => [...prev, ...newImages])
+  const handleUploadImage = async (): Promise<FileUpload[] | undefined> => {
+    if (!hasChanged) {
+      return
     }
+    const originalImages = initialData.images || []
+    const originalKeys = originalImages.map(img => img.fileKey)
+
+
+    // const removedImages = originalImages.filter(
+    //   img => !images.some(file => file.name === img.fileKey)
+    // )
+
+    const newImages = images.filter(file => !originalKeys.includes(file.name))
+
+
+    // const reordered = images.some((file, index) => {
+    //   const originalIndex = originalImages.findIndex(img => img.fileKey === file.name)
+    //   return originalIndex !== index
+    // })
+
+    if (newImages.length === 0) {
+      const updated = images.map((file, i) => {
+        const existing = originalImages.find(img => img.fileKey === file.name)
+        return {
+          fileKey: existing?.fileKey || file.name,
+          url: existing?.url || "",
+          sortOrder: i + 1,
+        }
+      })
+
+      const json = JSON.stringify(updated)
+
+      const form = formRef.current
+      let input = form?.querySelector<HTMLInputElement>('input[name="filesUpload"]')
+      if (!input) {
+        input = document.createElement("input")
+        input.type = "input"
+        input.name = "filesUpload"
+        form?.appendChild(input)
+      }
+      input.value = json
+      return
+    }
+
+
+    const { uploads } = await getSignedUrl({
+      files: newImages.map((file, i) => ({
+        fileName: file.name,
+        contentType: file.type || "image/png",
+        sortOrder: i + 1,
+      })),
+    })
+    await Promise.all(
+      uploads.map((u, i) =>
+        fetch(u.presignedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": u.contentType,
+            "x-mime-type": u.contentType,
+          },
+          body: newImages[i],
+        })
+      )
+    )
+
+
+    const keptImages = originalImages.filter(img => images.some(f => f.name === img.fileKey))
+
+    const combinedImages = [...keptImages, ...uploads]
+
+    const final = images.map((file, i) => {
+
+      let match = combinedImages.find(img => img.fileKey === file.name)
+
+
+      if (!match) {
+        match = uploads.shift()
+      }
+      return {
+        fileKey: match?.fileKey || file.name,
+        url: match?.url || "",
+        sortOrder: i + 1,
+      }
+    })
+
+    const json = JSON.stringify(final)
+
+    const form = formRef.current
+    let input = form?.querySelector<HTMLInputElement>('input[name="filesUpload"]')
+    if (!input) {
+      input = document.createElement("input")
+      input.type = "input"
+      input.name = "filesUpload"
+      form?.appendChild(input)
+    }
+    input.value = json
   }
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index))
+  const [price, setPrice] = useState(() => formatReal(String(initialData.price ?? "")))
+
+  function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatReal(e.target.value)
+    setPrice(formatted)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
+        <input type="hidden" name="id" value={initialData.id} />
         <input type="hidden" name="options" value={JSON.stringify(selectedOptions)} />
         <input type="hidden" name="variants" value={JSON.stringify(variants)} />
         <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
-        <input type="hidden" name="id" value={initialData.id} />
+        <input type="hidden" name="brandId" value={brand} />
+        <input type="hidden" name="filesUpload" />
+
 
         <Card className="border-0 shadow-sm">
           <CardHeader>
@@ -258,6 +399,39 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
               <Label htmlFor="description">Descrição *</Label>
               <Textarea id="description" defaultValue={initialData?.description ?? ''} name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
               {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
+            </div>
+            <div>
+              <Select
+                value={brand}
+                onValueChange={setBrand}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a Marca do Produto *" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands && brands.length > 0 ? (
+                    brands.map((brand) => (
+                      <SelectItem
+                        key={brand.id}
+                        value={brand.id}
+                        className="p-2 hover:bg-gray-100"
+                      >
+                        {brand.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <Link href="/admin/brands/new">
+                      <div className="p-2 text-sm text-gray-500 flex items-center justify-center">Crie uma Marca <Plus className="size-3 ml-1" /> </div>
+                    </Link>
+                  )}
+                </SelectContent>
+              </Select>
+              {errors?.brand && (
+                <p className="text-sm text-red-600 mb-2 flex items-center gap-1">
+                  <AlertCircle size={16} />
+                  {errors?.brand[0]}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -305,44 +479,17 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Imagens do Produto *</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Imagens do Produto *</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              A primeira imagem será usada como imagem principal. Arraste as imagens para reordená-las.
+            </p>
+          </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((file, index) => (
-                <div key={index} className="relative group">
-                  {images.map((file, index) => {
-                    const src =
-                      file instanceof File
-                        ? URL.createObjectURL(file)
-                        : file.url
-
-                    return (
-                      <img
-                        key={index}
-                        src={src}
-                        alt={'alt' in file ? (file.alt ?? undefined) : `Preview ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border"
-                        onLoad={(e) => {
-                          if (file instanceof File) URL.revokeObjectURL(e.currentTarget.src)
-                        }}
-                      />
-                    )
-                  })}
-
-                  <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 size-6 opacity-0 group-hover:opacity-100" onClick={() => removeImage(index)}><X size={12} /></Button>
-                  {index === 0 && <Badge className="absolute bottom-2 left-2">Principal</Badge>}
-                </div>
-              ))}
-              <label className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400">
-                <ImageIcon className="size-8 text-gray-400" />
-                <span className="text-sm text-gray-600">Adicionar</span>
-                <input name="images" type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
-              </label>
-            </div>
-            {errors?.images && <p className="text-sm text-red-600 mt-2 flex items-center gap-1"><AlertCircle size={16} />{errors.images[0]}</p>}
+            <ImageUpload images={images} setImages={setImages} />
+            {errors?.images && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.images[0]}</p>}
           </CardContent>
         </Card>
-
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex justify-between">
             <CardTitle>Seleção de Variações *</CardTitle>
@@ -355,7 +502,7 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
               return (
                 <div key={optionName}>
                   <Label className="capitalize mb-4">{optionName} *</Label>
-                  <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
+                  <div className="grid grid-cols-4 md:grid-cols-6  gap-1">
                     {values.map((val: OptionValue) => {
                       const valObj = { ...val, content: val.content || "#ccc" }
                       const isSelected = selected.some(v => v.id === valObj.id)
@@ -364,7 +511,7 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
                         return (
                           <div
                             key={valObj.id}
-                            className={`relative cursor-pointer p-3 rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
+                            className={`relative cursor-pointer p-3  rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
                             onClick={() => handleOptionToggle(optionName, valObj)}
                           >
                             <div
@@ -513,7 +660,6 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Status do Produto</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <Label htmlFor="featured">Produto em Destaque</Label>
               <Switch id="featured" checked={featured} onCheckedChange={setFeatured} />
@@ -523,28 +669,32 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
         </Card>
 
         <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Preços</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Informações Gerais</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="price">Preço de Venda *</Label>
-              <Input id="price" defaultValue={initialData.price} name="price" type="number" step="0.01" placeholder="0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
+              <Input
+                id="price"
+                name="price"
+                value={price}
+                onChange={handlePriceChange}
+                placeholder="R$ 0,00"
+                className={`mt-2 ${errors?.price ? "border-red-500" : ""}`}
+              />
+              <input
+                type="hidden"
+                name="price"
+                value={price.replace(/[^\d,]/g, "").replace(",", ".")}
+              />
               {errors?.price && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.price[0]}</p>}
             </div>
             <div>
-              <Label htmlFor="comparePrice">Preço Comparativo *</Label>
+              <Label htmlFor="comparePrice">Preço Comparativo</Label>
               <Input id="comparePrice" defaultValue={initialData.comparePrice ?? ''} name="comparePrice" type="number" step="0.01" placeholder="0,00" className="mt-2" />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>
-
-          </CardContent>
-        </Card>
-
-        {/* Informações Gerais */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader><CardTitle>Informações Gerais</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-
-
             <div>
               <Label htmlFor="weight">Peso (kg)</Label>
               <Input id="weight" defaultValue={initialData.weight ?? ''} name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
@@ -552,13 +702,18 @@ export function FormUpdateProduct({ categories, options, initialData }: FormUpda
           </CardContent>
         </Card>
 
-
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Ações</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Atualizar Produto
+            <Button
+              type="button"
+              className="w-full"
+              onClick={async (e) => {
+                await handleUploadImage();
+                formRef.current?.requestSubmit()
+              }}
+              disabled={isPending}>
+              {isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : 'Atualizar Produto'}
             </Button>
             {errors?.form && <p className="text-sm text-red-600 text-center">{errors.form[0]}</p>}
           </CardContent>

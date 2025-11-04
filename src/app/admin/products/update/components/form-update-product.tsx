@@ -17,6 +17,8 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 import { updateProductAction } from "../../actions"
 import ImageUpload from "../../components/image-upload"
+import { FormCreateOption } from "../../new/components/form-create-option"
+import { FormCreateOptionValue } from "../../new/components/form-create-option-value"
 
 
 type OptionValue = { id: string, value: string, content: string | null }
@@ -493,6 +495,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex justify-between">
             <CardTitle>Seleção de Variações *</CardTitle>
+            <FormCreateOption />
           </CardHeader>
           <CardContent className="space-y-8">
             {Object.entries(defaultValues).map(([optionName, values]) => {
@@ -501,17 +504,20 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
 
               return (
                 <div key={optionName}>
-                  <Label className="capitalize mb-4">{optionName} *</Label>
-                  <div className="grid grid-cols-4 md:grid-cols-6  gap-1">
+                  <div className=" flex items-center justify-between  mb-4">
+                    <Label className="capitalize">{optionName} *</Label>
+                    <FormCreateOptionValue optionName={optionName} />
+                  </div>
+                  <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
                     {values.map((val: OptionValue) => {
-                      const valObj = { ...val, content: val.content || "#ccc" }
+                      const valObj = { ...val, content: val.content || "#f5f5f5" }
                       const isSelected = selected.some(v => v.id === valObj.id)
 
                       if (isColorOption) {
                         return (
                           <div
                             key={valObj.id}
-                            className={`relative cursor-pointer p-3  rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
+                            className={`relative cursor-pointer p-3 rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
                             onClick={() => handleOptionToggle(optionName, valObj)}
                           >
                             <div
@@ -543,6 +549,12 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                 </div>
               )
             })}
+            {errors?.options && (
+              <p className="text-sm text-red-600 flex items-center gap-1 mt-2">
+                <AlertCircle className="size-4" />
+                {errors.options[0]}
+              </p>
+            )}
 
           </CardContent>
         </Card>
@@ -566,23 +578,22 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                     key={v.id}
                     className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border"
                   >
-
                     <div className="flex items-center gap-3 flex-1">
-                      {v?.options?.color && (
+                      {v.options!.color && (
                         <div
                           className="size-8 rounded-full border"
                           style={{
                             backgroundColor:
-                              typeof v?.options.color === "string"
-                                ? v?.options.color
-                                : v?.options.color?.content || "#ccc",
+                              typeof v.options!.color === "string"
+                                ? v.options!.color
+                                : v.options!.color?.content || "#ccc",
                           }}
                         />
                       )}
 
                       <div>
                         <p className="font-medium">
-                          {v.options && Object.entries(v?.options)
+                          {Object.entries(v.options!)
                             .map(([_, value]) => {
                               const displayValue = typeof value === "string" ? value : value.value
                               return `${displayValue}`
@@ -608,7 +619,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                         <Input
                           type="number"
                           step="0.01"
-                          value={v.price === null ? "" : Number(v.price)}
+                          value={v.price === undefined ? "" : Number(v.price)}
                           onChange={(e) =>
                             updateVariantField(
                               v.id,
@@ -625,7 +636,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                         <Input
                           type="number"
                           step="0.01"
-                          value={v.comparePrice === null ? "" : Number(v.comparePrice)}
+                          value={v.comparePrice === undefined ? "" : Number(v.comparePrice)}
                           onChange={(e) =>
                             updateVariantField(
                               v.id,
@@ -641,7 +652,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                         <Label className="text-xs">Estoque</Label>
                         <Input
                           type="number"
-                          value={v.stock === null ? "" : v.stock}
+                          value={Number(v.stock)}
                           onChange={(e) =>
                             updateVariantField(v.id, "stock", Number(e.target.value))
                           }

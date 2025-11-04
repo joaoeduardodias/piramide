@@ -14,8 +14,8 @@ export default function ProductsLoading() {
       </div>
 
       {/* Stats Cards Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i} className="border-0 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

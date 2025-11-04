@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { api } from "./api-client";
 
 
@@ -71,4 +72,12 @@ export async function getProducts(params?: GetProductsParams) {
   const result = await api.get(url).json<GetProducts>()
   return result
 
+}
+
+export function useProducts(params: GetProductsParams) {
+  return useQuery({
+    queryKey: ['products', params],
+    queryFn: () => getProducts(params),
+
+  })
 }

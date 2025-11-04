@@ -12,11 +12,11 @@ export async function Sidebar() {
 
   const { categories } = await getCategories()
   const { brands } = await getBrands()
-  const { products } = await getProducts()
+  const { products, pagination } = await getProducts()
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: 'layoutDashboard' },
-    { name: "Produtos", href: "/admin/products", icon: 'package', badge: products.length },
+    { name: "Produtos", href: "/admin/products", icon: 'package', badge: pagination.total },
     { name: "Categorias", href: "/admin/categories", icon: "folderTree", badge: categories.length },
     { name: "Marcas", href: "/admin/brands", icon: "hexagon", badge: brands.length },
     { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: 156 },

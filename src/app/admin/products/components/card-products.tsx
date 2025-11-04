@@ -2,13 +2,15 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { Category } from "@/http/get-categories"
-import type { ProductType } from "@/http/get-products"
+import { useProducts, type ProductType } from "@/http/get-products"
 import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -18,7 +20,7 @@ import { toast } from "sonner"
 import { deleteProductAction } from "../actions"
 
 interface CardProductsProps {
-  products: ProductType[]
+  // products: ProductType[]
   categories: Category[]
 }
 
@@ -29,15 +31,27 @@ const allCategory: Category = {
   products: []
 }
 
-export function CardProducts({ products, categories: categoriesDb }: CardProductsProps) {
+export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
+  const [page, setPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const { data, isLoading, isError } = useProducts({ page, limit: itemsPerPage })
+  const products = data?.products ?? []
+  const categories = [allCategory, ...categoriesDb]
+
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
-  const categories = [allCategory, ...categoriesDb]
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState("Todos")
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [productToDelete, setProductToDelete] = useState<ProductType | null>(null)
+
+  const total = data?.pagination.total ?? 0
+  const totalPages = data?.pagination.totalPages ?? 0
+
+
+
+
 
   const getStatusBadge = (status: string, stock: number) => {
     if (status === "Ativo" && stock > 10) {
@@ -102,7 +116,46 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
     return matchesSearch && matchesCategory
   })
 
+
   const statusOptions = ["Todos", "Baixo Estoque", "Esgotado"]
+
+
+  if (isLoading) return (
+    <Card className="border-0 shadow-sm">
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+              <Skeleton className="w-10 h-10 rounded-lg" />
+              <div className="flex-1">
+                <Skeleton className="h-4 w-48 mb-2" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-4 w-8" />
+              <Skeleton className="w-8 h-8 rounded" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+  if (isError) return (
+    <Card className="border-0 shadow-sm">
+      <CardContent>
+        <div className="space-y-4">
+          <p>Erro encontrado!</p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+  if (!categories) return <p>Nenhuma categoria listada</p>
 
   return (
     <>
@@ -151,10 +204,10 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
       </Card>
 
 
-      <Card className="border-0 shadow-sm">
+      <Card className="border-0 shadow-sm h-[48rem]">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-900">
-            Lista de Produtos ({filteredProducts.length})
+            Lista de Produtos ({total})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -280,6 +333,45 @@ export function CardProducts({ products, categories: categoriesDb }: CardProduct
             </Table>
           </div>
         </CardContent>
+        <CardFooter className="mt-auto">
+          <Pagination className="justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href=""
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (page > 1) setPage(page - 1)
+                  }}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <PaginationItem key={i}>
+                  <PaginationLink
+                    href=""
+                    isActive={page === i + 1}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setPage(i + 1)
+                    }}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              {totalPages > 3 && <PaginationEllipsis />}
+              <PaginationItem>
+                <PaginationNext
+                  href=""
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (page < totalPages) setPage(page + 1)
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </CardFooter>
       </Card>
     </>
   )

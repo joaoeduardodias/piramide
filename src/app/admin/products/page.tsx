@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCategories } from "@/http/get-categories"
 import { getProducts, type ProductType } from "@/http/get-products"
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Package, Plus } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
@@ -17,10 +18,16 @@ export default async function ProductsPage() {
     }
   }
 
+  const queryClient = new QueryClient()
+
+
 
   const { categories } = await getCategories()
   const { products } = await getProducts()
-
+  await queryClient.prefetchQuery({
+    queryKey: ['products', { page: 1, limit: 10 }],
+    queryFn: () => getProducts({ page: 1, limit: 10 }),
+  })
   function countLowStockProducts(products: ProductType[], limit = 5) {
     return products.filter((p) => {
       const totalStock = p.variants.reduce((acc: any, v: any) => acc + v.stock, 0)
@@ -89,8 +96,10 @@ export default async function ProductsPage() {
           </CardContent>
         </Card>
       </section>
+      <HydrationBoundary state={dehydrate(queryClient)}>
 
-      <CardProducts products={products} categories={categories} />
+        <CardProducts categories={categories} />
+      </HydrationBoundary>
 
     </div>
   )

@@ -1,64 +1,132 @@
-"use client";
-import { getUsersByRole } from "@/http/get-customers";
-import { getOrdersStats } from "@/http/get-orders-stats";
-import { getProducts } from "@/http/get-products";
-import { useQuery } from "@tanstack/react-query";
-import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
-import { StatCard } from "./stat-card";
+"use client"
+
+import { Skeleton } from "@/components/ui/skeleton"
+import { getUsersByRole } from "@/http/get-customers"
+import { getOrdersStats } from "@/http/get-orders-stats"
+import { getProducts } from "@/http/get-products"
+import { useQuery } from "@tanstack/react-query"
+import { DollarSign, Package, ShoppingCart, Users } from "lucide-react"
+import { StatCard } from "./stat-card"
 
 export function StatsDashboard() {
-  const { data: ordersToday, isLoading, error } = useQuery({
-    queryKey: ['ordersStatsToday'],
+  const {
+    data: ordersToday,
+    isLoading: loadingOrders,
+    error,
+  } = useQuery({
+    queryKey: ["ordersStatsToday"],
     queryFn: () => getOrdersStats({ date: new Date().toDateString() }),
   })
+
   const { data: products, isLoading: loadingProducts } = useQuery({
-    queryKey: ['productsStatsToday'],
+    queryKey: ["productsStatsToday"],
     queryFn: () => getProducts(),
   })
+
   const { data: customers, isLoading: loadingCustomers } = useQuery({
-    queryKey: ['customersStatsToday'],
+    queryKey: ["customersStatsToday"],
     queryFn: () => getUsersByRole({ role: "CUSTOMER" }),
   })
 
-  if (isLoading) return <div>Carregando...</div>;
-  if (error) return <div>Erro ao carregar stats</div>;
+  if (error) return <div>Erro ao carregar estatísticas.</div>
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard
-        title="Vendas Hoje"
-        value={`R$ ${ordersToday?.total}`}
-        change={ordersToday?.changeTotal || ""}
-        changeType={ordersToday && ordersToday.changeTotal.startsWith('+') ? "positive" : "negative"}
-        bgColor={ordersToday && ordersToday.total > 1000 ? "bg-green-100" : "bg-red-100"}
-        color={ordersToday && ordersToday.total > 1000 ? "text-green-800" : "text-red-800"}
-        icon={DollarSign}
-      />
-      <StatCard
-        title="Pedidos"
-        value={ordersToday?.total ?? 0}
-        change={ordersToday?.changeQuantity || ""}
-        changeType={ordersToday && ordersToday.changeTotal.startsWith('+') ? "positive" : "negative"}
-        bgColor={ordersToday && ordersToday.total > 1000 ? "bg-green-100" : "bg-red-100"}
-        color={ordersToday && ordersToday.total > 1000 ? "text-green-800" : "text-red-800"}
-        icon={ShoppingCart}
-      />
-      <StatCard
-        title="Produtos"
-        value={products?.products.length ?? 0}
-        changeType="positive"
-        color="text-purple-600"
-        bgColor="bg-purple-50"
-        icon={Package}
-      />
-      <StatCard
-        title="Clientes"
-        value={customers?.users.length ?? 0}
-        changeType="positive"
-        icon={Users}
-        color="text-orange-600"
-        bgColor="bg-orange-50"
-      />
+      {/* Vendas Hoje */}
+      {loadingOrders ? (
+        <SkeletonStat />
+      ) : (
+        <StatCard
+          title="Vendas Hoje"
+          value={`R$ ${ordersToday?.total ?? 0}`}
+          change={ordersToday?.changeTotal || ""}
+          changeType={
+            ordersToday && ordersToday.changeTotal.startsWith("+")
+              ? "positive"
+              : "negative"
+          }
+          bgColor={
+            ordersToday && ordersToday.total > 1000
+              ? "bg-green-100"
+              : "bg-red-100"
+          }
+          color={
+            ordersToday && ordersToday.total > 1000
+              ? "text-green-800"
+              : "text-red-800"
+          }
+          icon={DollarSign}
+        />
+      )}
+
+      {/* Pedidos */}
+      {loadingOrders ? (
+        <SkeletonStat />
+      ) : (
+        <StatCard
+          title="Pedidos"
+          value={ordersToday?.total ?? 0}
+          change={ordersToday?.changeQuantity || ""}
+          changeType={
+            ordersToday && ordersToday.changeTotal.startsWith("+")
+              ? "positive"
+              : "negative"
+          }
+          bgColor={
+            ordersToday && ordersToday.total > 1000
+              ? "bg-green-100"
+              : "bg-red-100"
+          }
+          color={
+            ordersToday && ordersToday.total > 1000
+              ? "text-green-800"
+              : "text-red-800"
+          }
+          icon={ShoppingCart}
+        />
+      )}
+
+      {/* Produtos */}
+      {loadingProducts ? (
+        <SkeletonStat />
+      ) : (
+        <StatCard
+          title="Produtos"
+          value={products?.pagination.total ?? 0}
+          changeType="positive"
+          color="text-purple-600"
+          bgColor="bg-purple-50"
+          icon={Package}
+        />
+      )}
+
+      {/* Clientes */}
+      {loadingCustomers ? (
+        <SkeletonStat />
+      ) : (
+        <StatCard
+          title="Clientes"
+          value={customers?.users.length ?? 0}
+          changeType="positive"
+          icon={Users}
+          color="text-orange-600"
+          bgColor="bg-orange-50"
+        />
+      )}
     </div>
-  );
+  )
+}
+
+// Skeleton individual de card
+function SkeletonStat() {
+  return (
+    <div className="rounded-2xl border bg-card p-6 shadow-sm flex flex-col space-y-3">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+      <Skeleton className="h-8 w-32" />
+      <Skeleton className="h-4 w-20" />
+    </div>
+  )
 }

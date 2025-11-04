@@ -23,7 +23,7 @@ export default async function ProductsPage() {
 
 
   const { categories } = await getCategories()
-  const { products } = await getProducts()
+  const { products, pagination } = await getProducts()
   await queryClient.prefetchQuery({
     queryKey: ['products', { page: 1, limit: 10 }],
     queryFn: () => getProducts({ page: 1, limit: 10 }),
@@ -52,14 +52,13 @@ export default async function ProductsPage() {
         </Link>
       </section>
 
-      {/* Stats Cards */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total de Produtos</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{products.length}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{pagination.total}</p>
               </div>
               <div className="size-12 bg-blue-50 rounded-xl flex items-center justify-center">
                 <Package className="size-6 text-blue-600" />

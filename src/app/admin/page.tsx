@@ -11,7 +11,6 @@ import {
   Clock,
   Eye,
   Package,
-  Plus,
   ShoppingCart,
   TrendingUp,
   Truck
@@ -54,7 +53,7 @@ export default async function AdminDashboard() {
       redirect('/')
     }
   }
-  const { products } = await getProducts()
+  const { products, pagination } = await getProducts()
   const topSalesProducts = products
     .map(product => {
       const stock = product.variants.reduce((acc, variant) => acc + variant.stock, 0);
@@ -121,14 +120,14 @@ export default async function AdminDashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Bem-vindo de volta! Aqui está o resumo da sua loja.</p>
         </div>
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <Link href="/admin/products/new">
             <Button className="bg-black hover:bg-gray-800 text-white flex items-center gap-2">
               <Plus className="size-4" />
               Novo Produto
             </Button>
           </Link>
-        </div>
+        </div> */}
       </div>
 
 

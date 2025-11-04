@@ -51,9 +51,6 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
   const totalPages = data?.pagination.totalPages ?? 0
 
 
-
-
-
   const getStatusBadge = (status: string, stock: number) => {
     if (status === "Ativo" && stock > 10) {
       return <Badge className="bg-emerald-100 text-emerald-700 border-0">Ativo</Badge>
@@ -335,7 +332,25 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="mt-auto">
+        <CardFooter className="mt-auto flex items-center justify-between gap-4">
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value))
+              setPage(1)
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Itens por página" />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 30, 50].map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n} por página
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Pagination className="justify-end">
             <PaginationContent>
               <PaginationItem>
@@ -345,6 +360,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
                     e.preventDefault()
                     if (page > 1) setPage(page - 1)
                   }}
+                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
                 />
               </PaginationItem>
               {Array.from({ length: totalPages }).map((_, i) => (
@@ -369,6 +385,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
                     e.preventDefault()
                     if (page < totalPages) setPage(page + 1)
                   }}
+                  className={page === totalPages ? "pointer-events-none opacity-50" : ""}
                 />
               </PaginationItem>
             </PaginationContent>

@@ -104,7 +104,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, setIsPending] = useState(false)
   const [{ success, message, errors }, handleSubmit] = useFormState(updateProductAction)
-
   const [hasChanged, setHasChanged] = useState(false)
   const [featured, setFeatured] = useState<boolean>(initialData.featured)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories)

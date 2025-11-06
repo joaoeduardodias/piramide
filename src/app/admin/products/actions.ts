@@ -70,14 +70,25 @@ const createOptionValueSchema = z.object({
 export async function createProductAction(data: FormData) {
 
   const optionsData = data.get("options") as string
-  const formattedOptions = Object.entries(JSON.parse(optionsData)).map(([name, values]) => ({
-    name,
-    values
-  }))
+  let formattedOptions: { name: string; values: Array<{ id?: string; value: string; content?: string | null }> }[] = []
+  if (optionsData) {
+    try {
+      const parsed = JSON.parse(optionsData) as Record<string, Array<{ id?: string; value: string; content?: string | null }>>;
+      formattedOptions = Object.entries(parsed).map(([name, values]) => ({
+        name,
+        values: values.map(v => ({
+          ...v,
+          content: v.content ?? undefined,
+        })),
+      }))
+    } catch {
+      console.warn("Erro options, ignorando valor inválido.")
+      formattedOptions = []
+    }
+  }
 
 
   const filesUpload = data.get("filesUpload") as string | null
-  console.log(filesUpload);
 
   let formattedFilesUploads: any[] = []
 
@@ -222,15 +233,23 @@ export async function deleteProductAction(data: FormData) {
 
 export async function updateProductAction(data: FormData) {
   const productId = data.get("id") as string
-  if (!productId) {
-    return { success: false, message: "ID do produto ausente", errors: null }
+  const optionsData = data.get("options") as string
+  let formattedOptions: { name: string; values: Array<{ id?: string; value: string; content?: string | null }> }[] = []
+  if (optionsData) {
+    try {
+      const parsed = JSON.parse(optionsData) as Record<string, Array<{ id?: string; value: string; content?: string | null }>>;
+      formattedOptions = Object.entries(parsed).map(([name, values]) => ({
+        name,
+        values: values.map(v => ({
+          ...v,
+          content: v.content ?? undefined,
+        })),
+      }))
+    } catch {
+      formattedOptions = []
+    }
   }
 
-  const optionsData = data.get("options") as string
-  const formattedOptions = Object.entries(JSON.parse(optionsData)).map(([name, values]) => ({
-    name,
-    values,
-  }))
 
   const variantsData = data.get("variants") as string
   const formattedVariants = JSON.parse(variantsData)

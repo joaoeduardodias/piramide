@@ -6,9 +6,12 @@ import { AddToCartButton } from "./add-to-cart-button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 
+interface ProductProps {
+  product: ProductType
+}
 
 
-export function Product(product: ProductType) {
+export function Product({ product }: ProductProps) {
   return (
     <Card key={product.id} className="group hover:shadow-xl transition-shadow duration-300 bg-white">
       <CardContent className="p-0">

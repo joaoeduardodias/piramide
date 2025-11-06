@@ -1,0 +1,118 @@
+"use client"
+
+import { Input } from "@/components/ui/input"
+import { useProducts } from "@/http/get-products"
+import { Search } from "lucide-react"
+import { useState } from "react"
+import { ActiveFilters } from "./active-filters"
+import { FilterSidebar } from "./filters-sidebar"
+import { Pagination } from "./pagination"
+import { ProductsGrid } from "./products-grid"
+import { ProductsToolbar } from "./products-toolbar"
+
+import type { GetProductsParams } from "../page"
+
+interface Option {
+  id: string
+  name: string
+  values: { id: string; value: string; content: string | null }[]
+}
+
+interface ProductsClientProps {
+  categories: { id: string; name: string }[]
+  brands: { id: string; name: string }[]
+  options: Option[]
+  queryParams: GetProductsParams
+}
+
+export function ProductsClient({ categories, brands, options, queryParams }: ProductsClientProps) {
+  const [filters, setFilters] = useState({
+    search: queryParams.search ?? "",
+    categoryId: queryParams.categoryId ?? "",
+    brand: "Todas",
+    options: {} as Record<string, string[]>,
+    page: queryParams.page ?? 1,
+    limit: queryParams.limit ?? 12,
+  })
+
+  const [showFilters, setShowFilters] = useState(true)
+  const [sortBy, setSortBy] = useState<string>("relevance");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const { data, isLoading, isError } = useProducts({
+    page: filters.page,
+    limit: filters.limit,
+    search: filters.search,
+    categoryId: filters.categoryId,
+    status: "PUBLISHED",
+  })
+  const products = data?.products ?? []
+  const pagination = data?.pagination
+
+  const clearFilters = () =>
+    setFilters({
+      search: "",
+      categoryId: "",
+      brand: "Todas",
+      options: {},
+      page: 1,
+      limit: 12,
+    })
+
+  return (
+    <main className="w-full">
+      {/* Hero */}
+      <section className="py-16 bg-gradient-to-r from-black to-gray-800 text-white text-center">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-5xl font-bold mb-6">Nossa Coleção Completa</h1>
+          <div className="relative max-w-md mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Buscar produtos..."
+              value={filters.search}
+              onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value, page: 1 }))}
+              className="pl-12 h-12 bg-white/10 text-white"
+            />
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto flex flex-col lg:flex-row gap-8 mt-8">
+        <FilterSidebar
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+          categories={categories}
+          brands={brands}
+          options={options}
+          filters={filters}
+          setFilters={setFilters}
+          clearFilters={clearFilters}
+        />
+
+        <div className="flex-1">
+          <ProductsToolbar
+            filteredCount={products.length}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            toggleFilters={() => setShowFilters(!showFilters)}
+          />
+
+          <ActiveFilters filters={filters} setFilters={setFilters} clearFilters={clearFilters} />
+
+          {isLoading && <p className="text-center py-8">Carregando produtos...</p>}
+          {isError && <p className="text-center py-8 text-red-500">Erro ao carregar produtos.</p>}
+
+          {!isLoading && !isError && <ProductsGrid products={products} viewMode={viewMode} />}
+
+          <Pagination
+            currentPage={pagination?.page ?? 1}
+            totalPages={pagination?.totalPages ?? 1}
+            onPageChange={(page) => setFilters((f) => ({ ...f, page }))}
+          />
+        </div>
+      </div>
+    </main>
+  )
+}

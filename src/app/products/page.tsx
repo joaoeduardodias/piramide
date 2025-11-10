@@ -44,14 +44,14 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     <div className="min-h-screen bg-zinc-50">
       <Header />
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <main className="py-8">
+        <div className="py-8">
           <ProductsClient
             categories={categories.categories}
             brands={brands.brands}
             options={options.options}
             queryParams={queryParams}
           />
-        </main>
+        </div>
       </HydrationBoundary>
       <Footer />
     </div>

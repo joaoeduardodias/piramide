@@ -3,13 +3,14 @@
 import { Input } from "@/components/ui/input"
 import { useProducts } from "@/http/get-products"
 import { Search } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ActiveFilters } from "./active-filters"
 import { FilterSidebar } from "./filters-sidebar"
 import { Pagination } from "./pagination"
 import { ProductsGrid } from "./products-grid"
 import { ProductsToolbar } from "./products-toolbar"
 
+import { useDebounce } from "@/hooks/use-debounce"
 import type { GetProductsParams } from "../page"
 
 interface Option {
@@ -36,8 +37,17 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
   })
 
   const [showFilters, setShowFilters] = useState(true)
-  const [sortBy, setSortBy] = useState<string>("relevance");
+  const [sortBy, setSortBy] = useState<"relevance" | "price-asc" | "price-desc" | "created-desc">("relevance");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchInput, setSearchInput] = useState(filters.search || "")
+  const debouncedSearch = useDebounce(searchInput, 500)
+
+  useEffect(() => {
+    if (debouncedSearch.trim() !== filters.search) {
+      setFilters((f: any) => ({ ...f, search: debouncedSearch, page: 1 }))
+    }
+  }, [debouncedSearch])
+
 
   const { data, isLoading, isError } = useProducts({
     page: filters.page,
@@ -45,6 +55,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     search: filters.search,
     categoryId: filters.categoryId,
     status: "PUBLISHED",
+    sortBy: sortBy
   })
   const products = data?.products ?? []
   const pagination = data?.pagination
@@ -61,7 +72,6 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
 
   return (
     <main className="w-full">
-      {/* Hero */}
       <section className="py-16 bg-gradient-to-r from-black to-gray-800 text-white text-center">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-5xl font-bold mb-6">Nossa Coleção Completa</h1>
@@ -69,8 +79,8 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               placeholder="Buscar produtos..."
-              value={filters.search}
-              onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value, page: 1 }))}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-12 h-12 bg-white/10 text-white"
             />
           </div>

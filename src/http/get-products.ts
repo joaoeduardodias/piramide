@@ -56,6 +56,7 @@ interface GetProductsParams {
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
   categoryId?: string;
   search?: string;
+  sortBy?: 'price-asc' | 'price-desc' | 'relevance' | 'created-desc'
 }
 
 export async function getProducts(params?: GetProductsParams) {
@@ -67,6 +68,7 @@ export async function getProducts(params?: GetProductsParams) {
   if (params?.status) query.set("status", params.status);
   if (params?.categoryId) query.set("categoryId", params.categoryId);
   if (params?.search) query.set("search", params.search);
+  if (params?.sortBy) query.set("sortBy", params.sortBy);
 
   const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
   const result = await api.get(url).json<GetProducts>()

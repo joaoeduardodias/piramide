@@ -11,8 +11,8 @@ interface FiltersState {
 
 interface ProductsToolbarProps {
   filteredCount: number;
-  sortBy: string;
-  setSortBy: (v: string) => void;
+  sortBy: "relevance" | "price-asc" | "price-desc" | "created-desc"
+  setSortBy: (value: "relevance" | "price-asc" | "price-desc" | "created-desc") => void
   viewMode: "grid" | "list";
   setViewMode: (v: "grid" | "list") => void;
   toggleFilters: () => void;
@@ -43,10 +43,9 @@ export function ProductsToolbar({ filteredCount, setSortBy, setViewMode, sortBy,
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="relevance">Relevância</SelectItem>
-            <SelectItem value="price-low">Menor preço</SelectItem>
-            <SelectItem value="price-high">Maior preço</SelectItem>
-            <SelectItem value="newest">Mais recentes</SelectItem>
-            <SelectItem value="discount">Maior desconto</SelectItem>
+            <SelectItem value="price-asc">Menor preço</SelectItem>
+            <SelectItem value="price-desc">Maior preço</SelectItem>
+            <SelectItem value="created-desc">Mais recentes</SelectItem>
           </SelectContent>
         </Select>
 

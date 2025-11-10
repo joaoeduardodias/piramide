@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/context/cart-context"
-import { ShoppingCart } from "lucide-react"
+import { ShoppingBag } from "lucide-react"
 import { CartDrawer } from "./cart-drawer"
 
 export function CartButton() {
@@ -13,7 +13,7 @@ export function CartButton() {
   return (
     <CartDrawer>
       <Button variant="ghost" size="icon" className="relative" onClick={() => setIsOpen(true)}>
-        <ShoppingCart className="size-5" />
+        <ShoppingBag className="size-5" />
         {totalItems > 0 && (
           <Badge className="absolute -top-2 -right-2 size-5 flex items-center justify-center p-0 bg-black text-white text-xs">
             {totalItems > 99 ? "99+" : totalItems}

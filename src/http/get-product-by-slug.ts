@@ -1,40 +1,50 @@
 import { api } from "./api-client";
 
 
-export interface GetProductBySlugResponse {
-  product: {
+export interface ProductDetails {
+  id: string;
+  name: string;
+  description: string | null;
+  featured: boolean;
+  price: number;
+  comparePrice: number | null;
+  weight: number | null;
+  brand: string;
+  images: {
     id: string;
-    name: string;
-    description: string | null;
-    featured: boolean;
-    price: number;
+    url: string;
+    alt: string | null;
+    fileKey: string | null;
+    sortOrder: number;
+  }[];
+  variants: {
+    id: string;
+    price: number | null;
     comparePrice: number | null;
-    weight: number | null;
-    images: {
-      id: string;
-      url: string;
-      alt: string | null;
-      fileKey: string | null;
-      sortOrder: number;
-    }[];
-    variants: {
-      id: string;
-      price: number | null;
-      comparePrice: number | null;
-      sku: string;
-      stock: number;
-    }[];
-    categories: string[]
-    options: {
+    sku: string;
+    stock: number;
+  }[];
+  categories: {
+    category: {
+      slug: string;
       id: string;
       name: string;
-      values: {
-        id: string;
-        value: string;
-        content: string | null;
-      }[];
+    };
+  }[];
+  options: {
+    id: string;
+    name: string;
+    values: {
+      id: string;
+      value: string;
+      content: string | null;
     }[];
-  }
+  }[];
+
+}
+
+interface GetProductBySlugResponse {
+  product: ProductDetails
 }
 interface GetProductRequest {
   slug: string

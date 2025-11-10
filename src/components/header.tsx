@@ -1,14 +1,13 @@
 "use client"
 import logoText from '@/assets/logo-piramide.svg';
 import logoImg from '@/assets/logo.png';
-import { LayoutDashboard, LogIn, LogOut, Menu, Search, X } from "lucide-react";
+import { LayoutIcon, Menu, User2, UserX2, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useState } from "react";
 import { CartButton } from "./cart-button";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 
 
 interface HeaderProps {
@@ -59,34 +58,25 @@ export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
           </nav>
 
           <div className="flex items-center space-x-4 text-gray-900 hover:text-gray-600">
-            <div className="hidden md:flex items-center">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="search"
-                  placeholder="Buscar produtos..."
-                  className={`pl-10 w-64 border-gray-200 focus:border-black`}
-                />
-              </div>
-            </div>
+
             {!isAuthenticated ? (
               <Link href="/auth/sign-in">
-                <Button variant="outline" >
-                  <LogIn className="size-5" />
-                  Fazer Login
+                <Button variant="ghost">
+                  <User2 className="size-5" />
+                  <span className='sr-only'>  Fazer Login</span>
                 </Button>
               </Link>
             ) : (
-              <Button variant="outline" onClick={handleSignOut}>
-                <LogOut className="size-5" />
-                Sair
+              <Button variant="ghost" onClick={handleSignOut}>
+                <UserX2 className="size-5" />
+                <span className="sr-only">Sair</span>
               </Button>
             )}
             {isAdmin && (
               <Link href="/admin">
-                <Button variant="outline" >
-                  <LayoutDashboard className="size-5" />
-                  Dashboard
+                <Button variant="ghost">
+                  <LayoutIcon className="size-5" />
+                  <span className="sr-only">Dashboard</span>
                 </Button>
               </Link>
             )}
@@ -99,7 +89,7 @@ export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-100 py-4">
             <nav className="flex flex-col space-y-4">
@@ -114,13 +104,7 @@ export function Header({ isAuthenticated, isAdmin }: HeaderProps) {
               <Link href="/contact" className="text-gray-900 hover:text-gray-600 transition-colors">
                 Contato
               </Link>
-              <div className="pt-4">
-                <Input
-                  type="search"
-                  placeholder="Buscar produtos..."
-                  className="w-full border-gray-200 focus:border-black"
-                />
-              </div>
+
             </nav>
           </div>
         )}

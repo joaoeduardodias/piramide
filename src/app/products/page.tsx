@@ -1,5 +1,3 @@
-import { Footer } from "@/components/footer"
-import { Header } from "@/components/header"
 import { getBrands } from "@/http/get-brands"
 import { getCategories } from "@/http/get-categories"
 import { getOptions } from "@/http/get-options"
@@ -13,10 +11,11 @@ export interface GetProductsParams {
   page?: number
   limit?: number
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
-  categoryId?: string
+  category?: string
   search?: string
 }
-
+export const dynamic = "force-static";
+export const revalidate = 3600 // 01 hour
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams
@@ -25,7 +24,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     page: sp?.page ? Number(sp.page) : 1,
     limit: sp?.limit ? Number(sp.limit) : 12,
     status: sp?.status as GetProductsParams["status"],
-    categoryId: typeof sp?.categoryId === "string" ? sp.categoryId : undefined,
+    category: typeof sp?.category === "string" ? sp.category : undefined,
     search: typeof sp?.search === "string" ? sp.search : undefined,
   }
 
@@ -42,7 +41,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <Header />
       <HydrationBoundary state={dehydrate(queryClient)}>
         <div className="py-8">
           <ProductsClient
@@ -53,7 +51,6 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           />
         </div>
       </HydrationBoundary>
-      <Footer />
     </div>
   )
 }

@@ -1,4 +1,3 @@
-
 import { auth, isAuthenticated } from "@/auth/auth"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,10 +20,6 @@ import { redirect } from "next/navigation"
 import { EmptyState } from "./components/empty-state"
 import { StatsDashboard } from "./components/stats-dashboard"
 
-
-
-
-
 const quickActions = [
   {
     title: "Adicionar Produto",
@@ -45,6 +40,7 @@ const quickActions = [
     href: "/admin/reports",
   },
 ]
+export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   if (await isAuthenticated()) {
@@ -53,7 +49,7 @@ export default async function AdminDashboard() {
       redirect('/')
     }
   }
-  const { products, pagination } = await getProducts()
+  const { products } = await getProducts()
   const topSalesProducts = products
     .map(product => {
       const stock = product.variants.reduce((acc, variant) => acc + variant.stock, 0);
@@ -115,26 +111,13 @@ export default async function AdminDashboard() {
 
   return (
     <main className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Bem-vindo de volta! Aqui está o resumo da sua loja.</p>
-        </div>
-        {/* <div className="flex items-center gap-3">
-          <Link href="/admin/products/new">
-            <Button className="bg-black hover:bg-gray-800 text-white flex items-center gap-2">
-              <Plus className="size-4" />
-              Novo Produto
-            </Button>
-          </Link>
-        </div> */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">Bem-vindo de volta! Aqui está o resumo da sua loja.</p>
       </div>
-
-
       <StatsDashboard />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* orders */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-xl font-semibold text-gray-900">Pedidos Recentes</CardTitle>
@@ -235,7 +218,6 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
       <Card className="border-0 shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-900">Ações Rápidas</CardTitle>

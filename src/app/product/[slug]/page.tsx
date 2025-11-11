@@ -1,8 +1,7 @@
-import { Footer } from "@/components/footer"
-import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getProductBySlug } from "@/http/get-product-by-slug"
+import { getProducts } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
 import { RotateCcw, Shield, Truck } from "lucide-react"
 import type { Metadata, ResolvingMetadata } from "next"
@@ -12,6 +11,13 @@ import { GridImages } from "./components/grid-images"
 
 type Props = {
   params: Promise<{ slug: string }>
+}
+export const dynamic = "force-static";
+export const revalidate = 86400; // 24 hours
+
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  const { products } = await getProducts({ sortBy: "relevance", limit: 100 });
+  return products.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata(
@@ -32,17 +38,13 @@ export async function generateMetadata(
   }
 }
 
-
-
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { product } = await getProductBySlug({ slug })
 
-
   if (!product) {
     return (
       <main className="min-h-screen flex flex-col">
-        <Header />
         <div className="flex-1 flex items-center justify-center text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Produto não encontrado</h1>
           <Button asChild>
@@ -58,7 +60,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main className="min-h-screen bg-white">
-      <Header />
       <div className="bg-gray-50 border-b mt-17 px-4 py-4">
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <Link href="/" className="hover:text-black transition-colors">
@@ -72,7 +73,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <span className="text-black font-medium">{product.name}</span>
         </div>
       </div>
-
       <div className="container mx-auto px-4 py-8 grid lg:grid-cols-2 gap-12">
         <GridImages discount={discount} images={product.images} />
         <div className="space-y-6">
@@ -137,7 +137,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
       </div>
-      <Footer />
     </main>
   )
 }

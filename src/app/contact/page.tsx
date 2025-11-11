@@ -2,7 +2,6 @@
 
 import type React from "react"
 
-import { Header } from "@/components/header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -64,6 +63,9 @@ const stats = [
   { icon: Shield, label: "Satisfação", value: "98%" },
 ]
 
+// export const dynamic = "force-static";
+// export const revalidate = 3600 // 01 hour
+
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -115,7 +117,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <Header />
+      {/* <Header /> */}
 
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">

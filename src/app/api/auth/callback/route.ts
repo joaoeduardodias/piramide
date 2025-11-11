@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code")
 
   if (!code) {
-    return NextResponse.json({ error: "Github OAuth code was note found." }, { status: 400 })
+    return NextResponse.json({ error: "Google OAuth code was note found." }, { status: 400 })
   }
   const { token } = await signInWithGoogle({ code })
 

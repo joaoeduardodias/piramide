@@ -10,7 +10,7 @@ import type { Dispatch, SetStateAction } from "react"
 
 interface FiltersState {
   search: string
-  categoryId: string
+  category: string
   brand: string
   options: Record<string, string[]>
   page: number
@@ -42,6 +42,7 @@ export function FilterSidebar({
   setFilters,
   clearFilters,
 }: FilterSidebarProps) {
+
   const toggleOptionValue = (optionName: string, value: string, checked: boolean) => {
     setFilters((prev) => {
       const current = prev.options[optionName] || []
@@ -69,27 +70,25 @@ export function FilterSidebar({
             </Button>
           </div>
 
-          {/* Categoria */}
           <div>
             <h4 className="font-medium mb-3">Categoria</h4>
-            {categories.map((c) => (
-              <label key={c.id} className="flex items-center gap-2 cursor-pointer">
+            {categories.map((category) => (
+              <label key={category.id} className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
-                  checked={filters.categoryId === c.id}
+                  checked={filters.category === category.name}
                   onCheckedChange={() =>
                     setFilters((f) => ({
                       ...f,
-                      categoryId: f.categoryId === c.id ? "" : c.id,
+                      category: f.category === category.name ? "" : category.name,
                       page: 1,
                     }))
                   }
                 />
-                <span>{c.name}</span>
+                <span>{category.name}</span>
               </label>
             ))}
           </div>
 
-          {/* Marca */}
           <div>
             <h4 className="font-medium mb-3">Marca</h4>
             <Select
@@ -109,7 +108,6 @@ export function FilterSidebar({
             </Select>
           </div>
 
-          {/* Opções dinâmicas */}
           {options.map((opt) => (
             <div key={opt.id}>
               <h4 className="font-medium mb-3">{opt.name}</h4>

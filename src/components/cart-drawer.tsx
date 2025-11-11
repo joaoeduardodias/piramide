@@ -18,7 +18,7 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
     const orderDetails = items
       .map(
         (item) =>
-          `• ${item.name}\n  Tamanho: ${item.selectedSize} | Cor: ${item.selectedColor}\n  Qtd: ${item.quantity}x | Preço: R$ ${(
+          `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: R$ ${(
             item.price * item.quantity
           )
             .toFixed(2)
@@ -69,7 +69,7 @@ Gostaria de finalizar este pedido!`
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div
-                      key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
+                      key={`${item.id}`}
                       className="flex gap-4 p-4 bg-gray-50 rounded-lg"
                     >
                       <div className="relative w-16 h-16 flex-shrink-0">
@@ -84,10 +84,6 @@ Gostaria de finalizar este pedido!`
 
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm text-gray-900 truncate">{item.name}</h4>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {item.selectedSize} • {item.selectedColor}
-                        </p>
-
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-sm">R$ {item.price.toFixed(2).replace(".", ",")}</span>
@@ -99,7 +95,7 @@ Gostaria de finalizar este pedido!`
                               size="icon"
                               className="w-6 h-6 bg-transparent"
                               onClick={() =>
-                                updateQuantity(item.id, item.selectedSize, item.selectedColor, item.quantity - 1)
+                                updateQuantity(item.id, item.quantity - 1)
                               }
                             >
                               <Minus className="w-3 h-3" />
@@ -110,7 +106,7 @@ Gostaria de finalizar este pedido!`
                               size="icon"
                               className="w-6 h-6 bg-transparent"
                               onClick={() =>
-                                updateQuantity(item.id, item.selectedSize, item.selectedColor, item.quantity + 1)
+                                updateQuantity(item.id, item.quantity + 1)
                               }
                             >
                               <Plus className="w-3 h-3" />
@@ -123,7 +119,7 @@ Gostaria de finalizar este pedido!`
                         variant="ghost"
                         size="icon"
                         className="w-8 h-8 text-gray-400 hover:text-red-500"
-                        onClick={() => removeItem(item.id, item.selectedSize, item.selectedColor)}
+                        onClick={() => removeItem(item.id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

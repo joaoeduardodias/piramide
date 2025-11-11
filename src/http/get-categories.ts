@@ -1,14 +1,13 @@
 import { api } from "./api-client";
 
 export interface Category {
-  id: string,
-  name: string,
-  slug: string,
+  id: string;
+  name: string;
+  slug: string;
   products: {
-    product: {
-      id: string;
-      name: string;
-    };
+    id: string;
+    name: string;
+    image: string;
   }[];
 }
 
@@ -17,6 +16,9 @@ interface GetCategories {
 }
 
 export async function getCategories() {
-  const result = await api.get('categories').json<GetCategories>()
+  const result = await api.get('categories', {
+    cache: "force-cache",
+    next: { revalidate: 60 },
+  }).json<GetCategories>()
   return result
 }

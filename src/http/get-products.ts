@@ -54,7 +54,7 @@ interface GetProductsParams {
   page?: number;
   limit?: number;
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
-  categoryId?: string;
+  category?: string;
   search?: string;
   sortBy?: 'price-asc' | 'price-desc' | 'relevance' | 'created-desc'
 }
@@ -66,12 +66,15 @@ export async function getProducts(params?: GetProductsParams) {
   if (params?.page) query.set("page", String(params.page));
   if (params?.limit) query.set("limit", String(params.limit));
   if (params?.status) query.set("status", params.status);
-  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.category) query.set("category", params.category);
   if (params?.search) query.set("search", params.search);
   if (params?.sortBy) query.set("sortBy", params.sortBy);
 
   const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
-  const result = await api.get(url).json<GetProducts>()
+  const result = await api.get(url, {
+    cache: "force-cache",
+    next: { revalidate: 60 },
+  }).json<GetProducts>()
   return result
 
 }

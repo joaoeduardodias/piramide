@@ -1,5 +1,5 @@
 
-import { auth, isAuthenticated } from "@/auth/auth"
+import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCategories } from "@/http/get-categories"
@@ -9,21 +9,19 @@ import { AlertTriangle, Package, Plus } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { CardProducts } from "./components/card-products"
+export const dynamic = "force-dynamic";
+
 
 export default async function ProductsPage() {
-  if (await isAuthenticated()) {
-    const { user } = await auth()
-    if (user.role !== 'ADMIN') {
-      redirect('/')
-    }
+  const permissions = await ability()
+  if (permissions?.cannot('manage', 'Product')) {
+    redirect('/admin')
   }
-
   const queryClient = new QueryClient()
-
-
 
   const { categories } = await getCategories()
   const { products, pagination } = await getProducts()
+
   await queryClient.prefetchQuery({
     queryKey: ['products', { page: 1, limit: 10 }],
     queryFn: () => getProducts({ page: 1, limit: 10 }),

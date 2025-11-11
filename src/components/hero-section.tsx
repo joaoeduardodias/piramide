@@ -36,13 +36,23 @@ const heroSlides = [
   },
 ]
 
-interface HeroSectionProps {
-  isAuthenticated?: boolean
-}
 
-
-export function HeroSection({ isAuthenticated }: HeroSectionProps) {
+export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [auth, setAuth] = useState({ isAuthenticated: false, isAdmin: false })
+
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/session")
+        if (!res.ok) return
+        const data = await res.json()
+        setAuth({ isAuthenticated: data.isAuthenticated, isAdmin: data.isAdmin })
+      } catch { }
+    }
+    checkAuth()
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -110,7 +120,7 @@ export function HeroSection({ isAuthenticated }: HeroSectionProps) {
                     Ver Categorias
                   </Button>
                 </Link>
-                {!isAuthenticated && (
+                {!auth.isAuthenticated && (
                   <Link href="/auth/sign-in">
                     <Button
                       variant="ghost"

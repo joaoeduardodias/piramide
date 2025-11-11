@@ -9,12 +9,14 @@ import { Suspense } from "react"
 import { CategoryActionsClient } from "./category-actions-client"
 
 export const metadata = {
-  title: "Categorias | Dashboard",
+  title: "Categorias | Admin",
   description: "Gerenciar categorias de produtos",
 }
+export const dynamic = "force-dynamic";
 
 
 export default async function CategoriesPage() {
+
   const { categories } = await getCategories()
 
   return (

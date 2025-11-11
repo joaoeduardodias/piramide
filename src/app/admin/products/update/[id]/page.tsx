@@ -12,6 +12,7 @@ import { FormUpdateProduct } from "../components/form-update-product"
 interface PageProps {
   params: Promise<{ id: string }>
 }
+export const dynamic = "force-dynamic";
 
 
 export default async function UpdateProductPage({ params }: PageProps) {

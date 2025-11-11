@@ -29,7 +29,7 @@ interface ProductsClientProps {
 export function ProductsClient({ categories, brands, options, queryParams }: ProductsClientProps) {
   const [filters, setFilters] = useState({
     search: queryParams.search ?? "",
-    categoryId: queryParams.categoryId ?? "",
+    category: queryParams.category ?? "",
     brand: "Todas",
     options: {} as Record<string, string[]>,
     page: queryParams.page ?? 1,
@@ -53,7 +53,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     page: filters.page,
     limit: filters.limit,
     search: filters.search,
-    categoryId: filters.categoryId,
+    category: filters.category,
     status: "PUBLISHED",
     sortBy: sortBy
   })
@@ -63,7 +63,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
   const clearFilters = () =>
     setFilters({
       search: "",
-      categoryId: "",
+      category: "",
       brand: "Todas",
       options: {},
       page: 1,

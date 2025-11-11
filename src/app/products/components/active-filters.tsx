@@ -5,7 +5,7 @@ import { X } from "lucide-react"
 
 interface FiltersState {
   search: string
-  categoryId: string
+  category: string
   brand: string
   options: Record<string, string[]>
   page: number
@@ -24,7 +24,7 @@ export function ActiveFilters({
   setFilters,
   clearFilters,
 }: ActiveFiltersProps) {
-  const { categoryId, brand, options } = filters
+  const { category, brand, options } = filters
 
   const removeOptionValue = (optionName: string, value: string) => {
     setFilters((prev) => ({
@@ -38,7 +38,7 @@ export function ActiveFilters({
 
   // Ajuste: avaliar se há filtros ativos
   const hasActiveFilters =
-    Boolean(categoryId) ||
+    Boolean(category) ||
     (brand && brand !== "Todas") ||
     Object.values(options).some((arr) => arr.length > 0)
 
@@ -46,12 +46,12 @@ export function ActiveFilters({
 
   return (
     <div className="flex flex-wrap gap-2 mb-6">
-      {categoryId && (
+      {category && (
         <Badge variant="secondary" className="flex items-center gap-1">
-          Categoria: {categoryId}
+          Categoria: {category}
           <X
             className="w-3 h-3 cursor-pointer"
-            onClick={() => setFilters((f) => ({ ...f, categoryId: "", page: 1 }))}
+            onClick={() => setFilters((f) => ({ ...f, category: "", page: 1 }))}
           />
         </Badge>
       )}

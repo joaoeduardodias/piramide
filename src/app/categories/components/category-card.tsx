@@ -24,7 +24,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
       <Card className="overflow-hidden border-2 hover:border-foreground transition-all duration-300 hover:shadow-lg">
         <div className="relative h-64 overflow-hidden bg-slate-100">
           <Image
-            src={category.products[0].image}
+            src={category.products[0].image ?? ""}
             alt={category.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"

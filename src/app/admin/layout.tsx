@@ -1,12 +1,12 @@
 import type React from "react"
-import { Suspense } from "react"
+import { Providers } from "../providers"
 import { ProfileButton } from "./components/profile-button"
 import { Sidebar } from "./components/sidebar"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
-    <Suspense fallback={null}>
+    <Providers>
       <div className="min-h-screen bg-gray-50/50">
         <Sidebar />
         <div className="lg:pl-64">
@@ -18,6 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>
-    </Suspense>
+    </Providers>
+
   )
 }

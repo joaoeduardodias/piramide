@@ -1,15 +1,12 @@
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const dynamic = "force-static";
-export const revalidate = 60; // 60 seconds
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Pirâmide Calçados - Estilo e Conforto para seus pés",
@@ -28,17 +25,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.className}  antialiased`}>
-        <Providers>
-          <Header />
-          <main>{children}</main>
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            theme="light"
-          />
-          <Footer />
-        </Providers>
+        <>{children}</>
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          theme="light"
+        />
       </body>
     </html>
   );

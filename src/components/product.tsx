@@ -16,9 +16,9 @@ interface ProductProps {
 
 export function Product({ product, viewMode = 'grid' }: ProductProps) {
   return (
-    <Card key={product.id} className={`group hover:shadow-xl transition-shadow duration-300 bg-white ${viewMode === "list" ? "flex flex-row" : ""}`}>
-      <CardContent className={`p-0 ${viewMode === 'list' ? 'flex gap-x-2' : ''}`}>
-        <div className={`relative overflow-hidden ${viewMode === 'list' && 'w-60'}`}>
+    <Card key={product.id} className={`group hover:shadow-xl transition-shadow duration-300 bg-white flex flex-col h-full`}>
+      <CardContent className={`p-0 flex flex-col ${viewMode === 'list' ? 'md:flex-row gap-x-2' : ''} h-full`}>
+        <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-60 flex-shrink-0' : ''}`}>
           <Link href={`/product/${product.slug}`}>
             <Image
               src={product.images[0].url}
@@ -34,15 +34,15 @@ export function Product({ product, viewMode = 'grid' }: ProductProps) {
             )}
           </div>
         </div>
-        <div className="p-4">
+        <div className="p-4 flex flex-col flex-1">
           <Link href={`/product/${product.slug}`}>
             <h3 className="font-semibold text-gray-900 mb-2 hover:text-gray-600 transition-colors">
               {product.name}
             </h3>
           </Link>
           <p className="text-sm text-gray-600 mb-3">{product.categories.map(category => category.category.name).join(', ')}</p>
-          <div className={`flex  justify-between flex-col ${viewMode === 'list' && 'items-start'}`}>
-            <div className={`flex items-start gap-2 ${viewMode === 'list' && 'flex-col w-52 '}`}>
+          <div className={`mt-auto flex flex-col justify-between ${viewMode === "list" ? "items-start" : ""}`}>
+            <div className={`flex items-start gap-2  ${viewMode === 'list' && 'flex-col w-52 '}`}>
               <span className="text-xl font-bold text-gray-900">
                 {formatReal(String(product.price))}
               </span>

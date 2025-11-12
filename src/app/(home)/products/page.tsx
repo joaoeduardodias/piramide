@@ -14,8 +14,7 @@ export interface GetProductsParams {
   category?: string
   search?: string
 }
-export const dynamic = "force-static";
-export const revalidate = 3600 // 01 hour
+export const dynamic = "force-dynamic";
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams
@@ -23,10 +22,10 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     featured: sp?.featured === "true" ? true : undefined,
     page: sp?.page ? Number(sp.page) : 1,
     limit: sp?.limit ? Number(sp.limit) : 12,
-    status: sp?.status as GetProductsParams["status"],
+    status: typeof sp?.status === "string" ? (sp.status as GetProductsParams["status"]) : undefined,
     category: typeof sp?.category === "string" ? sp.category : undefined,
     search: typeof sp?.search === "string" ? sp.search : undefined,
-  }
+  };
 
   await queryClient.prefetchQuery({
     queryKey: ["products", queryParams],

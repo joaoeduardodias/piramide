@@ -66,7 +66,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             Início
           </Link>
           <span>/</span>
-          <Link href="/" className="hover:text-black transition-colors">
+          <Link href="/products" className="hover:text-black transition-colors">
             Produtos
           </Link>
           <span>/</span>

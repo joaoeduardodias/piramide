@@ -16,9 +16,6 @@ interface GetCategories {
 }
 
 export async function getCategories() {
-  const result = await api.get('categories', {
-    cache: "force-cache",
-    next: { revalidate: 60 },
-  }).json<GetCategories>()
+  const result = await api.get('categories').json<GetCategories>()
   return result
 }

@@ -90,7 +90,6 @@ export function HeroSection() {
             className="object-cover h-[500px] md:h-[600px] lg:h-[800px] w-full"
             priority={index === 0}
             quality={99}
-
           />
 
           <div className="absolute inset-0 bg-black/30" />
@@ -103,20 +102,13 @@ export function HeroSection() {
               </div>
               <div className="flex flex-col sm:flex-row gap-4 items-start">
                 <Link href="/products">
-                  <Button
-
-                    className="bg-white text-black hover:bg-gray-100 h-14 px-8 text-lg font-semibold shadow-xl"
-                  >
+                  <Button className="bg-white text-black hover:bg-gray-100 h-14 px-8 text-lg font-semibold shadow-xl">
                     Explorar Produtos
                     <ArrowRight className="ml-2 size-5" />
                   </Button>
                 </Link>
                 <Link href="/categories">
-                  <Button
-
-                    variant="outline"
-                    className="border-2 border-white text-white hover:bg-white hover:text-black h-14 px-8 text-lg font-semibold bg-transparent backdrop-blur-sm"
-                  >
+                  <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-black h-14 px-8 text-lg font-semibold bg-transparent backdrop-blur-sm">
                     Ver Categorias
                   </Button>
                 </Link>

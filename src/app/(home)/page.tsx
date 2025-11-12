@@ -1,4 +1,3 @@
-import { Footer } from "@/components/footer"
 import { HeroSection } from "@/components/hero-section"
 import { Product } from "@/components/product"
 import { Card, CardContent } from "@/components/ui/card"
@@ -53,7 +52,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <Footer />
     </div>
   )
 }

@@ -47,14 +47,16 @@ export function Header() {
               <Image
                 src={logoImg}
                 alt="Pirâmide Calçados Logo"
-                width={30}
-                height={30}
+                width={32}
+                height={32}
+                className="h-8 w-8"
               />
               <Image
                 src={logoText}
                 alt="Pirâmide Calçados Logo Text"
                 width={230}
-                height={55}
+                height={48}
+                className="h-12 w-56"
               />
             </Link>
           </div>

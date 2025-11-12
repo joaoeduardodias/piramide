@@ -19,16 +19,19 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ category }: CategoryCardProps) {
+  const firstProduct = category.products?.[0]
   return (
     <Link href={`/products?category=${category.name}`} className="group">
       <Card className="overflow-hidden border-2 hover:border-foreground transition-all duration-300 hover:shadow-lg">
         <div className="relative h-64 overflow-hidden bg-slate-100">
-          <Image
-            src={category.products[0].image ?? ""}
-            alt={category.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-          />
+          {firstProduct && (
+            <Image
+              src={firstProduct.image ?? ""}
+              alt={category.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          )}
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full">

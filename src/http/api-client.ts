@@ -24,7 +24,6 @@ export const api = ky.create({
           cookieStore = serverCookies
         }
         const token = await getCookie('token', { cookies: cookieStore })
-        console.log("Lendo os cookies em api client", token);
 
         if (token) {
           request.headers.set('Authorization', `Bearer ${token}`)

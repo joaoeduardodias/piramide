@@ -16,6 +16,6 @@ interface GetCategories {
 }
 
 export async function getCategories() {
-  const result = await api.get('categories').json<GetCategories>()
+  const result = await api.get('categories', { next: { tags: ['categories'] } }).json<GetCategories>()
   return result
 }

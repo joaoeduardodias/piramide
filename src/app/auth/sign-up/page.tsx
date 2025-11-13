@@ -1,13 +1,10 @@
 import logoImg from '@/assets/logo.png';
-import { isAuthenticated } from "@/auth/auth";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { redirect } from "next/navigation";
 import { SignUpForm } from "./components/sign-up-form";
-export default async function SignUpPage() {
-  if (await isAuthenticated()) {
-    redirect('/')
-  }
+
+
+export default function SignUpPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
@@ -15,8 +12,9 @@ export default async function SignUpPage() {
           <Image
             src={logoImg}
             alt="Pirâmide Calçados Logo"
-            width={30}
-            height={30}
+            width={32}
+            height={32}
+            className='h-8 w-8'
           />
         </div>
         <CardTitle className="text-2xl text-center">Criar nova conta</CardTitle>

@@ -4,6 +4,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import Image from "next/image"
 import { redirect } from "next/navigation"
 import { FormSignIn } from "./components/form-sign-in"
+export const dynamic = "force-dynamic"
 
 
 export default async function SignInPage() {

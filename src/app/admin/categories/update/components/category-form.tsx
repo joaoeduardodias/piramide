@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { useFormState } from "@/hooks/use-form-state"
 import { generateSlug } from "@/utils/generate-slug"
 import { AlertCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 interface Category {
@@ -28,8 +29,12 @@ interface CategoryFormProps {
 
 
 export function CategoryForm({ action, initialData }: CategoryFormProps) {
-
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(action)
+  const router = useRouter()
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(action,
+    () => {
+      router.push('/admin/categories')
+    }
+  )
   const [slug, setSlug] = useState(initialData?.slug || "")
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

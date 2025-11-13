@@ -10,10 +10,11 @@ export interface CartItem {
   image: string
   quantity: number
 }
+export type AddItemPayload = Omit<CartItem, "quantity"> & { quantity?: number }
 
 interface CartContextType {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, "quantity">) => void
+  addItem: (item: AddItemPayload) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -63,25 +64,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, isLoaded])
 
-  const addItem = (newItem: Omit<CartItem, "quantity">) => {
+  const addItem = (newItem: AddItemPayload) => {
     setItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (item) =>
-          item.id === newItem.id
-      )
+      const qtyToAdd = newItem.quantity ?? 1
+      const existingItemIndex = prevItems.findIndex((item) => item.id === newItem.id)
 
       if (existingItemIndex > -1) {
-
         const updatedItems = [...prevItems]
-        updatedItems[existingItemIndex].quantity += 1
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + qtyToAdd,
+        }
         return updatedItems
       } else {
-
-        return [...prevItems, { ...newItem, quantity: 1 }]
+        return [...prevItems, { ...newItem, quantity: qtyToAdd }]
       }
     })
   }
-
   const removeItem = (id: string) => {
     setItems((prevItems) =>
       prevItems.filter((item) => !(item.id === id)),

@@ -3,13 +3,20 @@ import { defineAbilityFor } from '@/permissions/ability';
 import { cookies } from "next/headers";
 import { redirect } from 'next/navigation';
 
-// interface JWTDecode extends JwtPayload {
-//   role: 'ADMIN' | 'MANAGER' | 'EDITOR' | 'USER'
-// }
 
-export async function isAuthenticated() {
-  const cookiesStore = await cookies()
-  return !!cookiesStore.get('token')?.value
+export async function getToken(): Promise<string | undefined> {
+  try {
+    const cookiesStore = await cookies();
+    return cookiesStore.get('token')?.value;
+  } catch {
+    return undefined;
+  }
+}
+
+
+export async function isAuthenticated(): Promise<boolean> {
+  const token = await getToken();
+  return !!token;
 }
 
 export async function ability() {
@@ -26,14 +33,18 @@ export async function ability() {
 }
 
 export async function auth() {
-  const cookiesStore = await cookies()
-  const token = cookiesStore.get('token')?.value
+  const token = await getToken();
+
   if (!token) {
-    redirect("/auth/sign-in")
+    redirect("/auth/sign-in");
   }
+
   try {
-    const { user } = await getProfile()
-    return { user }
-  } catch { }
-  redirect("/api/auth/sign-out")
+    const { user } = await getProfile();
+    return { user };
+  } catch (error) {
+    console.error("Erro ao buscar perfil:", error);
+  }
+
+  redirect("/api/auth/sign-out");
 }

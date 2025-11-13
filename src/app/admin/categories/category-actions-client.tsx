@@ -34,7 +34,6 @@ export function CategoryActionsClient({ categoryId, categoryName }: CategoryActi
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isToggling, setIsToggling] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)

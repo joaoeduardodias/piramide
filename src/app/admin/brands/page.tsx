@@ -12,7 +12,6 @@ export const metadata = {
   title: "Marcas | Dashboard",
   description: "Gerencie as marcas de produtos",
 }
-export const dynamic = "force-dynamic";
 
 export default async function BrandsPage() {
   const { brands } = await getBrands()

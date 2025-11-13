@@ -2,7 +2,7 @@
 import { AddToCartButton } from "@/components/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import type { ProductDetails } from "@/http/get-product-by-slug"
-import { MessageCircle, Share2 } from "lucide-react"
+import { Share2 } from "lucide-react"
 import { useState } from "react"
 import { ProductOptionSelector } from "./product-option-selector"
 
@@ -17,20 +17,20 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
   const [quantity, setQuantity] = useState(1)
 
 
-  const handleWhatsAppOrder = () => {
-    const message = `Olá! Gostaria de comprar o produto:
-      📦 *${product.name}*
-      💰 Preço: R$ ${product.price.toFixed(2).replace(".", ",")}
-      📏 Opções: ${selectedOptions}
-      📊 Quantidade: ${quantity}
+  // const handleWhatsAppOrder = () => {
+  //   const message = `Olá! Gostaria de comprar o produto:
+  //     📦 *${product.name}*
+  //     💰 Preço: R$ ${product.price.toFixed(2).replace(".", ",")}
+  //     📏 Opções: ${selectedOptions}
+  //     📊 Quantidade: ${quantity}
 
-      Total: R$ ${(product.price * quantity).toFixed(2).replace(".", ",")}
+  //     Total: R$ ${(product.price * quantity).toFixed(2).replace(".", ",")}
 
-      Poderia me ajudar com o pedido?`
+  //     Poderia me ajudar com o pedido?`
 
-    const whatsappUrl = `https://wa.me/5517998908771?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
-  }
+  //   const whatsappUrl = `https://wa.me/5517998908771?text=${encodeURIComponent(message)}`
+  //   window.open(whatsappUrl, "_blank")
+  // }
 
   const handleOptionChange = (optionId: string, valueId: string) => {
     setSelectedOptions((prev) => ({
@@ -40,7 +40,6 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
   }
 
   const allOptionsSelected = product.options.every((option) => selectedOptions[option.id])
-
   return (
     <>
       {product.options.map((option) => (
@@ -95,8 +94,8 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
           className="w-full"
           disabled={!allOptionsSelected}
         />
-        <div className="grid grid-cols-2 gap-4">
-          <Button
+        {/* <div className="grid grid-cols-2 gap-4"> */}
+        {/* <Button
             size="lg"
             variant="outline"
             className="w-full border-green-500 text-green-600 hover:bg-green-50 bg-transparent"
@@ -105,16 +104,16 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
           >
             <MessageCircle className="size-5 mr-2" />
             Comprar via WhatsApp
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-black text-black hover:bg-black hover:text-white bg-transparent"
-          >
-            <Share2 className="size-5 mr-2" />
-            Compartilhar
-          </Button>
-        </div>
+          </Button> */}
+        <Button
+          size="lg"
+          variant="outline"
+          className="border-black w-full text-black hover:bg-black hover:text-white bg-transparent"
+        >
+          <Share2 className="size-5 mr-2" />
+          Compartilhar
+        </Button>
+        {/* </div> */}
       </div>
 
 

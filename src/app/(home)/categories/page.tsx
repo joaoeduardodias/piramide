@@ -4,7 +4,6 @@ import { getCategories } from "@/http/get-categories";
 import Link from "next/link";
 import { CategoryCard } from "./components/category-card";
 
-export const dynamic = "force-static";
 export const revalidate = 3600; // 01 hour
 
 export default async function CategoriesPage() {

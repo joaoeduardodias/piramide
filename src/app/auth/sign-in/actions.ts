@@ -3,7 +3,6 @@
 import { signInWithPassword } from "@/http/sign-in-with-password";
 import { HTTPError } from "ky";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import z from "zod/v4";
 
 const signInSchema = z.object({
@@ -21,12 +20,6 @@ export async function signInAction(data: FormData) {
 
 
   const { email, password } = result.data
-  // let decodedToken: {
-  //   sub: string;
-  //   role: Role
-  //   iat: number;
-  //   exp: number;
-  // }
 
   try {
     const { token } = await signInWithPassword({ email, password });
@@ -35,10 +28,6 @@ export async function signInAction(data: FormData) {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     })
-
-    // decodedToken = jwtDecode(token);
-    // revalidatePath("/")
-    // revalidatePath("/auth/sign-in")
   }
   catch (err: any) {
     if (err instanceof HTTPError) {
@@ -51,6 +40,9 @@ export async function signInAction(data: FormData) {
       errors: null
     }
   }
-  redirect("/")
-
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
 }

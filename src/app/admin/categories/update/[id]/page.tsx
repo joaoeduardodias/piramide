@@ -1,9 +1,7 @@
-import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { getCategoryById } from "@/http/get-category-by-id"
 import { ArrowLeft, FolderTree, Plus } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { updateCategoryAction } from "../../actions"
 import { CategoryForm } from "../components/category-form"
 
@@ -11,18 +9,12 @@ export const metadata = {
   title: "Editar Categoria | Admin",
   description: "Editar categoria de produtos",
 }
-export const dynamic = "force-dynamic";
-
 export default async function UpdateCategoryPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
 
-  const permissions = await ability()
-  if (permissions?.cannot('create', 'Product')) {
-    redirect('/admin/categories')
-  }
   const { id } = await params
   const { category } = await getCategoryById({ id })
 

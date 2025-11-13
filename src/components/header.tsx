@@ -80,9 +80,11 @@ export function Header() {
                 </Button>
               </Link>
             ) : (
-              <Button variant="ghost" onClick={handleSignOut}>
-                <UserX2 className="size-5" />
-                <span className="sr-only">Sair</span>
+              <Button variant="ghost">
+                <a href='/api/auth/sign-out'>
+                  <UserX2 className="size-5" />
+                  <span className="sr-only">Sair</span>
+                </a>
               </Button>
             )}
             {auth.isAdmin && (

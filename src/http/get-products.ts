@@ -71,7 +71,7 @@ export async function getProducts(params?: GetProductsParams) {
   if (params?.sortBy) query.set("sortBy", params.sortBy);
 
   const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
-  const result = await api.get(url).json<GetProducts>()
+  const result = await api.get(url, { next: { tags: ['products'] }, headers: { "X-Skip-Auth": "true" } }).json<GetProducts>()
   return result
 
 }

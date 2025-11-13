@@ -12,6 +12,7 @@ import { getSignedUrl } from "@/http/get-signed-url"
 import { formatReal } from "@/lib/validations"
 import { AlertCircle, AlertTriangle, Check, FolderTree, Loader2, Plus, X } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import { createProductAction } from "../../actions"
 import ImageUpload from "../../components/image-upload"
@@ -54,8 +55,13 @@ interface FormCreateProps {
 
 
 export function FormCreateProduct({ categories, options, brands }: FormCreateProps) {
+  const router = useRouter()
   const [isPending, setIsPending] = useState(false)
-  const [{ success, message, errors }, handleSubmit] = useFormState(createProductAction)
+  const [{ success, message, errors }, handleSubmit] = useFormState(createProductAction,
+    () => {
+      router.push('/admin/products')
+    }
+  )
   const formRef = useRef<HTMLFormElement>(null);
 
   const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(

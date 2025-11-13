@@ -1,9 +1,19 @@
+import { auth, isAuthenticated } from "@/auth/auth"
+import { redirect } from "next/navigation"
 import type React from "react"
 import { Providers } from "../providers"
 import { ProfileButton } from "./components/profile-button"
 import { Sidebar } from "./components/sidebar"
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const isAuth = await isAuthenticated()
+  if (!isAuth) {
+    redirect('/auth/sign-in')
+  }
+  const { user } = await auth()
+  if (user.role !== 'ADMIN') {
+    redirect('/')
+  }
 
   return (
     <Providers>

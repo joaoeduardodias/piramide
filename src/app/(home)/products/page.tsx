@@ -14,7 +14,6 @@ export interface GetProductsParams {
   category?: string
   search?: string
 }
-export const dynamic = "force-dynamic";
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams

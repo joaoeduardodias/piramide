@@ -1,24 +1,18 @@
-import { ability } from "@/auth/auth";
 import { Button } from "@/components/ui/button";
 import { getBrands } from "@/http/get-brands";
 import { getCategories } from "@/http/get-categories";
 import { getOptions } from "@/http/get-options";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { FormCreateProduct } from "./components/form-create-product";
 
 export const metadata = {
   title: "Novo Produto | Dashboard",
   description: "Criar novo produto",
 }
-export const dynamic = "force-dynamic";
+
 
 export default async function NewProductPage() {
-  const permissions = await ability()
-  if (permissions?.cannot('create', 'Product')) {
-    redirect('/admin/products')
-  }
 
   const { categories } = await getCategories()
   const { options } = await getOptions()

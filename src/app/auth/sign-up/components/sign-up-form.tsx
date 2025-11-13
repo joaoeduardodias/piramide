@@ -11,14 +11,20 @@ import { useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { signInWithGoogle } from "../../actions";
 import { signUpAction } from "../actions";
 
 export function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signUpAction)
+  const router = useRouter()
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
+    signUpAction,
+    () => {
+      router.push("/")
+    }
+  )
 
 
   return (

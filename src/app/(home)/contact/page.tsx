@@ -3,6 +3,9 @@ import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
 import Image from "next/image";
 import { FormContact } from "./components/form-contact";
 
+export const dynamic = 'force-static'// 01 hour
+
+
 export default function ContactPage() {
   const destination = encodeURIComponent("Av. Francisco Jales, 2465,Centro - Jales, SP");
   return (
@@ -12,7 +15,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
-              <MessageCircle className="w-4 h-4 text-white" />
+              <MessageCircle className="size-4 text-white" />
               <span className="text-sm text-white font-medium">Atendimento Personalizado</span>
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance">
@@ -128,7 +131,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2"
                   >
-                    <MapPin className="w-4 h-4" />
+                    <MapPin className="size-4" />
                     Ver no Mapa
                   </a>
                 </Button>

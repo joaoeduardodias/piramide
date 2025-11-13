@@ -7,16 +7,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState } from "@/hooks/use-form-state"
 import { AlertCircle, AlertTriangle, Loader2Icon, Settings } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { createOptionAction } from "../../actions"
 
 export function FormCreateOption() {
+  const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [isOptionDialogOpen, setIsOptionDialogOpen] = useState(false)
   const [optionName, setOptionName] = useState("")
   const [valuesText, setValuesText] = useState("")
   const [colors, setColors] = useState<string[]>([])
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createOptionAction)
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createOptionAction,
+    () => {
+      router.push('/admin/products')
+    }
+  )
 
   const isColorOption = ["cor", "color"].includes(optionName.toLowerCase());
 

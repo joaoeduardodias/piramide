@@ -45,7 +45,6 @@ export function AddToCartButton({
 }: AddToCartButtonProps) {
   const { addItem, setIsOpen } = useCart()
   const [isAdded, setIsAdded] = useState(false)
-
   const handleAddToCart = () => {
     const cartItem: Omit<CartItem, "quantity"> = {
       id: product.id,
@@ -55,9 +54,8 @@ export function AddToCartButton({
     }
 
 
-    for (let i = 0; i < quantity; i++) {
-      addItem(cartItem)
-    }
+    addItem({ ...cartItem, quantity })
+
     setIsAdded(true)
     setTimeout(() => setIsAdded(false), 2000)
     setTimeout(() => setIsOpen(true), 500)

@@ -8,6 +8,6 @@ interface UpdateCategoryRequest {
 }
 
 export async function updateCategory({ id, name, slug }: UpdateCategoryRequest) {
-  const result = await api.put(`categories/${id}`, { json: { name, slug } })
+  const result = await api.put(`categories/${id}`, { json: { name, slug }, next: { tags: [`category-${id}`] } })
   return result
 }

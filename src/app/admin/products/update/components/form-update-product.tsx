@@ -14,6 +14,7 @@ import { convertToFile } from "@/utils/convert-object-to-file"
 import { AlertCircle, AlertTriangle, Check, FolderTree, Loader2, Plus, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { updateProductAction } from "../../actions"
 import ImageUpload from "../../components/image-upload"
@@ -100,10 +101,15 @@ interface FormUpdateProps {
 }
 
 export function FormUpdateProduct({ categories, options, brands, initialData }: FormUpdateProps) {
+  const router = useRouter()
   const hasConvertedRef = useRef(false)
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, setIsPending] = useState(false)
-  const [{ success, message, errors }, handleSubmit] = useFormState(updateProductAction)
+  const [{ success, message, errors }, handleSubmit] = useFormState(updateProductAction,
+    () => {
+      router.push('/admin/products')
+    }
+  )
   const [hasChanged, setHasChanged] = useState(false)
   const [featured, setFeatured] = useState<boolean>(initialData.featured)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories)

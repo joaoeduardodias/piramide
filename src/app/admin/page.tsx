@@ -1,4 +1,3 @@
-import { auth, isAuthenticated } from "@/auth/auth"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,7 +15,6 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { EmptyState } from "./components/empty-state"
 import { StatsDashboard } from "./components/stats-dashboard"
 
@@ -40,15 +38,9 @@ const quickActions = [
     href: "/admin/reports",
   },
 ]
-export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  if (await isAuthenticated()) {
-    const { user } = await auth()
-    if (user.role !== 'ADMIN') {
-      redirect('/')
-    }
-  }
+
   const { products } = await getProducts()
   const topSalesProducts = products
     .map(product => {
@@ -108,7 +100,6 @@ export default async function AdminDashboard() {
     })
 
 
-
   return (
     <main className="space-y-8">
       <div>
@@ -163,7 +154,6 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* products */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <CardTitle className="text-xl font-semibold text-gray-900">Produtos Mais Vendidos</CardTitle>

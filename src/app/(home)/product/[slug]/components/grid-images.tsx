@@ -18,7 +18,9 @@ export function GridImages({
   images,
   discount
 }: GridImagesProps) {
-  const [selectedImage, setSelectedImage] = useState<number>(0)
+  const [selectedImage, setSelectedImage] = useState<number>(
+    Math.min(...images.map((img) => img.sortOrder))
+  )
 
   return (
     <div className="space-y-4">

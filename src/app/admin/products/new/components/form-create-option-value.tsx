@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useFormState } from "@/hooks/use-form-state"
 import { AlertCircle, AlertTriangle, Loader2Icon, Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useRef, useState, type FormEvent } from "react"
 import { createOptionValueAction } from "../../actions"
 
@@ -15,6 +16,7 @@ interface OptionValueProps {
 }
 
 export function FormCreateOptionValue({ optionName }: OptionValueProps) {
+  const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
   const [isOptionDialogOpen, setIsOptionDialogOpen] = useState(false)
   const [valuesText, setValuesText] = useState("")
@@ -27,6 +29,7 @@ export function FormCreateOptionValue({ optionName }: OptionValueProps) {
       setValuesText("");
       setColors([]);
       setIsOptionDialogOpen(false);
+      router.push('/admin/products')
     }
   );
 

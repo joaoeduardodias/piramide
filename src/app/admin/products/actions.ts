@@ -11,8 +11,7 @@ import { r2 } from "@/lib/cloudfare"
 import { generateSlug } from "@/utils/generate-slug"
 import { DeleteObjectsCommand } from "@aws-sdk/client-s3"
 import { HTTPError } from "ky"
-import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+import { revalidateTag } from "next/cache"
 import z from "zod/v4"
 
 const ProductStatusEnum = z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
@@ -87,15 +86,11 @@ export async function createProductAction(data: FormData) {
     }
   }
 
-
   const filesUpload = data.get("filesUpload") as string | null
-
   let formattedFilesUploads: any[] = []
-
   if (filesUpload) {
     try {
       const parsed = JSON.parse(filesUpload)
-      console.log(filesUpload);
       formattedFilesUploads = Array.isArray(parsed) ? parsed : [parsed]
     } catch {
       console.warn("Erro filesUpload, ignorando valor inválido.")
@@ -126,7 +121,6 @@ export async function createProductAction(data: FormData) {
   const result = createProductSchema.safeParse(formattedData);
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors;
-    console.log(errors);
     return { success: false, message: null, errors }
   };
   const {
@@ -167,9 +161,7 @@ export async function createProductAction(data: FormData) {
         sortOrder: i + 1,
       })),
     })
-
-    revalidatePath("/admin/products")
-    revalidatePath("/products")
+    revalidateTag('products')
 
   } catch (err: any) {
 
@@ -183,7 +175,11 @@ export async function createProductAction(data: FormData) {
       errors: null
     }
   }
-  redirect("/admin/products")
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
 }
 
 export async function deleteProductAction(data: FormData) {
@@ -213,9 +209,7 @@ export async function deleteProductAction(data: FormData) {
 
       await r2.send(command)
     }
-
-    revalidatePath("/admin/products")
-    revalidatePath("/products")
+    revalidateTag('products')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -224,11 +218,15 @@ export async function deleteProductAction(data: FormData) {
     }
     return {
       success: false,
-      message: 'Unexpected error, try again in a few minutes.',
+      message: 'Erro encontrado ao deletar produto.',
       errors: null
     }
   }
-  redirect("/admin/products")
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
 }
 
 export async function updateProductAction(data: FormData) {
@@ -335,19 +333,21 @@ export async function updateProductAction(data: FormData) {
       })
     }
 
-    revalidatePath("/admin/products")
-    revalidatePath("/products")
+    revalidateTag('products')
+    revalidateTag(`product-${productId}`)
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
       return { success: false, message, errors: null }
     }
-    console.log(err);
     return { success: false, message: "Erro inesperado. Tente novamente.", errors: null }
   }
-  redirect("/admin/products")
-
+  return {
+    success: true,
+    message: false,
+    errors: null
+  }
 }
 
 export async function createOptionAction(data: FormData) {
@@ -368,15 +368,7 @@ export async function createOptionAction(data: FormData) {
       name,
       values
     })
-
-    revalidatePath("/admin/products/new")
-    revalidatePath("/admin/products/update/:id")
-
-    return {
-      success: true,
-      message: 'Opção Criada',
-      errors: null
-    }
+    revalidateTag("options")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -385,11 +377,16 @@ export async function createOptionAction(data: FormData) {
     }
     return {
       success: false,
-      message: 'Unexpected error, try again in a few minutes.',
+      message: 'Erro encontrado ao criar Opção.',
       errors: null
     }
   }
 
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
 }
 
 export async function createOptionValueAction(data: FormData) {
@@ -412,15 +409,7 @@ export async function createOptionValueAction(data: FormData) {
       optionName,
       values
     })
-
-    revalidatePath("/admin/products/new")
-    revalidatePath("/admin/products/update/:id")
-
-    return {
-      success: true,
-      message: 'Opção Criada',
-      errors: null
-    }
+    revalidateTag("options")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -429,9 +418,14 @@ export async function createOptionValueAction(data: FormData) {
     }
     return {
       success: false,
-      message: 'Unexpected error, try again in a few minutes.',
+      message: "Erro encontrado ao criar Valor da Opção",
       errors: null
     }
+  }
+  return {
+    success: true,
+    message: null,
+    errors: null
   }
 
 }

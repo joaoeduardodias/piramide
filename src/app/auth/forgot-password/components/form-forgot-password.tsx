@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-export function FormRecoveryPassword() {
+export function FormForgotPassword() {
 
   return (
     <form className="space-y-3">

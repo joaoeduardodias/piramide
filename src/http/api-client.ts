@@ -1,6 +1,7 @@
-import { getCookie } from "cookies-next";
-import ky from "ky";
 
+import type { CookiesFn } from 'cookies-next';
+import { getCookie } from 'cookies-next';
+import ky from 'ky';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
 
 export const api = ky.create({
@@ -8,34 +9,27 @@ export const api = ky.create({
   hooks: {
     beforeRequest: [
       async (request) => {
-        let token: string | undefined;
-
-        if (typeof window !== "undefined") {
-
-          token = getCookie("token") as string | undefined;
-        } else {
-          const { cookies } = await import("next/headers");
-          try {
-            const cookieStore = await cookies();
-            token = cookieStore.get("token")?.value;
-          } catch {
-            token = undefined;
-          }
+        // if pass this header, ignore auth
+        if (request.headers.get("X-Skip-Auth") === "true") {
+          request.headers.delete("X-Skip-Auth")
+          return
         }
 
+
+        let cookieStore: CookiesFn | undefined
+
+        if (typeof window === 'undefined') {
+          const { cookies: serverCookies } = await import('next/headers')
+
+          cookieStore = serverCookies
+        }
+        const token = await getCookie('token', { cookies: cookieStore })
+        console.log("Lendo os cookies em api client", token);
+
         if (token) {
-          request.headers.set("Authorization", `Bearer ${token}`);
+          request.headers.set('Authorization', `Bearer ${token}`)
         }
       },
     ],
-
-    // afterResponse: [
-    //   (_request, _options, response) => {
-    //     if (response.status === 401 && typeof window !== "undefined") {
-    //       window.location.href = "/api/auth/sign-out";
-    //     }
-    //     return response;
-    //   },
-    // ],
   },
-});
+})

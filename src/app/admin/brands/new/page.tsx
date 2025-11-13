@@ -1,8 +1,6 @@
-import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { createBrandAction } from "../actions"
 import { BrandForm } from "../update/components/brand-form"
 
@@ -10,15 +8,10 @@ export const metadata = {
   title: "Nova Marca | Admin",
   description: "Criar nova marca de produtos",
 }
-export const dynamic = "force-dynamic";
+
 
 
 export default async function NewBrandPage() {
-  const permissions = await ability()
-  if (permissions?.cannot('create', 'Product')) {
-    redirect('/admin/brands')
-  }
-
 
   return (
     <div className="space-y-6">

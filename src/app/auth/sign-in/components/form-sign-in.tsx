@@ -16,9 +16,8 @@ import { signInWithGoogle } from "../../actions"
 import { signInAction } from "../actions"
 
 export function FormSignIn() {
-  const [showPassword, setShowPassword] = useState(false)
-  // const [{ success, message, errors }, formAction, isPending] = useActionState(signInAction, { success: false, message: null, errors: null });
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false)
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signInAction,
     () => {
       router.push('/')
@@ -82,7 +81,7 @@ export function FormSignIn() {
           {isPending ? (
             <>
               <Loader2 className="mr-2 size-4 animate-spin" />
-              Entrar
+              Entrando
             </>
           ) : (
             "Entrar"

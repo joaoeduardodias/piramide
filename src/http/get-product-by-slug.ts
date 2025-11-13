@@ -51,9 +51,7 @@ interface GetProductRequest {
 }
 
 export async function getProductBySlug({ slug }: GetProductRequest) {
-
-  const result = await api.get(`product/${slug}`).json<GetProductBySlugResponse>()
-
+  const result = await api.get(`product/${slug}`, { next: { tags: [`product-${slug}`] } }).json<GetProductBySlugResponse>()
   return result
 
 }

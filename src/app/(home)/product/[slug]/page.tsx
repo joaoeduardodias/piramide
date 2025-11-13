@@ -12,8 +12,6 @@ import { GridImages } from "./components/grid-images"
 type Props = {
   params: Promise<{ slug: string }>
 }
-export const dynamic = "force-static";
-export const revalidate = 86400; // 24 hours
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const { products } = await getProducts({ sortBy: "relevance", limit: 100 });
@@ -26,7 +24,6 @@ export async function generateMetadata(
 ): Promise<Metadata> {
 
   const { slug } = await params
-
   const { product } = await getProductBySlug({ slug })
   const previousImages = (await parent).openGraph?.images || []
 
@@ -57,6 +54,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0
+  console.log();
 
   return (
     <main className="min-h-screen bg-white">
@@ -91,7 +89,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
             <p className="text-sm text-green-600 font-medium">
-              ou 10x de R$ {(product.price / 10).toFixed(2).replace(".", ",")} sem juros
+              ou 10x de R$ {((product.price / 100) / 10).toFixed(2).replace(".", ",")} sem juros
             </p>
           </div>
           <FormSelectProduct discount={discount} product={product} />

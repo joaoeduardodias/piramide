@@ -1,9 +1,7 @@
-import { ability } from "@/auth/auth"
 import { Button } from "@/components/ui/button"
 import { getBrandById } from "@/http/get-brand-by-id"
 import { ArrowLeft, FolderTree, Plus } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { updateBrandAction } from "../../actions"
 import { BrandForm } from "../components/brand-form"
 
@@ -11,20 +9,12 @@ export const metadata = {
   title: "Editar Marca | Admin",
   description: "Editar marca de produtos",
 }
-export const dynamic = "force-dynamic";
 
 export default async function UpdateBrandPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
-  const permissions = await ability()
-  if (permissions?.cannot('create', 'Product')) {
-    redirect('/admin/brands')
-  }
-
-
-
   const { id } = await params
   const { brand } = await getBrandById({ id })
 

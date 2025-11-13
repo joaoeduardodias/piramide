@@ -45,9 +45,6 @@ interface GetProductRequest {
 }
 
 export async function getProductById({ id }: GetProductRequest) {
-
-  const result = await api.get(`products/${id}`).json<GetProductByIdResponse>()
-
+  const result = await api.get(`products/${id}`, { next: { tags: [`product-${id}`] } }).json<GetProductByIdResponse>()
   return result
-
 }

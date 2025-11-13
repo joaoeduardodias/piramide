@@ -17,7 +17,6 @@ interface GetBrandByIdRequest {
 }
 
 export async function getBrandById({ id }: GetBrandByIdRequest) {
-  const result = await api.get(`brand/${id}`).json<GetBrandByIdResponse>()
+  const result = await api.get(`brand/${id}`, { next: { tags: [`brand-${id}`] } }).json<GetBrandByIdResponse>()
   return result
-
 }

@@ -30,7 +30,10 @@ export async function generateMetadata(
   return {
     title: `${product.name} | Piramide Calçados`,
     openGraph: {
-      images: [product?.images[0]?.url ?? "", ...previousImages],
+      images: [
+        product?.images?.[0]?.url || "/placeholder.png",
+        ...previousImages,
+      ],
     },
   }
 }
@@ -38,6 +41,7 @@ export async function generateMetadata(
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { product } = await getProductBySlug({ slug })
+
 
   if (!product) {
     return (
@@ -54,7 +58,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const discount = product.comparePrice
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : 0
-  console.log();
 
   return (
     <main className="min-h-screen bg-white">
@@ -72,7 +75,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </div>
       <div className="container mx-auto px-4 py-8 grid lg:grid-cols-2 gap-12">
-        <GridImages discount={discount} images={product.images} />
+        {product.images && (
+          <GridImages discount={discount} images={product.images} />
+        )}
         <div className="space-y-6">
           <div>
             <p className="text-sm text-gray-500 uppercase tracking-wider mb-2">{product.brand}</p>
@@ -84,7 +89,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </span>
               {product.comparePrice && (
                 <span className="text-xl text-gray-500 line-through">
-                  {formatReal(String(product.comparePrice))}
+                  {formatReal(String(product?.comparePrice ?? ''))}
                 </span>
               )}
             </div>

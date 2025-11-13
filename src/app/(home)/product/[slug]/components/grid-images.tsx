@@ -18,10 +18,12 @@ export function GridImages({
   images,
   discount
 }: GridImagesProps) {
-  const [selectedImage, setSelectedImage] = useState<number>(
-    Math.min(...images.map((img) => img.sortOrder))
-  )
+  const initialIndex =
+    images.length > 0
+      ? images.findIndex((img) => img.sortOrder === Math.min(...images.map((i) => i.sortOrder)))
+      : 0
 
+  const [selectedImage, setSelectedImage] = useState<number>(initialIndex)
   return (
     <div className="space-y-4">
       <div className="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden">
@@ -31,8 +33,8 @@ export function GridImages({
           </Badge>
         )}
         <Image
-          src={images[selectedImage].url || "/placeholder.svg"}
-          alt={images[selectedImage].alt ?? 'Imagem do produto'}
+          src={images[selectedImage]?.url || "/placeholder.svg"}
+          alt={images[selectedImage]?.alt ?? 'Imagem do produto'}
           fill
           className="object-cover"
         />
@@ -49,8 +51,8 @@ export function GridImages({
               }`}
           >
             <Image
-              src={image.url || "/placeholder.svg"}
-              alt={`${image.alt} - ${index + 1}`}
+              src={image?.url || "/placeholder.svg"}
+              alt={`${image?.alt} - ${index + 1}`}
               width={120}
               height={120}
               className="w-full h-full object-cover"

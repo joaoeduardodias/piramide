@@ -77,7 +77,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
         <h1 className="text-4xl text-center md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance">
           Nossa Coleção Completa
         </h1>
-        <p className="text-lg text-center md:text-xl text-gray-300 leading-relaxed">
+        <p className="text-lg mb-3 text-center md:text-xl text-gray-300 leading-relaxed">
           Conheça nossa linha de produtos
         </p>
         <div className="max-w-2xl mx-auto">

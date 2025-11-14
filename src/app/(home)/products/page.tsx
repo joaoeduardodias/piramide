@@ -13,6 +13,7 @@ export interface GetProductsParams {
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
   category?: string
   search?: string
+  brand?: string
 }
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -24,6 +25,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     status: typeof sp?.status === "string" ? (sp.status as GetProductsParams["status"]) : undefined,
     category: typeof sp?.category === "string" ? sp.category : undefined,
     search: typeof sp?.search === "string" ? sp.search : undefined,
+    brand: typeof sp?.brand === "string" ? sp.brand : undefined,
   };
 
   await queryClient.prefetchQuery({

@@ -30,7 +30,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
   const [filters, setFilters] = useState({
     search: queryParams.search ?? "",
     category: queryParams.category ?? "",
-    brand: "Todas",
+    brand: queryParams.brand ?? "",
     options: {} as Record<string, string[]>,
     page: queryParams.page ?? 1,
     limit: queryParams.limit ?? 12,
@@ -64,7 +64,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     setFilters({
       search: "",
       category: "",
-      brand: "Todas",
+      brand: "",
       options: {},
       page: 1,
       limit: 12,

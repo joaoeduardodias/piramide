@@ -52,7 +52,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
 
 
   const getStatusBadge = (status: string, stock: number) => {
-    if (status === "Ativo" && stock > 10) {
+    if (status && stock > 10) {
       return <Badge className="bg-emerald-100 text-emerald-700 border-0">Ativo</Badge>
     } else if (status === "Baixo Estoque" || (stock > 0 && stock <= 5)) {
       return <Badge className="bg-amber-100 text-amber-700 border-0">Baixo Estoque</Badge>
@@ -201,7 +201,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-sm h-[48rem]">
+      <Card className="border-0 shadow-sm min-h-[48rem]">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-900">
             Lista de Produtos ({total})
@@ -277,7 +277,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
                             <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge('', product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
+                        <TableCell>{getStatusBadge('ativo', product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
                         <TableCell>{product.brand.name}</TableCell>
                         <TableCell>
                           <span className="text-sm text-gray-600 ">{product.sales}</span>

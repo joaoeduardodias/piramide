@@ -57,6 +57,7 @@ interface GetProductsParams {
   category?: string;
   search?: string;
   sortBy?: 'price-asc' | 'price-desc' | 'relevance' | 'created-desc'
+  brand?: string;
 }
 
 export async function getProducts(params?: GetProductsParams) {
@@ -69,7 +70,8 @@ export async function getProducts(params?: GetProductsParams) {
   if (params?.category) query.set("category", params.category);
   if (params?.search) query.set("search", params.search);
   if (params?.sortBy) query.set("sortBy", params.sortBy);
-
+  if (params?.sortBy) query.set("sortBy", params.sortBy);
+  if (params?.brand) query.set("brand", params.brand);
   const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
   const result = await api.get(url, { next: { tags: ['products'] }, headers: { "X-Skip-Auth": "true" } }).json<GetProducts>()
   return result

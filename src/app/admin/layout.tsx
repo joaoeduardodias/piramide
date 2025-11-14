@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import type React from "react"
 import { Providers } from "../providers"
 import { ProfileButton } from "./components/profile-button"
@@ -10,6 +12,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Sidebar />
         <div className="lg:pl-64">
           <div className="sticky top-0  z-40 flex flex-1 h-16 self-stretch justify-between items-center gap-x-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+            <Link href="/">
+              <Button variant="link" className="text-blue-600">
+                Voltar a loja
+              </Button>
+            </Link>
             <div className="flex items-center gap-x-4 lg:gap-x-6 lg:ml-auto">
               <ProfileButton />
             </div>

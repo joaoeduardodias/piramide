@@ -9,9 +9,7 @@ interface SignInWithGoogleResponse {
 }
 
 export async function signInWithGoogle({ code }: SignInWithGoogleRequest) {
-
   const result = await api.post('sessions/google', { json: { code } }).json<SignInWithGoogleResponse>()
-
   return result
 
 }

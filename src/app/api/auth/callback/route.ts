@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Google OAuth code was note found." }, { status: 400 })
   }
 
-  console.log(code);
   const { token } = await signInWithGoogle({ code })
   const cookiesStore = await cookies()
   cookiesStore.set('token', token, {

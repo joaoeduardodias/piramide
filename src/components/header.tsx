@@ -31,9 +31,6 @@ export function Header() {
     checkAuth()
   }, [])
 
-  function handleSignOut() {
-    router.push('/api/auth/sign-out')
-  }
 
   return (
     <header

@@ -5,9 +5,6 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const dynamic = "force-static";
-export const revalidate = 3600;
-
 export const metadata: Metadata = {
   title: "Pirâmide Calçados - Estilo e Conforto para seus pés",
   description:
@@ -20,8 +17,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-
   return (
     <html lang="pt-BR">
       <body className={`${inter.className}  antialiased`}>

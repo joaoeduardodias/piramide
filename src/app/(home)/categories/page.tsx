@@ -11,11 +11,14 @@ export default async function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-24">
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/abstract-geometric-flow.png')] opacity-5" />
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-6xl font-bold mb-6 text-balance">Explore Nossas Categorias</h1>
-            <p className="text-xl text-slate-300 mb-8 text-pretty leading-relaxed">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance">
+              Explore Nossas Categorias
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
               Descubra o calçado perfeito para cada momento da sua vida. De performance esportiva a elegância casual,
               temos tudo que você precisa.
             </p>

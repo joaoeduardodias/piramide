@@ -72,9 +72,16 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
 
   return (
     <main className="w-full">
-      <section className="py-16 bg-gradient-to-r from-black to-gray-800 text-white text-center">
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/abstract-geometric-flow.png')] opacity-5" />
+        <h1 className="text-4xl text-center md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance">
+          Nossa Coleção Completa
+        </h1>
+        <p className="text-lg text-center md:text-xl text-gray-300 leading-relaxed">
+          Conheça nossa linha de produtos
+        </p>
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-5xl font-bold mb-6">Nossa Coleção Completa</h1>
+
           <div className="relative max-w-md mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input

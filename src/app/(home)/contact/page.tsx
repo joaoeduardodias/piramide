@@ -3,7 +3,7 @@ import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
 import Image from "next/image";
 import { FormContact } from "./components/form-contact";
 
-export const dynamic = 'force-static'// 01 hour
+export const dynamic = 'force-static'
 
 
 export default function ContactPage() {

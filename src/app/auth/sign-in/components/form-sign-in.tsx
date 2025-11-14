@@ -46,7 +46,7 @@ export function FormSignIn() {
             placeholder="seu@email.com"
           />
           {errors?.email && (
-            <p className="text-xs ml-1 text-red-600">{errors.email}</p>
+            <p className="text-xs ml-1 text-red-600">{errors.email[0]}</p>
           )}
         </div>
         <div className="space-y-2">
@@ -67,11 +67,11 @@ export function FormSignIn() {
             </button>
           </div>
           {errors?.password && (
-            <p className="text-xs ml-1 text-red-600">{errors.password}</p>
+            <p className="text-xs ml-1 text-red-600">{errors.password[0]}</p>
           )}
         </div>
         <div className="flex items-center justify-end">
-          <Link href="/auth/recovery-password" className="text-sm text-blue-600 hover:underline">
+          <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
             Esqueceu a senha?
           </Link>
         </div>

@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { token } = await signInWithGoogle({ code })
+  console.log(token);
   const cookiesStore = await cookies()
   cookiesStore.set('token', token, {
     path: '/',

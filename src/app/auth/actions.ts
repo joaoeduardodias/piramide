@@ -12,7 +12,7 @@ export async function signInWithGoogle() {
   googleSignInUrl.searchParams.set("scope", "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile")
   googleSignInUrl.searchParams.set("access_type", "offline")
   googleSignInUrl.searchParams.set("prompt", "consent")
-  googleSignInUrl.searchParams.set("state", state)
+  // googleSignInUrl.searchParams.set("state", state)
 
   redirect(googleSignInUrl.toString())
 }

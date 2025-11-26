@@ -21,7 +21,7 @@ const createProductSchema = z.object({
   description: z.string().optional(),
   featured: z.boolean().default(false),
   price: z.number('Preço é obrigatório.').positive('Preço deve ser positivo'),
-  comparePrice: z.number().positive('Preço deve ser positivo').nullable().optional(),
+  comparePrice: z.number().nullish(),
   status: ProductStatusEnum.default('DRAFT'),
   weight: z.number().positive("Peso deve ser positivo.").optional(),
   category: z.array(z.uuid('Selecione uma categoria')),
@@ -143,7 +143,7 @@ export async function createProductAction(data: FormData) {
   try {
     await createProduct({
       categoryIds: category,
-      comparePrice,
+      comparePrice: comparePrice && comparePrice * 100,
       description,
       featured,
       name,
@@ -230,6 +230,8 @@ export async function deleteProductAction(data: FormData) {
 }
 
 export async function updateProductAction(data: FormData) {
+
+
   const productId = data.get("id") as string
   const optionsData = data.get("options") as string
   let formattedOptions: { name: string; values: Array<{ id?: string; value: string; content?: string | null }> }[] = []
@@ -281,6 +283,7 @@ export async function updateProductAction(data: FormData) {
     variants: formattedVariants,
 
   }
+
   const result = createProductSchema.safeParse(formattedData)
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors
@@ -308,7 +311,7 @@ export async function updateProductAction(data: FormData) {
       name,
       slug: generateSlug(name),
       price: price * 100,
-      comparePrice,
+      comparePrice: comparePrice && comparePrice * 100,
       weight,
       featured,
       description,
@@ -332,7 +335,6 @@ export async function updateProductAction(data: FormData) {
         }))
       })
     }
-
     revalidateTag('products')
     revalidateTag(`product-${productId}`)
 

@@ -15,7 +15,6 @@ export const api = ky.create({
           return
         }
 
-
         let cookieStore: CookiesFn | undefined
 
         if (typeof window === 'undefined') {

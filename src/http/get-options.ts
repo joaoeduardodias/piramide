@@ -16,6 +16,7 @@ interface GetOptions {
 export async function getOptions() {
 
   const result = await api.get('options', { next: { tags: ['options'] } }).json<GetOptions>()
+  // const result = await api.get('options').json<GetOptions>()
 
   return result
 

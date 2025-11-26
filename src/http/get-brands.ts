@@ -16,10 +16,11 @@ interface GetBrands {
 }
 
 export async function getBrands() {
-  const result = await api.get('brands', {
-    next: {
-      tags: ['brands']
-    }
-  }).json<GetBrands>()
+  // const result = await api.get('brands', {
+  //   next: {
+  //     tags: ['brands']
+  //   }
+  // }).json<GetBrands>()
+  const result = await api.get('brands').json<GetBrands>()
   return result
 }

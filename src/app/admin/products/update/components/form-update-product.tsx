@@ -364,11 +364,11 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   const [price, setPrice] = useState(() => formatReal(String(initialData.price ?? "")))
   const [comparePrice, setComparePrice] = useState(() => formatReal(String(initialData.comparePrice ?? "")))
 
+
   function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatReal(e.target.value)
     setPrice(formatted)
   }
-
 
   function handleComparePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatReal(e.target.value)
@@ -384,7 +384,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
         <input type="hidden" name="brandId" value={brand} />
         <input type="hidden" name="filesUpload" />
-
 
         <Card className="border-0 shadow-sm">
           <CardHeader>
@@ -710,7 +709,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
               <Label htmlFor="comparePrice">Preço Comparativo</Label>
               <Input
                 id="comparePrice"
-                name="comparePrice"
+                // name="comparePrice"
                 value={comparePrice}
                 onChange={handleComparePriceChange}
                 placeholder="R$ 0,00"
@@ -719,7 +718,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
               <input
                 type="hidden"
                 name="comparePrice"
-                value={price.replace(/[^\d,]/g, "").replace(",", ".")}
+                value={comparePrice.replace(/[^\d,]/g, "").replace(",", ".")}
               />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>

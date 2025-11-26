@@ -75,7 +75,6 @@ export async function getProducts(params?: GetProductsParams) {
   const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
   const result = await api.get(url, { next: { tags: ['products'] }, headers: { "X-Skip-Auth": "true" } }).json<GetProducts>()
   return result
-
 }
 
 export function useProducts(params: GetProductsParams) {

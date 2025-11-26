@@ -10,7 +10,7 @@ import { CardProducts } from "./components/card-products"
 
 
 
-export default async function ProductsPage() {
+export default async function AdminProductsPage() {
 
   const queryClient = new QueryClient()
 

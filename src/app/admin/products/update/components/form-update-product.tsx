@@ -12,19 +12,16 @@ import { getSignedUrl } from "@/http/get-signed-url"
 import { formatReal } from "@/lib/validations"
 import { convertToFile } from "@/utils/convert-object-to-file"
 import { AlertCircle, AlertTriangle, Check, FolderTree, Loader2, Plus, X } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { updateProductAction } from "../../actions"
 import ImageUpload from "../../components/image-upload"
 import { FormCreateOption } from "../../new/components/form-create-option"
 import { FormCreateOptionValue } from "../../new/components/form-create-option-value"
 
-
-type OptionValue = { id: string, value: string, content: string | null }
+type OptionValue = { id: string; value: string; content: string | null }
 type SelectedOptions = Record<string, OptionValue[]>
-
 
 interface Variant {
   id: string
@@ -36,7 +33,7 @@ interface Variant {
   optionValueIds?: string[]
 }
 
-interface Image {
+interface ImageItem {
   id: string;
   url: string;
   alt: string | null;
@@ -48,6 +45,10 @@ interface FileUpload {
   fileKey: string;
   url: string;
   sortOrder: number;
+}
+
+interface UploadedFile extends File {
+  // marcação opcional caso queira estender
 }
 
 interface FormUpdateProps {
@@ -75,7 +76,7 @@ interface FormUpdateProps {
     price: number;
     comparePrice: number | null;
     weight: number | null;
-    images: Image[]
+    images: ImageItem[]
     brand: {
       id: string;
       name: string;
@@ -102,145 +103,93 @@ interface FormUpdateProps {
 
 export function FormUpdateProduct({ categories, options, brands, initialData }: FormUpdateProps) {
   const router = useRouter()
+  const formRef = useRef<HTMLFormElement | null>(null)
   const hasConvertedRef = useRef(false)
-  const formRef = useRef<HTMLFormElement>(null);
   const [isPending, setIsPending] = useState(false)
-  const [{ success, message, errors }, handleSubmit] = useFormState(updateProductAction,
-    () => {
-      router.push('/admin/products')
-    }
-  )
-  const [hasChanged, setHasChanged] = useState(false)
+  const [{ success, message, errors }, handleSubmit] = useFormState(updateProductAction, () => {
+    router.push('/admin/products')
+  })
+
+  // === controlled fields / states ===
+  const [name, setName] = useState<string>(initialData.name ?? "")
   const [featured, setFeatured] = useState<boolean>(initialData.featured)
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories)
-  const [brand, setBrand] = useState<string>(String(initialData?.brand.id))
-  const [images, setImages] = useState<File[]>([])
+  const [description, setDescription] = useState<string>(initialData?.description ?? "")
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData.categories ?? [])
+  const [brand, setBrand] = useState<string>(String(initialData?.brand?.id ?? ""))
+  const [images, setImages] = useState<UploadedFile[]>([])
   const [originalState, setOriginalState] = useState<string>("")
+  const [hasChanged, setHasChanged] = useState(false)
 
-  const defaultValues: Record<string, OptionValue[]> = Object.fromEntries(
-    options.map(opt => {
-      const key = opt.name.toLowerCase();
-      const values: OptionValue[] = opt.values.map(v => ({
-        id: v.id,
-        value: v.value,
-        content: v.content
-      }));
-      return [key, values];
-    })
-  );
+  // price inputs (keeping same format behavior)
+  const [price, setPrice] = useState(() => formatReal(String(initialData.price ?? "")))
+  const [comparePrice, setComparePrice] = useState(() => formatReal(String(initialData.comparePrice ?? "")))
 
-  async function convertImagesToFiles(images: Image[]): Promise<File[]> {
-    return Promise.all(
-      images.map((img, i) => convertToFile(img.url, img.fileKey ?? `image-${i}.jpg`))
+  // === memoized default values (options) ===
+  const defaultValues = useMemo<Record<string, OptionValue[]>>(() => {
+    return Object.fromEntries(
+      options.map(opt => {
+        const key = opt.name.toLowerCase()
+        const values: OptionValue[] = opt.values.map(v => ({
+          id: v.id,
+          value: v.value,
+          content: v.content
+        }))
+        return [key, values]
+      })
     )
-  }
+  }, [options])
 
-  useEffect(() => {
-    if (hasConvertedRef.current) return
-    hasConvertedRef.current = true
-
-    if (initialData.images.length > 0) {
-      convertImagesToFiles(initialData.images)
-        .then(resultado => {
-          setImages(resultado)
-          setOriginalState(JSON.stringify(resultado.map(f => f.name)))
-
-        })
-        .catch(erro => {
-          console.error("Falha na conversão de imagens:", erro);
-        });
-    }
-
-  }, [initialData.images])
-
-  useEffect(() => {
-    const currentState = JSON.stringify(images.map(f => f.name))
-    setHasChanged(currentState !== originalState)
-  }, [images, originalState])
-
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(
-    Object.fromEntries(
-      (initialData.options || []).map((opt) => [opt.name.toLowerCase(), opt.values])
+  const initialSelectedOptions = useMemo<SelectedOptions>(() => {
+    return Object.fromEntries(
+      (initialData.options || []).map(opt => [opt.name.toLowerCase(), opt.values.map(v => ({ id: v.id, value: v.value, content: v.content }))])
     )
+  }, [initialData.options])
+
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialSelectedOptions)
+
+  const [variants, setVariants] = useState<Variant[]>(
+    () =>
+      (initialData.variants || []).map((variant) => ({
+        id: variant.id,
+        price: variant.price === null ? 0 : Number(variant.price),
+        comparePrice: variant.comparePrice === null ? 0 : Number(variant.comparePrice),
+        sku: variant.sku,
+        stock: variant.stock ?? 0
+      }))
   )
-  const [variants, setVariants] = useState<Variant[]>(initialData.variants.map(variant => {
-    return {
-      id: variant.id,
-      price: Number(variant.price),
-      comparePrice: Number(variant.comparePrice),
-      sku: variant.sku,
-      stock: Number(variant.stock)
-    }
-  }))
 
-  function getInitials(name: string): string {
-    if (!name.trim()) return "";
-
-    const parts = name.trim().split(/\s+/);
-    const initials = parts
-      .slice(0, 2)
-      .map(word => word[0].toUpperCase())
-      .join("");
-
-    return initials;
+  function getInitials(productName: string): string {
+    const trimmed = (productName ?? "").trim()
+    if (!trimmed) return ""
+    const parts = trimmed.split(/\s+/)
+    return parts.slice(0, 2).map(p => p[0].toUpperCase()).join("")
   }
 
-  const handleCategoryToggle = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
-    )
-  }
-
-  const handleOptionToggle = (optionName: string, optionValue: OptionValue) => {
-    setSelectedOptions(prev => {
-      const currentValues = prev[optionName] || [];
-      const exists = currentValues.some(v => v.id === optionValue.id);
-
-      const updatedValues = exists
-        ? currentValues.filter(v => v.id !== optionValue.id)
-        : [...currentValues, optionValue];
-
-      const newSelected = { ...prev, [optionName]: updatedValues };
-
-      // Gerar variants
-      const baseSkuName = (document.getElementById("name") as HTMLInputElement)?.value || "";
-      const baseSku = getInitials(baseSkuName);
-
-      const optionNames = Object.keys(newSelected);
-      const optionValues = Object.values(newSelected).filter(arr => arr.length > 0) as OptionValue[][];
-
-      const allCombinations = generateCombinations(optionValues);
-      const newVariants = buildVariantsGeneric(allCombinations, optionNames, baseSku);
-      setVariants(newVariants);
-
-      return newSelected;
-    });
-  };
-
-  function generateCombinations<T>(arrays: T[][]): T[][] {
-    if (arrays.length === 0) return []
+  const generateCombinations = useCallback(<T,>(arrays: T[][]): T[][] => {
+    if (!arrays || arrays.length === 0) return []
     return arrays.reduce<T[][]>(
-      (acc, curr) => acc.flatMap((a) => curr.map((b) => [...a, b])),
+      (acc, curr) => acc.flatMap(a => curr.map(b => [...a, b])),
       [[]]
     )
-  }
+  }, [])
 
   function buildVariantsGeneric(
     combinations: OptionValue[][],
     optionNames: string[],
     baseSku: string
   ): Variant[] {
+    if (!combinations || combinations.length === 0) return []
     return combinations.map(combo => {
-      const options: Record<string, OptionValue> = {};
-      const optionValueIds: string[] = [];
+      const options: Record<string, OptionValue> = {}
+      const optionValueIds: string[] = []
 
       combo.forEach((opt, i) => {
-        const name = optionNames[i];
-        options[name] = { ...opt };
-        optionValueIds.push(opt.id);
-      });
+        const name = optionNames[i]
+        options[name] = { ...opt }
+        optionValueIds.push(opt.id)
+      })
 
-      const sku = [baseSku, ...combo.map(v => v.value)].filter(Boolean).join("-").toUpperCase();
+      const sku = [baseSku, ...combo.map(v => v.value)].filter(Boolean).join("-").toUpperCase()
 
       return {
         id: sku,
@@ -250,141 +199,223 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         stock: 0,
         options,
         optionValueIds
-      };
-    });
+      }
+    })
   }
 
-
-  const updateVariantField = (id: string, field: keyof Variant, value: any) => {
-    setVariants((prev) =>
-      prev.map((varItem) =>
-        varItem.id === id ? { ...varItem, [field]: value } : varItem
-      )
-    )
+  async function convertImagesToFiles(imagesList: ImageItem[]): Promise<UploadedFile[]> {
+    const promises = imagesList.map((img, i) => convertToFile(img.url, img.fileKey ?? `image-${i}.jpg`))
+    return Promise.all(promises) as Promise<UploadedFile[]>
   }
 
-  const handleUploadImage = async (): Promise<FileUpload[] | undefined> => {
-    if (!hasChanged) {
-      return
+  useEffect(() => {
+    if (hasConvertedRef.current) return
+    hasConvertedRef.current = true
+
+    if (initialData.images && initialData.images.length > 0) {
+      convertImagesToFiles(initialData.images)
+        .then(result => {
+          setImages(result)
+          setOriginalState(JSON.stringify(result.map(f => f.name)))
+        })
+        .catch(err => {
+          console.error("Falha na conversão de imagens:", err)
+        })
     }
-    const originalImages = initialData.images || []
-    const originalKeys = originalImages.map(img => img.fileKey)
+  }, [initialData.images])
 
+  useEffect(() => {
+    const currentState = JSON.stringify(images.map(f => f.name))
+    setHasChanged(currentState !== originalState)
+  }, [images, originalState])
 
-    // const removedImages = originalImages.filter(
-    //   img => !images.some(file => file.name === img.fileKey)
-    // )
+  // === variants generation when selected options change ===
+  const handleOptionToggle = useCallback((optionName: string, optionValue: OptionValue) => {
+    setSelectedOptions(prev => {
+      const key = optionName
+      const currentValues = prev[key] || []
+      const exists = currentValues.some(v => v.id === optionValue.id)
+      const updatedValues = exists ? currentValues.filter(v => v.id !== optionValue.id) : [...currentValues, optionValue]
+      const newSelected = { ...prev, [key]: updatedValues }
 
-    const newImages = images.filter(file => !originalKeys.includes(file.name))
+      // Generate variants
+      const baseSku = getInitials(name) // use controlled name
+      const optionNames = Object.keys(newSelected)
+      const optionValues = Object.values(newSelected).filter(arr => arr.length > 0) as OptionValue[][]
 
+      const allCombinations = generateCombinations(optionValues)
+      const newVariants = buildVariantsGeneric(allCombinations, optionNames, baseSku)
+      setVariants(newVariants)
 
-    // const reordered = images.some((file, index) => {
-    //   const originalIndex = originalImages.findIndex(img => img.fileKey === file.name)
-    //   return originalIndex !== index
-    // })
+      return newSelected
+    })
+  }, [generateCombinations, buildVariantsGeneric, name])
 
-    if (newImages.length === 0) {
-      const updated = images.map((file, i) => {
-        const existing = originalImages.find(img => img.fileKey === file.name)
+  const updateVariantField = useCallback((id: string, field: keyof Variant, value: any) => {
+    setVariants(prev => prev.map(v => (v.id === id ? { ...v, [field]: value } : v)))
+  }, [])
+
+  const handleCategoryToggle = useCallback((category: string) => {
+    setSelectedCategories(prev => (prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]))
+  }, [])
+
+  // helper: set hidden/input value inside form
+  const setHiddenInputValue = useCallback((name: string, value: string) => {
+    const form = formRef.current
+    if (!form) return
+    let input = form.querySelector<HTMLInputElement>(`input[name="${name}"]`)
+    if (!input) {
+      input = document.createElement("input")
+      input.type = "hidden"
+      input.name = name
+      form.appendChild(input)
+    }
+    input.value = value
+  }, [])
+
+  // === image upload flow ===
+  const handleUploadImage = useCallback(async (): Promise<void> => {
+    try {
+      if (!hasChanged) {
+        // nothing changed — keep existing filesUpload empty (server should ignore)
+        return
+      }
+
+      const originalImages = initialData.images || []
+      const originalKeys = originalImages.map(img => img.fileKey).filter(Boolean) as (string | null)[]
+
+      // new images = files present in images state which do not match original fileKey names
+      const newImages = images.filter(file => !originalKeys.includes(file.name))
+
+      // helper build mapping for existing files
+      const existingMapping = originalImages.reduce<{ [key: string]: ImageItem }>((acc, img) => {
+        if (img.fileKey) acc[img.fileKey] = img
+        return acc
+      }, {})
+
+      if (newImages.length === 0) {
+        // No new uploads — just build final array mapping existing order
+        const updated = images.map((file, i) => {
+          const existing = existingMapping[file.name]
+          return {
+            fileKey: existing?.fileKey || file.name,
+            url: existing?.url || "",
+            sortOrder: i + 1
+          }
+        })
+        setHiddenInputValue("filesUpload", JSON.stringify(updated))
+        return
+      }
+
+      // get signed urls
+      const { uploads } = await getSignedUrl({
+        files: newImages.map((file, i) => ({
+          fileName: file.name,
+          contentType: file.type || "image/png",
+          sortOrder: i + 1
+        }))
+      })
+
+      // upload files to presigned urls
+      await Promise.all(
+        uploads.map((u, i) =>
+          fetch(u.presignedUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": u.contentType,
+              "x-mime-type": u.contentType
+            },
+            body: newImages[i]
+          })
+        )
+      )
+
+      // kept images in same order filtered from original list
+      const keptImages = originalImages.filter(img => images.some(f => f.name === img.fileKey))
+
+      // combine kept and uploaded (uploads is array returned by API, ensure not mutated)
+      const uploadsCopy = [...uploads]
+      const combined = [...keptImages, ...uploadsCopy]
+
+      // final mapping keeping the images array order
+      const final = images.map((file, i) => {
+        const match = combined.find(img => img.fileKey === file.name)
+        if (match) {
+          return {
+            fileKey: match.fileKey || file.name,
+            url: match.url || "",
+            sortOrder: i + 1
+          }
+        }
+        // fallback: take the next upload (safe if order corresponds)
+        const fallback = uploadsCopy.shift()
         return {
-          fileKey: existing?.fileKey || file.name,
-          url: existing?.url || "",
-          sortOrder: i + 1,
+          fileKey: fallback?.fileKey || file.name,
+          url: fallback?.url || "",
+          sortOrder: i + 1
         }
       })
 
-      const json = JSON.stringify(updated)
-
-      const form = formRef.current
-      let input = form?.querySelector<HTMLInputElement>('input[name="filesUpload"]')
-      if (!input) {
-        input = document.createElement("input")
-        input.type = "input"
-        input.name = "filesUpload"
-        form?.appendChild(input)
-      }
-      input.value = json
-      return
+      setHiddenInputValue("filesUpload", JSON.stringify(final))
+    } catch (err) {
+      console.error("Erro no upload de imagens:", err)
+      throw err
     }
-
-
-    const { uploads } = await getSignedUrl({
-      files: newImages.map((file, i) => ({
-        fileName: file.name,
-        contentType: file.type || "image/png",
-        sortOrder: i + 1,
-      })),
-    })
-    await Promise.all(
-      uploads.map((u, i) =>
-        fetch(u.presignedUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": u.contentType,
-            "x-mime-type": u.contentType,
-          },
-          body: newImages[i],
-        })
-      )
-    )
-
-
-    const keptImages = originalImages.filter(img => images.some(f => f.name === img.fileKey))
-
-    const combinedImages = [...keptImages, ...uploads]
-
-    const final = images.map((file, i) => {
-
-      let match = combinedImages.find(img => img.fileKey === file.name)
-
-
-      if (!match) {
-        match = uploads.shift()
-      }
-      return {
-        fileKey: match?.fileKey || file.name,
-        url: match?.url || "",
-        sortOrder: i + 1,
-      }
-    })
-
-    const json = JSON.stringify(final)
-
-    const form = formRef.current
-    let input = form?.querySelector<HTMLInputElement>('input[name="filesUpload"]')
-    if (!input) {
-      input = document.createElement("input")
-      input.type = "input"
-      input.name = "filesUpload"
-      form?.appendChild(input)
-    }
-    input.value = json
-  }
-
-  const [price, setPrice] = useState(() => formatReal(String(initialData.price ?? "")))
-  const [comparePrice, setComparePrice] = useState(() => formatReal(String(initialData.comparePrice ?? "")))
+  }, [hasChanged, images, initialData.images, setHiddenInputValue])
 
 
   function handlePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const formatted = formatReal(e.target.value)
-    setPrice(formatted)
+    setPrice(formatReal(e.target.value))
   }
 
   function handleComparePriceChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const formatted = formatReal(e.target.value)
-    setComparePrice(formatted)
+    setComparePrice(formatReal(e.target.value))
   }
+
+  const onActionButtonClick = useCallback(async () => {
+    if (isPending) return
+
+    setIsPending(true)
+    try {
+      // sincroniza hidden inputs que dependem de estado
+      setHiddenInputValue("options", JSON.stringify(selectedOptions))
+      setHiddenInputValue("variants", JSON.stringify(variants))
+      setHiddenInputValue("categories", JSON.stringify(selectedCategories))
+      setHiddenInputValue("brandId", String(brand))
+      setHiddenInputValue("featured", featured ? "true" : "false")
+      setHiddenInputValue("price", price.replace(/[^\d,]/g, "").replace(",", "."))
+      setHiddenInputValue("comparePrice", comparePrice.replace(/[^\d,]/g, "").replace(",", "."))
+      setHiddenInputValue("weight", String((formRef.current?.querySelector<HTMLInputElement>('input[name="weight"]')?.value) ?? ""))
+      setHiddenInputValue("description", description) // se você adotou descrição controlada
+
+      // realiza upload (aguarda)
+      await handleUploadImage()
+
+      // submete o form (requestSubmit disparará o handleSubmit)
+      formRef.current?.requestSubmit()
+    } catch (err) {
+      console.error("Erro ao atualizar produto:", err)
+    } finally {
+      setIsPending(false)
+    }
+  }, [
+    isPending,
+    setHiddenInputValue,
+    selectedOptions,
+    variants,
+    selectedCategories,
+    brand,
+    featured,
+    price,
+    comparePrice,
+    handleUploadImage,
+    description,
+  ])
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
         <input type="hidden" name="id" value={initialData.id} />
-        <input type="hidden" name="options" value={JSON.stringify(selectedOptions)} />
-        <input type="hidden" name="variants" value={JSON.stringify(variants)} />
-        <input type="hidden" name="categories" value={JSON.stringify(selectedCategories)} />
-        <input type="hidden" name="brandId" value={brand} />
-        <input type="hidden" name="filesUpload" />
-
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle>Informações Básicas</CardTitle>
@@ -393,59 +424,73 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
             {success === false && message && (
               <Alert variant="destructive">
                 <AlertTriangle className="size-4" />
-                <AlertTitle>
-                  Erro ao Criar Produto
-                </AlertTitle>
-                <AlertDescription>
-                  {message}
-                </AlertDescription>
+                <AlertTitle>Erro ao Criar Produto</AlertTitle>
+                <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
             <div>
               <Label htmlFor="name">Nome do Produto *</Label>
-              <Input id="name" defaultValue={initialData.name} name="name" placeholder="Ex: Tênis Urbano Premium" className={`mt-2 ${errors?.name ? "border-red-500" : ""}`} />
-              {errors?.name && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.name[0]}</p>}
+              <Input
+                id="name"
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Tênis Urbano Premium"
+                className={`mt-2 ${errors?.name ? "border-red-500" : ""}`}
+              />
+              {errors?.name && (
+                <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                  <AlertCircle size={16} />{errors.name[0]}
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="description">Descrição *</Label>
-              <Textarea id="description" defaultValue={initialData?.description ?? ''} name="description" placeholder="Descreva as características..." rows={4} className={`mt-2 ${errors?.description ? "border-red-500" : ""}`} />
-              {errors?.description && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.description[0]}</p>}
+              <Textarea
+                id="description"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Descreva as características..."
+                rows={4}
+                className={`mt-2 ${errors?.description ? "border-red-500" : ""}`}
+              />
+              {errors?.description && (
+                <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                  <AlertCircle size={16} />{errors.description[0]}
+                </p>
+              )}
             </div>
             <div>
-              <Select
-                value={brand}
-                onValueChange={setBrand}
-              >
+              <Select value={brand} onValueChange={setBrand}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a Marca do Produto *" />
                 </SelectTrigger>
                 <SelectContent>
                   {brands && brands.length > 0 ? (
-                    brands.map((brand) => (
-                      <SelectItem
-                        key={brand.id}
-                        value={brand.id}
-                        className="p-2 hover:bg-gray-100"
-                      >
-                        {brand.name}
+                    brands.map((b) => (
+                      <SelectItem key={b.id} value={b.id} className="p-2 hover:bg-gray-100">
+                        {b.name}
                       </SelectItem>
                     ))
                   ) : (
                     <Link href="/admin/brands/new">
-                      <div className="p-2 text-sm text-gray-500 flex items-center justify-center">Crie uma Marca <Plus className="size-3 ml-1" /> </div>
+                      <div className="p-2 text-sm text-gray-500 flex items-center justify-center">
+                        Crie uma Marca <Plus className="size-3 ml-1" />
+                      </div>
                     </Link>
                   )}
                 </SelectContent>
               </Select>
               {errors?.brand && (
                 <p className="text-sm text-red-600 mb-2 flex items-center gap-1">
-                  <AlertCircle size={16} />
-                  {errors?.brand[0]}
+                  <AlertCircle size={16} />{errors.brand[0]}
                 </p>
               )}
             </div>
           </CardContent>
         </Card>
+
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="font-semibold text-gray-900 flex items-center gap-2">
@@ -467,7 +512,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                       : "border-gray-200 bg-white hover:bg-gray-200"
                       }`}
                   >
-
                     <Label
                       htmlFor={category.name}
                       className={`flex items-center gap-2 cursor-pointer flex-1 text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-700'}`}
@@ -489,6 +533,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
             )}
           </CardContent>
         </Card>
+
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle>Imagens do Produto *</CardTitle>
@@ -498,9 +543,14 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
           </CardHeader>
           <CardContent>
             <ImageUpload images={images} setImages={setImages} />
-            {errors?.images && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.images[0]}</p>}
+            {errors?.images && (
+              <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                <AlertCircle size={16} />{errors.images[0]}
+              </p>
+            )}
           </CardContent>
         </Card>
+
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex justify-between">
             <CardTitle>Seleção de Variações *</CardTitle>
@@ -509,7 +559,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
           <CardContent className="space-y-8">
             {Object.entries(defaultValues).map(([optionName, values]) => {
               const selected = selectedOptions[optionName] || []
-              const isColorOption = values.some((v: any) => v && v.content)
+              const isColorOption = values.some(v => v && v.content)
 
               return (
                 <div key={optionName}>
@@ -558,9 +608,9 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                 </div>
               )
             })}
-
           </CardContent>
         </Card>
+
         {variants.length > 0 && (
           <Card className="border-0 shadow-sm">
             <CardHeader>
@@ -575,102 +625,74 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                 </p>
               )}
 
-              {variants.map((v) => {
-                return (
-                  <div
-                    key={v.id}
-                    className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border"
-                  >
+              {variants.map((v) => (
+                <div key={v.id} className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border">
+                  <div className="flex items-center gap-3 flex-1">
+                    {v?.options?.color && (
+                      <div
+                        className="size-8 rounded-full border"
+                        style={{
+                          backgroundColor:
+                            typeof v?.options.color === "string"
+                              ? v?.options.color
+                              : v?.options.color?.content || "#ccc",
+                        }}
+                      />
+                    )}
 
-                    <div className="flex items-center gap-3 flex-1">
-                      {v?.options?.color && (
-                        <div
-                          className="size-8 rounded-full border"
-                          style={{
-                            backgroundColor:
-                              typeof v?.options.color === "string"
-                                ? v?.options.color
-                                : v?.options.color?.content || "#ccc",
-                          }}
-                        />
-                      )}
-
-                      <div>
-                        <p className="font-medium">
-                          {v.options && Object.entries(v?.options)
-                            .map(([_, value]) => {
-                              const displayValue = typeof value === "string" ? value : value.value
-                              return `${displayValue}`
-                            })
-                            .join(" - ")}
-                        </p>
-                        <p className="text-xs text-gray-500">ID: {v.id}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="w-36">
-                        <Label className="text-xs">SKU</Label>
-                        <Input
-                          value={v.sku}
-                          onChange={(e) => updateVariantField(v.id, "sku", e.target.value)}
-                          className="mt-1 h-9"
-                        />
-                      </div>
-
-                      <div className="w-24">
-                        <Label className="text-xs">Preço (R$)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={v.price === null ? "" : Number(v.price)}
-                          onChange={(e) =>
-                            updateVariantField(
-                              v.id,
-                              "price",
-                              e.target.value === "" ? 0 : Number(e.target.value)
-                            )
-                          }
-                          className="mt-1 h-9"
-                        />
-                      </div>
-
-                      <div className="w-28">
-                        <Label className="text-xs">Preço Comp. (R$)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={v.comparePrice === null ? "" : Number(v.comparePrice)}
-                          onChange={(e) =>
-                            updateVariantField(
-                              v.id,
-                              "comparePrice",
-                              e.target.value === "" ? 0 : Number(e.target.value)
-                            )
-                          }
-                          className="mt-1 h-9"
-                        />
-                      </div>
-
-                      <div className="w-24">
-                        <Label className="text-xs">Estoque</Label>
-                        <Input
-                          type="number"
-                          value={v.stock === null ? "" : v.stock}
-                          onChange={(e) =>
-                            updateVariantField(v.id, "stock", Number(e.target.value))
-                          }
-                          className="mt-1 h-9"
-                        />
-                      </div>
+                    <div>
+                      <p className="font-medium">
+                        {v.options && Object.entries(v?.options)
+                          .map(([_, value]) => {
+                            const displayValue = typeof value === "string" ? value : (value as any).value
+                            return `${displayValue}`
+                          })
+                          .join(" - ")}
+                      </p>
+                      <p className="text-xs text-gray-500">ID: {v.id}</p>
                     </div>
                   </div>
-                )
-              })}
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-36">
+                      <Label className="text-xs">SKU</Label>
+                      <Input value={v.sku} onChange={(e) => updateVariantField(v.id, "sku", e.target.value)} className="mt-1 h-9" />
+                    </div>
+
+                    <div className="w-24">
+                      <Label className="text-xs">Preço (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={v.price === null ? "" : Number(v.price)}
+                        onChange={(e) => updateVariantField(v.id, "price", e.target.value === "" ? 0 : Number(e.target.value))}
+                        className="mt-1 h-9"
+                      />
+                    </div>
+
+                    <div className="w-28">
+                      <Label className="text-xs">Preço Comp. (R$)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={v.comparePrice === null ? "" : Number(v.comparePrice)}
+                        onChange={(e) => updateVariantField(v.id, "comparePrice", e.target.value === "" ? 0 : Number(e.target.value))}
+                        className="mt-1 h-9"
+                      />
+                    </div>
+
+                    <div className="w-24">
+                      <Label className="text-xs">Estoque</Label>
+                      <Input type="number" value={v.stock === null ? "" : v.stock} onChange={(e) => updateVariantField(v.id, "stock", Number(e.target.value))} className="mt-1 h-9" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}
       </div>
+
       <div className="space-y-8">
         <Card className="border-0 shadow-sm">
           <CardHeader><CardTitle>Status do Produto</CardTitle></CardHeader>
@@ -690,41 +712,19 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="price">Preço de Venda *</Label>
-              <Input
-                id="price"
-                name="price"
-                value={price}
-                onChange={handlePriceChange}
-                placeholder="R$ 0,00"
-                className={`mt-2 ${errors?.price ? "border-red-500" : ""}`}
-              />
-              <input
-                type="hidden"
-                name="price"
-                value={price.replace(/[^\d,]/g, "").replace(",", ".")}
-              />
+              <Input id="price" name="price_formatted" value={price} onChange={handlePriceChange} placeholder="R$ 0,00" className={`mt-2 ${errors?.price ? "border-red-500" : ""}`} />
+              <input type="hidden" name="price" value={price.replace(/[^\d,]/g, "").replace(",", ".")} />
               {errors?.price && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.price[0]}</p>}
             </div>
             <div>
               <Label htmlFor="comparePrice">Preço Comparativo</Label>
-              <Input
-                id="comparePrice"
-                // name="comparePrice"
-                value={comparePrice}
-                onChange={handleComparePriceChange}
-                placeholder="R$ 0,00"
-                className={`mt-2 ${errors?.comparePrice ? "border-red-500" : ""}`}
-              />
-              <input
-                type="hidden"
-                name="comparePrice"
-                value={comparePrice.replace(/[^\d,]/g, "").replace(",", ".")}
-              />
+              <Input id="comparePrice" name="comparePrice_formatted" value={comparePrice} onChange={handleComparePriceChange} placeholder="R$ 0,00" className={`mt-2 ${errors?.comparePrice ? "border-red-500" : ""}`} />
+              <input type="hidden" name="comparePrice" value={comparePrice.replace(/[^\d,]/g, "").replace(",", ".")} />
               {errors?.comparePrice && <p className="text-sm text-red-600 mt-1 flex items-center gap-1"><AlertCircle size={16} />{errors.comparePrice[0]}</p>}
             </div>
             <div>
               <Label htmlFor="weight">Peso (kg)</Label>
-              <Input id="weight" defaultValue={initialData.weight ?? ''} name="weight" type="number" step="0.01" placeholder="0.5" className="mt-2" />
+              <Input id="weight" name="weight" defaultValue={initialData.weight ?? ''} type="number" step="0.01" placeholder="0.5" className="mt-2" />
             </div>
           </CardContent>
         </Card>
@@ -735,21 +735,15 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
             <Button
               type="button"
               className="w-full"
-              onClick={async () => {
-                try {
-                  setIsPending(true)
-                  await handleUploadImage()
-                  formRef.current?.requestSubmit()
-                } finally {
-                  setIsPending(false)
-                }
-              }}
+              onClick={onActionButtonClick}
               disabled={isPending}
+              aria-busy={isPending}
+              aria-disabled={isPending}
             >
               {isPending ? (
                 <span className="flex items-center justify-center gap-2">
                   Atualizando
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="animate-spin size-4" />
                 </span>
               ) : (
                 'Atualizar Produto'
@@ -759,6 +753,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
           </CardContent>
         </Card>
       </div>
-    </form >
+    </form>
   )
 }

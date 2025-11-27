@@ -10,6 +10,10 @@ import { FormUpdateProduct } from "../components/form-update-product"
 interface PageProps {
   params: Promise<{ id: string }>
 }
+export const metadata = {
+  title: "Atualizar Produto | Dashboard",
+  description: "Atualiza o produto",
+}
 
 export default async function UpdateProductPage({ params }: PageProps) {
   const { id } = await params

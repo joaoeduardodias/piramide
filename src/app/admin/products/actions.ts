@@ -230,10 +230,12 @@ export async function deleteProductAction(data: FormData) {
 }
 
 export async function updateProductAction(data: FormData) {
-
-
   const productId = data.get("id") as string
   const optionsData = data.get("options") as string
+  const variantsData = data.get("variants") as string
+  const formattedVariants = JSON.parse(variantsData)
+  const categoriesData = data.get("categories") as string
+  const categoriesIds = JSON.parse(categoriesData)
   let formattedOptions: { name: string; values: Array<{ id?: string; value: string; content?: string | null }> }[] = []
   if (optionsData) {
     try {
@@ -249,18 +251,8 @@ export async function updateProductAction(data: FormData) {
       formattedOptions = []
     }
   }
-
-
-  const variantsData = data.get("variants") as string
-  const formattedVariants = JSON.parse(variantsData)
-
-  const categoriesData = data.get("categories") as string
-  const categoriesIds = JSON.parse(categoriesData)
-
   const rawData = Object.fromEntries(data.entries())
-
   const filesUpload = data.get("filesUpload") as string | null
-
   let formattedFilesUploads: any[] = []
 
   if (filesUpload) {

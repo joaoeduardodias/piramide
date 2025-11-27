@@ -11,9 +11,7 @@ import { CardProducts } from "./components/card-products"
 
 
 export default async function AdminProductsPage() {
-
   const queryClient = new QueryClient()
-
   const { categories } = await getCategories()
   const { products, pagination } = await getProducts()
 

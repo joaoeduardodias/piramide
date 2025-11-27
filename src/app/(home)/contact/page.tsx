@@ -95,9 +95,9 @@ export default function ContactPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-500 mb-1">Horário</p>
                       <p className="text-sm text-gray-900 leading-relaxed">
-                        Seg - Sex: 9h - 18h
+                        Seg - Sex: 8h - 18h
                         <br />
-                        Sábado: 10h - 16h
+                        Sábado: 8h - 13h
                         <br />
                         Domingo: Fechado
                       </p>

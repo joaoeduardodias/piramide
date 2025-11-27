@@ -63,7 +63,7 @@ export function FilterSidebar({
         <CardContent className="p-6 space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5" /> Filtros
+              <SlidersHorizontal className="size-5" /> Filtros
             </h3>
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               Limpar

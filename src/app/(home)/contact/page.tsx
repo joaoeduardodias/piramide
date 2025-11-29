@@ -1,6 +1,6 @@
+import CFImage from "@/components/cf-image";
 import { Button } from "@/components/ui/button";
 import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
-import Image from "next/image";
 import { FormContact } from "./components/form-contact";
 
 export const dynamic = 'force-static'
@@ -118,7 +118,7 @@ export default function ContactPage() {
               </div>
 
               <div className="relative aspect-square bg-gray-200 rounded-2xl overflow-hidden shadow-xl">
-                <Image src="/map-location.png" alt="Localização da loja" fill className="w-full h-full object-cover" />
+                <CFImage src="/map-location.png" alt="Localização da loja" fill className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent" />
                 <Button
                   variant="secondary"

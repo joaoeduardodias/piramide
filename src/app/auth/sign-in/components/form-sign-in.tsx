@@ -88,7 +88,7 @@ export function FormSignIn() {
           )}
         </Button>
         <Button type="button" onClick={signInWithGoogle} variant="outline" className="w-full cursor-pointer" disabled={isPending}>
-          <Image src={googleIcon} alt="" className="size-4" />
+          <Image src={googleIcon} alt="" unoptimized className="size-4" />
           Entrar com Google
         </Button>
         <div className="text-center text-sm text-gray-600">

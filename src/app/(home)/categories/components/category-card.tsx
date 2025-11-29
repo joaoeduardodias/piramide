@@ -1,6 +1,6 @@
+import CFImage from "@/components/cf-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 interface Category {
@@ -25,7 +25,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
       <Card className="overflow-hidden border-2 hover:border-foreground transition-all duration-300 hover:shadow-lg">
         <div className="relative h-64 overflow-hidden bg-slate-100">
           {firstProduct && (
-            <Image
+            <CFImage
               src={firstProduct.image ?? ""}
               alt={category.name}
               fill

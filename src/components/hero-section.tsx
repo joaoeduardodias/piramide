@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ChevronLeft, ChevronRight, User } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import CFImage from "./cf-image"
 
 const heroSlides = [
   {
@@ -83,7 +83,7 @@ export function HeroSection() {
           className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"
             }`}
         >
-          <Image
+          <CFImage
             src={slide.image}
             alt={slide.title}
             fill

@@ -46,6 +46,7 @@ export function Header() {
                 alt="Pirâmide Calçados Logo"
                 width={32}
                 height={32}
+                unoptimized
                 className="h-8 w-8"
               />
               <Image
@@ -53,6 +54,7 @@ export function Header() {
                 alt="Pirâmide Calçados Logo Text"
                 width={230}
                 height={48}
+                unoptimized
                 className="h-12 w-56"
               />
             </Link>

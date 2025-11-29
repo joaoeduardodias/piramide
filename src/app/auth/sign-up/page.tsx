@@ -14,6 +14,7 @@ export default function SignUpPage() {
             alt="Pirâmide Calçados Logo"
             width={32}
             height={32}
+            unoptimized
             className='h-8 w-8'
           />
         </div>

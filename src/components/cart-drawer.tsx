@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useCart } from "@/context/cart-context"
 import { formatReal } from "@/lib/validations"
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
-import Image from "next/image"
+import CFImage from "./cf-image"
 
 export function CartDrawer({ children }: { children: React.ReactNode }) {
   const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } = useCart()
@@ -64,7 +64,7 @@ Gostaria de finalizar este pedido!`
                       className="flex gap-4 p-4 bg-gray-50 rounded-lg"
                     >
                       <div className="relative size-16 flex-shrink-0">
-                        <Image
+                        <CFImage
                           src={item.image || ""}
                           alt={item.name}
                           fill

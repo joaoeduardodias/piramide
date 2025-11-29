@@ -15,6 +15,7 @@ export default async function SignInPage() {
             alt="Pirâmide Calçados Logo"
             width={30}
             height={30}
+            unoptimized
             className='h-8 w-auto mt-1'
           />
         </div>

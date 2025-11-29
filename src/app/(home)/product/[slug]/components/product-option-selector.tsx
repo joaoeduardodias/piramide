@@ -15,15 +15,19 @@ interface ProductOptionSelectorProps {
   }
   selectedValue: string
   onValueChange: (optionId: string, valueId: string) => void
+  error?: boolean
 }
 
-export function ProductOptionSelector({ option, selectedValue, onValueChange }: ProductOptionSelectorProps) {
+export function ProductOptionSelector({ option, selectedValue, onValueChange, error = false }: ProductOptionSelectorProps) {
   const hasColorContent = option.values.some((v) => v.content && v.content.startsWith("#"))
+
+  // classe de destaque quando há erro
+  const containerBorderClass = error ? "border-red-500 ring-1 ring-red-500" : "border-transparent"
 
   if (hasColorContent) {
     return (
-      <div>
-        <h3 className="font-semibold mb-3 text-gray-900">
+      <div >
+        <h3 className={`font-semibold mb-3 `}>
           {option.name}:{" "}
           {selectedValue ? (
             <span className="text-gray-600 font-normal">
@@ -46,11 +50,13 @@ export function ProductOptionSelector({ option, selectedValue, onValueChange }: 
               )}
               title={value.value}
               style={{ backgroundColor: value.content || "#cccccc" }}
+              aria-pressed={selectedValue === value.id}
             >
               {value.content === "#FFFFFF" && <span className="absolute inset-0 rounded-full border border-gray-200" />}
             </button>
           ))}
         </div>
+        {error && <p id={`${option.id}-error`} className="mt-2 text-sm text-red-600">Selecione o(a) {option.name.toLowerCase()}</p>}
       </div>
     )
   }
@@ -77,11 +83,13 @@ export function ProductOptionSelector({ option, selectedValue, onValueChange }: 
                 ? "border-black bg-black text-white hover:bg-black hover:text-white"
                 : "border-gray-300 hover:border-gray-400 bg-white text-gray-900",
             )}
+            aria-pressed={selectedValue === value.id}
           >
             {value.value}
           </Button>
         ))}
       </div>
+      {error && <p id={`${option.id}-error`} className="mt-2 text-sm text-red-600">Selecione o(a) {option.name.toLowerCase()}</p>}
     </div>
   )
 }

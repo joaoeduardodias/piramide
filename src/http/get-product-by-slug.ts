@@ -23,6 +23,10 @@ export interface ProductDetails {
     comparePrice: number | null;
     sku: string;
     stock: number;
+    optionValues: {
+      id: string;
+      optionValueId: string;
+    }[];
   }[];
   categories: {
     category: {

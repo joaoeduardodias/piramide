@@ -14,5 +14,6 @@ export async function GET() {
   return NextResponse.json({
     isAuthenticated: true,
     isAdmin: user?.role === "ADMIN",
+    user: user
   })
 }

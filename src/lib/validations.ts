@@ -29,27 +29,14 @@ export function validateCPF(cpf: string): boolean {
   return true
 }
 
-export function formatCPF(value: string): string {
-  const numbers = value.replace(/\D/g, "")
-  return numbers
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-    .slice(0, 14)
-}
+
 
 export function formatCEP(value: string): string {
   const numbers = value.replace(/\D/g, "")
   return numbers.replace(/(\d{5})(\d)/, "$1-$2").slice(0, 9)
 }
 
-export function formatPhone(value: string): string {
-  const numbers = value.replace(/\D/g, "")
-  if (numbers.length <= 10) {
-    return numbers.replace(/(\d{2})(\d{4})(\d)/, "($1) $2-$3")
-  }
-  return numbers.replace(/(\d{2})(\d{5})(\d)/, "($1) $2-$3").slice(0, 15)
-}
+
 
 export function formatReal(value: string): string {
   const numbers = value.replace(/\D/g, "")

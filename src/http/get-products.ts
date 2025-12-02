@@ -81,6 +81,5 @@ export function useProducts(params: GetProductsParams) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => getProducts(params),
-
   })
 }

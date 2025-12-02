@@ -1,38 +1,103 @@
 "use client"
-
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/context/cart-context"
+import { createOrder } from "@/http/create-order"
 import { formatReal } from "@/lib/validations"
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import type { Role } from "@/permissions/roles"
+import { useMutation } from "@tanstack/react-query"
+import { CircleX, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
 import CFImage from "./cf-image"
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  cpf: string | null;
+  phone: string | null;
+}
 
 export function CartDrawer({ children }: { children: React.ReactNode }) {
   const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } = useCart()
+  const pathname = usePathname()
+  const [orderId, setOrderId] = useState("")
+  const router = useRouter()
+  const createOrderMutation = useMutation({
+    mutationKey: ['create-order'],
+    mutationFn: createOrder,
+    onSuccess: (data) => {
+      setOrderId(data.orderId)
+      setIsOpen(false)
+      toast.success('Pedido Enviado com sucesso, Nossa equipe irá entrar em contato!')
+    },
+    onError: (error) => {
+      console.error(error.message)
+      toast.error('Erro encontrado, por favor tente novamente.', {
+        position: 'top-right',
+        icon: <CircleX />,
+      })
+    },
+  })
 
-  const handleWhatsAppCheckout = () => {
-    if (items.length === 0) return
+  //   const { data: userAuth } = useQuery({
+  //     queryKey: ['auth'],
+  //     queryFn: () => auth(),
+  //   })
+  //   const [loading, setLoading] = useState(false)
 
-    const orderDetails = items
-      .map(
-        (item) =>
-          `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`,
-      ).join("\n\n")
+  //   const handleWhatsAppCheckout = async () => {
+  //     if (items.length === 0) return
+  //     if (loading) return
+  //     setLoading(true)
+
+  //     if (userAuth?.user === undefined || userAuth?.user === null) {
+  //       const cb = encodeURIComponent(pathname || "/")
+  //       router.push(`/auth/sign-in?callbackUrl=${cb}`)
+  //       return
+  //     }
+
+  //     if (userAuth?.user?.cpf === null || userAuth?.user.phone === null) {
+  //       router.push("/auth/profile")
+  //       return
+  //     }
 
 
-    const totalPrice = getTotalPrice()
+  //     await createOrderMutation.mutateAsync({
+  //       addressId: "default-address-id",
+  //       status: "PENDING",
+  //       items: items.map((item) => ({
+  //         productId: item.id,
+  //         // variantId: item.variantId,
+  //         quantity: item.quantity,
+  //         unitPrice: item.price,
+  //       })),
+  //     })
 
-    const message = `🛍️ *Pedido - Pirâmide Calçados*
+  //     const orderDetails = items
+  //       .map(
+  //         (item) =>
+  //           `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`,
+  //       ).join("\n\n")
 
-${orderDetails}
 
-💳 *Total: ${formatReal(String(totalPrice))}*
+  //     const totalPrice = getTotalPrice()
 
-Gostaria de finalizar este pedido!`
+  //     const message = `🚀 *Pedido - Pirâmide Calçados*
 
-    const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
-  }
+  // ${orderDetails}
+
+  // 💳 *Total: ${formatReal(String(totalPrice))}*~
+  // *Número do pedido: ${orderId}*
+
+  // Gostaria de finalizar este pedido!`
+
+  //     const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
+  //     window.open(whatsappUrl, "_blank")
+  //   }
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -142,7 +207,7 @@ Gostaria de finalizar este pedido!`
 
                 <div className="space-y-2">
                   <Button
-                    onClick={handleWhatsAppCheckout}
+                    // onClick={handleWhatsAppCheckout}
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
                     size="lg"
                   >

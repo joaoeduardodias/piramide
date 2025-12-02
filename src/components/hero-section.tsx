@@ -93,7 +93,7 @@ export function HeroSection() {
           />
 
           <div className="absolute inset-0 bg-black/30" />
-          <div className="container relative mx-auto flex h-full items-center">
+          <div className="container relative mx-auto flex h-full items-center px-4">
             <div className="max-w-2xl text-white">
               <div className="h-72">
                 <p className="mb-2 text-sm font-medium tracking-widest md:text-base">{slide.subtitle}</p>

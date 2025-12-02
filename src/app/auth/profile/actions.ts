@@ -1,9 +1,12 @@
 "use server"
 
+import { createAddress } from "@/http/create-address";
+import { deleteAddress } from "@/http/delete-address";
+import { setAddressDefault } from "@/http/set-address-default";
+import { updateAddress } from "@/http/update-address";
 import { UpdateUser } from "@/http/update-user";
-import type { Address } from "@/lib/types";
 import { HTTPError } from "ky";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod/v4";
 
 const updateUserSchema = z.object({
@@ -13,6 +16,20 @@ const updateUserSchema = z.object({
     message: "Telefone inválido",
   }),
 });
+const addressSchema = z.object({
+  street: z.string().min(1, 'Street is required'),
+  name: z.string('Name is required'),
+  complement: z.string().optional(),
+  number: z.string().nullish(),
+  district: z.string().min(1, 'District is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  postalCode: z.string().min(1, 'Postal code is required').transform((s) => s.replace(/\D/g, ""))
+    .refine((s) => s.length === 8, {
+      message: "Postal code invalid",
+    }),
+  isDefault: z.boolean().default(false),
+})
 
 export async function updateUserAction(data: FormData) {
   const result = updateUserSchema.safeParse(Object.fromEntries(data));
@@ -47,101 +64,155 @@ export async function updateUserAction(data: FormData) {
 }
 
 
-export async function addAddress(formData: FormData) {
-  const name = formData.get("name") as string
-  const street = formData.get("street") as string
-  const number = formData.get("number") as string
-  const complement = formData.get("complement") as string
-  const neighborhood = formData.get("neighborhood") as string
-  const city = formData.get("city") as string
-  const state = formData.get("state") as string
-  const zipCode = formData.get("zipCode") as string
-  const isDefault = formData.get("isDefault") === "true"
+export async function createAddressAction(data: FormData) {
+  const isDefaultRaw = data.get("isDefault")
+  const isDefault = isDefaultRaw === "true"
+  const rawData = Object.fromEntries(data.entries());
+  const formatData = {
+    ...rawData,
+    isDefault
+  }
+  const result = addressSchema.safeParse(formatData);
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors;
+    console.log(errors);
+    return { success: false, message: null, errors }
+  };
 
-  const newAddress: Address = {
-    id: Date.now().toString(),
+  const {
+    city,
     name,
+    postalCode,
+    state,
     street,
     number,
-    complement: complement || undefined,
-    neighborhood,
+    complement,
+    district,
+
+  } = result.data
+  try {
+    await createAddress({
+      city,
+      isDefault,
+      name,
+      postalCode,
+      state,
+      street,
+      number,
+      complement,
+      district,
+    })
+    revalidateTag("addresses")
+  } catch (err: any) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json()
+      return { success: false, message, errors: null };
+    }
+    return {
+      success: false,
+      message: 'Erro encontrado. Tente novamente mais tarde.',
+      errors: null
+    }
+  }
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
+}
+
+export async function updateAddressAction(data: FormData) {
+  const result = addressSchema.safeParse(Object.fromEntries(data));
+  const id = data.get("id") as string;
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors;
+    console.log(errors);
+    return { success: false, message: null, errors }
+  };
+  const {
     city,
-    state,
-    zipCode: zipCode.replace(/\D/g, ""),
     isDefault,
-  }
-
-  // If new address is default, remove default from others
-  if (isDefault) {
-    mockAddresses = mockAddresses.map((addr) => ({ ...addr, isDefault: false }))
-  }
-
-  // If it's the first address, make it default
-  if (mockAddresses.length === 0) {
-    newAddress.isDefault = true
-  }
-
-  mockAddresses.push(newAddress)
-
-  revalidatePath("/auth/profile")
-  return { success: true, address: newAddress }
-}
-
-export async function updateAddress(id: string, formData: FormData) {
-  const name = formData.get("name") as string
-  const street = formData.get("street") as string
-  const number = formData.get("number") as string
-  const complement = formData.get("complement") as string
-  const neighborhood = formData.get("neighborhood") as string
-  const city = formData.get("city") as string
-  const state = formData.get("state") as string
-  const zipCode = formData.get("zipCode") as string
-
-  const index = mockAddresses.findIndex((addr) => addr.id === id)
-  if (index === -1) {
-    return { success: false, error: "Endereço não encontrado" }
-  }
-
-  mockAddresses[index] = {
-    ...mockAddresses[index],
     name,
+    postalCode,
+    state,
     street,
     number,
-    complement: complement || undefined,
-    neighborhood,
-    city,
-    state,
-    zipCode: zipCode.replace(/\D/g, ""),
-  }
+    complement,
+    district,
+  } = result.data
+  try {
+    await updateAddress({
+      city,
+      isDefault,
+      name,
+      postalCode,
+      state,
+      street,
+      number,
+      complement,
+      district,
+      id,
+    })
+    revalidateTag("addresses")
 
-  revalidatePath("/auth/profile")
-  return { success: true }
+  } catch (err: any) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json()
+      return { success: false, message, errors: null };
+    }
+    return {
+      success: false,
+      message: 'Erro encontrado. Tente novamente mais tarde.',
+      errors: null
+    }
+  }
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
 }
 
-export async function deleteAddress(id: string) {
-  const index = mockAddresses.findIndex((addr) => addr.id === id)
-  if (index === -1) {
-    return { success: false, error: "Endereço não encontrado" }
+export async function deleteAddressAction(id: string) {
+  try {
+    await deleteAddress({ id })
+    revalidateTag("addresses")
+
+  } catch (err: any) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json()
+      return { success: false, message };
+    }
+    return {
+      success: false,
+      message: 'Erro encontrado. Tente novamente mais tarde.',
+    }
   }
-
-  const wasDefault = mockAddresses[index].isDefault
-  mockAddresses = mockAddresses.filter((addr) => addr.id !== id)
-
-  // If deleted address was default, set first remaining as default
-  if (wasDefault && mockAddresses.length > 0) {
-    mockAddresses[0].isDefault = true
+  return {
+    success: true,
+    message: null,
+    errors: null
   }
-
-  revalidatePath("/auth/profile")
-  return { success: true }
 }
 
-export async function setDefaultAddress(id: string) {
-  mockAddresses = mockAddresses.map((addr) => ({
-    ...addr,
-    isDefault: addr.id === id,
-  }))
+export async function setDefaultAddressAction(id: string) {
+  try {
+    await setAddressDefault({ id })
+    revalidateTag("addresses")
 
-  revalidatePath("/auth/profile")
-  return { success: true }
+  } catch (err: any) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json()
+      return { success: false, message };
+    }
+    return {
+      success: false,
+      message: 'Erro encontrado. Tente novamente mais tarde.',
+    }
+  }
+  return {
+    success: true,
+    message: null,
+    errors: null
+  }
 }

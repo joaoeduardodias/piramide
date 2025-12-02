@@ -15,7 +15,6 @@ export default async function ProfilePage() {
     <Providers>
       <Header />
       <div className="min-h-screen bg-background w-full">
-
         <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-16 md:py-20 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/abstract-geometric-flow.png')] opacity-5" />
           <div className="container mx-auto px-4 relative z-10">

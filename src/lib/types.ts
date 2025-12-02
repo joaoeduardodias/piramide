@@ -9,7 +9,6 @@ export interface Address {
   state: string;
   postalCode: string;
   isDefault: boolean;
-
 }
 
 export interface UserProfile {

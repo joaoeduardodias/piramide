@@ -33,7 +33,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     brand: queryParams.brand ?? "",
     options: {} as Record<string, string[]>,
     page: queryParams.page ?? 1,
-    limit: queryParams.limit ?? 12,
+    limit: queryParams.limit ?? 50,
   })
 
   const [showFilters, setShowFilters] = useState(true)

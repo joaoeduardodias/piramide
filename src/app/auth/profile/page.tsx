@@ -1,18 +1,24 @@
-import { Providers } from "@/app/providers"
 import { auth } from "@/auth/auth"
 import { Header } from "@/components/header"
+import { Button } from "@/components/ui/button"
 import { getAddressesByUser } from "@/http/get-addresses"
-import { MapPin, Package, User } from "lucide-react"
+import { ArrowRight, MapPin, Package, ShoppingBag, User } from "lucide-react"
 import Link from "next/link"
 import { AddressList } from "./address-list"
 import { ProfileForm } from "./profile-form"
 
-export default async function ProfilePage() {
+interface ProfilePageProps {
+  searchParams: Promise<{ from?: string }>
+}
+
+export default async function ProfilePage({ searchParams }: ProfilePageProps) {
+  const params = await searchParams
+  const isFromCart = params.from === "cart"
   const { user: profile } = await auth()
   const { addresses } = await getAddressesByUser()
 
   return (
-    <Providers>
+    <>
       <Header />
       <div className="min-h-screen bg-background w-full">
         <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-16 md:py-20 overflow-hidden">
@@ -25,7 +31,11 @@ export default async function ProfilePage() {
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 text-balance">
                 Olá, {profile.name.split(" ")[0]}!
               </h1>
-              <p className="text-lg text-gray-300 max-w-xl">Gerencie suas informações pessoais e endereços de entrega</p>
+              <p className="text-lg text-gray-300 max-w-xl mb-6">
+                {isFromCart
+                  ? "Complete seus dados para continuar com a compra"
+                  : "Gerencie suas informações pessoais e endereços de entrega"}
+              </p>
             </div>
           </div>
         </section>
@@ -36,7 +46,7 @@ export default async function ProfilePage() {
               <div className="rounded-xl border bg-card p-6 shadow-sm">
                 <div className="mb-6 flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <User className="h-6 w-6 text-primary" />
+                    <User className="size-6 text-primary" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">Dados Pessoais</h2>
@@ -79,7 +89,7 @@ export default async function ProfilePage() {
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <MapPin className="h-6 w-6 text-primary" />
+                    <MapPin className="size-6 text-primary" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-foreground">Meus Endereços</h2>
@@ -90,10 +100,24 @@ export default async function ProfilePage() {
 
               <AddressList initialAddresses={addresses} />
             </div>
+            {isFromCart ? (
+              <Button asChild size="lg" className="w-full mt-4">
+                <Link href="/auth/checkout">
+                  Ir para Checkout
+                  <ArrowRight className="ml-2 size-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="w-full mt-4">
+                <Link href="/">
+                  <ShoppingBag className="mr-2 size-4" />
+                  Voltar para Loja
+                </Link>
+              </Button>
+            )}
           </main>
-
         </div>
       </div>
-    </Providers>
+    </>
   )
 }

@@ -1,4 +1,4 @@
-import { auth } from "@/auth/auth"
+import { getProfile } from "@/http/get-profile"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ isAuthenticated: false, isAdmin: false })
   }
 
-  const { user } = await auth()
+  const { user } = await getProfile()
   return NextResponse.json({
     isAuthenticated: true,
     isAdmin: user?.role === "ADMIN",

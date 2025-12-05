@@ -42,17 +42,17 @@ export function HeroSection() {
   const [auth, setAuth] = useState({ isAuthenticated: false, isAdmin: false })
 
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch("/api/auth/session")
-        if (!res.ok) return
-        const data = await res.json()
-        setAuth({ isAuthenticated: data.isAuthenticated, isAdmin: data.isAdmin })
-      } catch { }
-    }
-    checkAuth()
-  }, [])
+  // useEffect(() => {
+  //   async function checkAuth() {
+  //     try {
+  //       const res = await fetch("/api/auth/session")
+  //       if (!res.ok) return
+  //       const data = await res.json()
+  //       setAuth({ isAuthenticated: data.isAuthenticated, isAdmin: data.isAdmin })
+  //     } catch { }
+  //   }
+  //   checkAuth()
+  // }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {

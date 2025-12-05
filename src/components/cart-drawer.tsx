@@ -2,14 +2,10 @@
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/context/cart-context"
-import { createOrder } from "@/http/create-order"
 import { formatReal } from "@/lib/validations"
 import type { Role } from "@/permissions/roles"
-import { useMutation } from "@tanstack/react-query"
-import { CircleX, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
-import { useState } from "react"
-import { toast } from "sonner"
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import Link from "next/link"
 import CFImage from "./cf-image"
 
 type User = {
@@ -23,31 +19,8 @@ type User = {
 
 export function CartDrawer({ children }: { children: React.ReactNode }) {
   const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } = useCart()
-  const pathname = usePathname()
-  const [orderId, setOrderId] = useState("")
-  const router = useRouter()
-  const createOrderMutation = useMutation({
-    mutationKey: ['create-order'],
-    mutationFn: createOrder,
-    onSuccess: (data) => {
-      setOrderId(data.orderId)
-      setIsOpen(false)
-      toast.success('Pedido Enviado com sucesso, Nossa equipe irá entrar em contato!')
-    },
-    onError: (error) => {
-      console.error(error.message)
-      toast.error('Erro encontrado, por favor tente novamente.', {
-        position: 'top-right',
-        icon: <CircleX />,
-      })
-    },
-  })
 
-  //   const { data: userAuth } = useQuery({
-  //     queryKey: ['auth'],
-  //     queryFn: () => auth(),
-  //   })
-  //   const [loading, setLoading] = useState(false)
+
 
   //   const handleWhatsAppCheckout = async () => {
   //     if (items.length === 0) return
@@ -208,15 +181,20 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
                 <div className="space-y-2">
                   <Button
                     // onClick={handleWhatsAppCheckout}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full"
                     size="lg"
+                    asChild
                   >
-                    Finalizar no WhatsApp
+                    <Link href="/auth/checkout" className="flex items-center justify-center w-full">
+                      Finalizar Compra
+                      <ArrowRight className="ml-2 size-4" />
+                    </Link>
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsOpen(false)}
                     className="w-full border-black text-black hover:bg-black hover:text-white bg-transparent"
+                    size="lg"
                   >
                     Continuar Comprando
                   </Button>

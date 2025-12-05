@@ -1,4 +1,4 @@
-import { apiClient } from "./api-client-components";
+import { api } from "./api-client";
 
 interface CreateOrderRequest {
   status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'DELIVERED'
@@ -15,6 +15,6 @@ interface CreateOrderResponse {
 }
 
 export async function createOrder({ addressId, status, items }: CreateOrderRequest) {
-  const result = await apiClient.post('orders', { json: { addressId, status, items } }).json<CreateOrderResponse>()
+  const result = await api.post('orders', { json: { addressId, status, items } }).json<CreateOrderResponse>()
   return result
 }

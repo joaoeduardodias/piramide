@@ -11,10 +11,7 @@ export default async function CheckoutPage() {
 
   const { addresses } = await getAddressesByUser()
   const { user: profile } = await auth()
-  // const { data: userAuth } = useQuery({
-  //   queryKey: ['auth'],
-  //   queryFn: () => getProfile(),
-  // })
+
   // const { data: addressesData } = useQuery({
   //   queryKey: ['addresses'],
   //   queryFn: () => getAddressesByUser(),

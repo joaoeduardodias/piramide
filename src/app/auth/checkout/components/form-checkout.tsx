@@ -20,8 +20,6 @@ export interface FormCheckoutProps {
 }
 
 export function FormCheckout({ addresses }: FormCheckoutProps) {
-  // const router = useRouter()
-
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses.filter(address => address.isDefault)[0]?.id || "")
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderId, setOrderId] = useState("")

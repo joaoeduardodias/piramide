@@ -9,7 +9,7 @@ export async function GET() {
   if (!token) {
     return NextResponse.json({ isAuthenticated: false, isAdmin: false })
   }
-
+  console.log("executou");
   const { user } = await getProfile()
   return NextResponse.json({
     isAuthenticated: true,

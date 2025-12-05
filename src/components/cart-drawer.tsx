@@ -21,57 +21,6 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
   const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } = useCart()
 
 
-
-  //   const handleWhatsAppCheckout = async () => {
-  //     if (items.length === 0) return
-  //     if (loading) return
-  //     setLoading(true)
-
-  //     if (userAuth?.user === undefined || userAuth?.user === null) {
-  //       const cb = encodeURIComponent(pathname || "/")
-  //       router.push(`/auth/sign-in?callbackUrl=${cb}`)
-  //       return
-  //     }
-
-  //     if (userAuth?.user?.cpf === null || userAuth?.user.phone === null) {
-  //       router.push("/auth/profile")
-  //       return
-  //     }
-
-
-  //     await createOrderMutation.mutateAsync({
-  //       addressId: "default-address-id",
-  //       status: "PENDING",
-  //       items: items.map((item) => ({
-  //         productId: item.id,
-  //         // variantId: item.variantId,
-  //         quantity: item.quantity,
-  //         unitPrice: item.price,
-  //       })),
-  //     })
-
-  //     const orderDetails = items
-  //       .map(
-  //         (item) =>
-  //           `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`,
-  //       ).join("\n\n")
-
-
-  //     const totalPrice = getTotalPrice()
-
-  //     const message = `🚀 *Pedido - Pirâmide Calçados*
-
-  // ${orderDetails}
-
-  // 💳 *Total: ${formatReal(String(totalPrice))}*~
-  // *Número do pedido: ${orderId}*
-
-  // Gostaria de finalizar este pedido!`
-
-  //     const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
-  //     window.open(whatsappUrl, "_blank")
-  //   }
-
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>{children}</SheetTrigger>

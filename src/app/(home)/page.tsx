@@ -1,4 +1,5 @@
-import { HeroSection } from "@/components/hero-section"
+
+import HeroSection from "@/components/hero/hero"
 import { Product } from "@/components/product"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCategories } from "@/http/get-categories"

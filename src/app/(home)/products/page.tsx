@@ -21,7 +21,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const queryParams: GetProductsParams = {
     featured: sp?.featured === "true" ? true : undefined,
     page: sp?.page ? Number(sp.page) : 1,
-    limit: sp?.limit ? Number(sp.limit) : 12,
+    limit: sp?.limit ? Number(sp.limit) : 50,
     status: typeof sp?.status === "string" ? (sp.status as GetProductsParams["status"]) : undefined,
     category: typeof sp?.category === "string" ? sp.category : undefined,
     search: typeof sp?.search === "string" ? sp.search : undefined,

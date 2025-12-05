@@ -8,10 +8,12 @@ interface GetProfile {
     name: string;
     email: string;
     role: Role
+    cpf: string | null;
+    phone: string | null;
   }
 }
 
 export async function getProfile() {
-  const result = await api.get('profile').json<GetProfile>()
+  const result = await api.get('profile', { next: { tags: ['profile'] } }).json<GetProfile>()
   return result
 }

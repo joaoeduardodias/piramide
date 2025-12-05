@@ -15,12 +15,14 @@ export function Footer() {
                 alt="Pirâmide Calçados Logo"
                 width={40}
                 height={40}
+                unoptimized
               />
               <Image
                 src={logoTextWhite}
                 alt="Pirâmide Calçados Logo Text"
                 width={230}
                 height={55}
+                unoptimized
               />
             </div>
             <p className="text-gray-400 mb-4">Qualidade e estilo em cada passo.</p>

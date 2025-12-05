@@ -1,3 +1,4 @@
+import CFImage from "@/components/cf-image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +14,6 @@ import {
   TrendingUp,
   Truck
 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { EmptyState } from "./components/empty-state"
 import { StatsDashboard } from "./components/stats-dashboard"
@@ -182,7 +182,7 @@ export default async function AdminDashboard() {
                   <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center text-sm font-semibold text-gray-600">
                     {index + 1}
                   </div>
-                  <Image
+                  <CFImage
                     src={product.img}
                     alt={product.name}
                     width={48}

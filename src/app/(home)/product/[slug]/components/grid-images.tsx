@@ -1,6 +1,6 @@
 "use client"
+import CFImage from "@/components/cf-image";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import { useState } from "react";
 
 export interface GridImagesProps {
@@ -32,7 +32,7 @@ export function GridImages({
             -{discount}%
           </Badge>
         )}
-        <Image
+        <CFImage
           src={images[selectedImage]?.url || "/placeholder.svg"}
           alt={images[selectedImage]?.alt ?? 'Imagem do produto'}
           fill
@@ -50,7 +50,7 @@ export function GridImages({
               : "border-transparent hover:border-gray-300"
               }`}
           >
-            <Image
+            <CFImage
               src={image?.url || "/placeholder.svg"}
               alt={`${image?.alt} - ${index + 1}`}
               width={120}

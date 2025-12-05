@@ -155,6 +155,7 @@ export default function ImageUpload({ images, setImages }: ImageUploadProps) {
                   alt={`Imagem ${index + 1}`}
                   fill
                   className="object-cover"
+                  unoptimized
                   onLoad={(e) => {
                     if (e.currentTarget.src.startsWith("blob:")) {
                       URL.revokeObjectURL(e.currentTarget.src)

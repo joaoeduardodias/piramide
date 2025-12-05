@@ -2,8 +2,8 @@ import type { ProductType } from "@/http/get-products";
 import { formatReal } from "@/lib/validations";
 import { isNewProduct } from "@/utils/count-hours-create-product";
 import { ArrowRight, Eye } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import CFImage from "./cf-image";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
@@ -20,7 +20,7 @@ export function Product({ product, viewMode = 'grid' }: ProductProps) {
       <CardContent className={`p-0 flex flex-col ${viewMode === 'list' ? 'md:flex-row gap-x-2' : ''} h-full`}>
         <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-60 flex-shrink-0' : ''}`}>
           <Link href={`/product/${product.slug}`}>
-            <Image
+            <CFImage
               src={product.images[0].url}
               alt={product.images[0].alt || product.name}
               width={300}

@@ -57,13 +57,13 @@ export const compressImage = async (file: File, maxWidth = 1920, maxHeight = 192
 }
 
 export const validateImageFile = (file: File): { valid: boolean; error?: string } => {
-  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
+  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg", "image/avif"]
   const maxSize = 5 * 1024 * 1024 // 5MB
 
   if (!validTypes.includes(file.type)) {
     return {
       valid: false,
-      error: "Formato de imagem inválido. Use JPG, PNG ou WebP.",
+      error: "Formato de imagem inválido. Use JPG, PNG ou WebP or Avif.",
     }
   }
 

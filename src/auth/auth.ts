@@ -1,6 +1,7 @@
+
 import { getProfile } from '@/http/get-profile';
 import { defineAbilityFor } from '@/permissions/ability';
-import { cookies } from "next/headers";
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 

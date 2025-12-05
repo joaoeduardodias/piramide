@@ -1,38 +1,25 @@
 "use client"
-
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/context/cart-context"
 import { formatReal } from "@/lib/validations"
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
-import Image from "next/image"
+import type { Role } from "@/permissions/roles"
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import Link from "next/link"
+import CFImage from "./cf-image"
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  cpf: string | null;
+  phone: string | null;
+}
 
 export function CartDrawer({ children }: { children: React.ReactNode }) {
   const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } = useCart()
 
-  const handleWhatsAppCheckout = () => {
-    if (items.length === 0) return
-
-    const orderDetails = items
-      .map(
-        (item) =>
-          `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`,
-      ).join("\n\n")
-
-
-    const totalPrice = getTotalPrice()
-
-    const message = `🛍️ *Pedido - Pirâmide Calçados*
-
-${orderDetails}
-
-💳 *Total: ${formatReal(String(totalPrice))}*
-
-Gostaria de finalizar este pedido!`
-
-    const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
-  }
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -64,7 +51,7 @@ Gostaria de finalizar este pedido!`
                       className="flex gap-4 p-4 bg-gray-50 rounded-lg"
                     >
                       <div className="relative size-16 flex-shrink-0">
-                        <Image
+                        <CFImage
                           src={item.image || ""}
                           alt={item.name}
                           fill
@@ -142,16 +129,21 @@ Gostaria de finalizar este pedido!`
 
                 <div className="space-y-2">
                   <Button
-                    onClick={handleWhatsAppCheckout}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    // onClick={handleWhatsAppCheckout}
+                    className="w-full"
                     size="lg"
+                    asChild
                   >
-                    Finalizar no WhatsApp
+                    <Link href="/auth/checkout" className="flex items-center justify-center w-full">
+                      Finalizar Compra
+                      <ArrowRight className="ml-2 size-4" />
+                    </Link>
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsOpen(false)}
                     className="w-full border-black text-black hover:bg-black hover:text-white bg-transparent"
+                    size="lg"
                   >
                     Continuar Comprando
                   </Button>

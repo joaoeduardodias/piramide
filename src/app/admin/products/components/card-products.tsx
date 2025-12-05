@@ -1,4 +1,5 @@
 "use client"
+import CFImage from "@/components/cf-image"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,7 +14,6 @@ import type { Category } from "@/http/get-categories"
 import { useProducts, type ProductType } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
 import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -249,7 +249,7 @@ export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {product.images.length > 0 && (
-                              <Image
+                              <CFImage
                                 src={product.images[0].url}
                                 alt={product.name}
                                 width={40}

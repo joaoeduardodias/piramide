@@ -14,6 +14,7 @@ export default function ForgotPasswordPage() {
             alt="Pirâmide Calçados Logo"
             width={30}
             height={30}
+            unoptimized
             className="h-8 w-8"
           />
         </div>

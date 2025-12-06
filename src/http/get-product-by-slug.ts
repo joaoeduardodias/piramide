@@ -14,26 +14,19 @@ export interface ProductDetails {
     id: string;
     url: string;
     alt: string | null;
-    fileKey: string | null;
+    fileKey: string;
     sortOrder: number;
   }[];
   variants: {
     id: string;
+    sku: string;
     price: number | null;
     comparePrice: number | null;
-    sku: string;
     stock: number;
     optionValues: {
       id: string;
       optionValueId: string;
     }[];
-  }[];
-  categories: {
-    category: {
-      slug: string;
-      id: string;
-      name: string;
-    };
   }[];
   options: {
     id: string;
@@ -44,7 +37,13 @@ export interface ProductDetails {
       content: string | null;
     }[];
   }[];
-
+  categories: {
+    category: {
+      slug: string;
+      id: string;
+      name: string;
+    };
+  }[];
 }
 
 interface GetProductBySlugResponse {
@@ -57,5 +56,4 @@ interface GetProductRequest {
 export async function getProductBySlug({ slug }: GetProductRequest) {
   const result = await api.get(`product/${slug}`, { next: { tags: [`product-${slug}`] } }).json<GetProductBySlugResponse>()
   return result
-
 }

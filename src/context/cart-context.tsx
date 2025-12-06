@@ -9,6 +9,7 @@ export interface CartItem {
   price: number
   image: string
   quantity: number
+  variantId?: string
 }
 export type AddItemPayload = Omit<CartItem, "quantity"> & { quantity?: number }
 
@@ -16,7 +17,7 @@ interface CartContextType {
   items: CartItem[]
   addItem: (item: AddItemPayload) => void
   removeItem: (id: string) => void
-  updateQuantity: (id: string, quantity: number) => void
+  updateQuantity: (id: string, variantId: string | undefined, quantity: number) => void
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
@@ -65,38 +66,43 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, isLoaded])
 
   const addItem = (newItem: AddItemPayload) => {
-    setItems((prevItems) => {
+    setItems((prev) => {
       const qtyToAdd = newItem.quantity ?? 1
-      const existingItemIndex = prevItems.findIndex((item) => item.id === newItem.id)
+      const existingIndex = prev.findIndex(
+        item =>
+          item.id === newItem.id &&
+          (item.variantId ?? null) === (newItem.variantId ?? null)
+      )
 
-      if (existingItemIndex > -1) {
-        const updatedItems = [...prevItems]
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + qtyToAdd,
-        }
-        return updatedItems
+      if (existingIndex > -1) {
+        const updated = [...prev]
+        updated[existingIndex].quantity += qtyToAdd
+        return updated
       } else {
-        return [...prevItems, { ...newItem, quantity: qtyToAdd }]
+        return [...prev, { ...newItem, quantity: qtyToAdd }]
       }
     })
   }
-  const removeItem = (id: string) => {
-    setItems((prevItems) =>
-      prevItems.filter((item) => !(item.id === id)),
+
+  const removeItem = (productId: string, variantId?: string) => {
+    setItems(prev =>
+      prev.filter(
+        item => !(item.id === productId && (item.variantId ?? null) === (variantId ?? null))
+      )
     )
   }
 
-  const updateQuantity = (id: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(id)
-      return
-    }
 
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item,
-      ),
+  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number) => {
+    if (quantity <= 0) {
+      return removeItem(productId, variantId)
+    }
+    setItems((prev) =>
+      prev.map(item =>
+        item.id === productId && (item.variantId ?? null) === (variantId ?? null)
+          ? { ...item, quantity }
+          : item
+      )
     )
   }
 

@@ -12,12 +12,12 @@ export interface FormSelectProductProps {
 }
 
 export function FormSelectProduct({ product, discount }: FormSelectProductProps) {
-  console.log(product.variants);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
   const [quantity, setQuantity] = useState(1)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
   const [optionErrors, setOptionErrors] = useState<Record<string, boolean>>({})
 
+  // Limpar alertas depois de um tempo
   useEffect(() => {
     if (!alertMessage) return
     const t = setTimeout(() => setAlertMessage(null), 3000)
@@ -37,72 +37,32 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
     })
   }
 
-  function variantHasOptionValue(variant: any, optionId: string, valueId: string) {
-    // suportar formas comuns:
-    // 1) variant.optionValues: [{ optionId, valueId }]
-    if (Array.isArray(variant.optionValues)) {
-      return variant.optionValues.some((ov: any) => ov.optionId === optionId && (ov.valueId === valueId || ov.value === valueId))
+  // Encontra a variante que corresponde exatamente às opções selecionadas
+  const selectedVariant = useMemo(() => {
+    // se não selecionou todas as opções, não há variant definida
+    if (Object.keys(selectedOptions).length !== product.options.length) {
+      return null
     }
-    // 2) variant.options: { [optionId]: valueId }
-    if (variant.options && typeof variant.options === "object") {
-      return variant.options[optionId] === valueId || variant.options[optionId]?.id === valueId
-    }
-    // 3) variant.optionValueIds: ['val1', 'val2']
-    if (Array.isArray(variant.optionValueIds)) {
-      return variant.optionValueIds.includes(valueId)
-    }
-    // 4) fallback: variant.attributes contains value string
-    if (Array.isArray(variant.attributes)) {
-      return variant.attributes.some((a: any) => a.optionId === optionId && (a.valueId === valueId || a.value === valueId))
-    }
-    return false
-  }
 
-  function variantMatchesSelectedSubset(variant: any, selected: Record<string, string>) {
-
-    return Object.entries(selected).every(([optionId, valueId]) => variantHasOptionValue(variant, optionId, valueId))
-  }
-
-  const totalStock = useMemo(() => product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0), [product.variants])
-
-  const filteredStock = useMemo(() => {
-    const selectedCount = Object.keys(selectedOptions).length
-    if (selectedCount === 0) return totalStock
-    const matching = product.variants.filter((v) => variantMatchesSelectedSubset(v, selectedOptions))
-    return matching.reduce((s, v) => s + (v.stock ?? 0), 0)
-  }, [product.variants, selectedOptions, totalStock])
-
-
-
-  const handleAddDisabledClick = () => {
-    if (filteredStock <= 0) {
-      setAlertMessage("Produto sem estoque")
-      return
-    }
-    if (!allOptionsSelected) {
-      const newErrors: Record<string, boolean> = {}
-      missingOptions.forEach((name) => {
-        // achar optionId pelo name (presumindo nomes únicos)
-        const opt = product.options.find((o) => o.name === name)
-        if (opt) newErrors[opt.id] = true
+    return product.variants.find((variant) => {
+      return product.options.every((opt) => {
+        const selectedValueId = selectedOptions[opt.id]
+        return variant.optionValues.some((ov) => ov.optionValueId === selectedValueId)
       })
-      // fallback: marcar todas faltantes por id diretamente
-      product.options.forEach((opt) => {
-        if (!selectedOptions[opt.id] && !newErrors[opt.id]) newErrors[opt.id] = true
-      })
-      setOptionErrors(newErrors)
-      setAlertMessage(missingMessage ?? "Selecione as opções")
-      // opcional: limpar erros depois de X segundos
-      setTimeout(() => setOptionErrors({}), 3000)
-    }
-  }
+    }) ?? null
+  }, [product.variants, product.options, selectedOptions])
+
+  const maxQuantity = selectedVariant ? selectedVariant.stock : 0
+
+  // Se a quantidade for maior que o stock da variant, ajusta
   useEffect(() => {
-    if (quantity > filteredStock) setQuantity(Math.max(1, filteredStock))
-  }, [filteredStock, quantity])
+    if (quantity > maxQuantity) {
+      setQuantity(maxQuantity > 0 ? maxQuantity : 1)
+    }
+  }, [maxQuantity, quantity])
 
-  const allOptionsSelected = product.options.every((option) => Boolean(selectedOptions[option.id]))
-
-  const missingOptions = product.options.filter((option) => !selectedOptions[option.id]).map((o) => o.name)
+  const allOptionsSelected = product.options.every((opt) => Boolean(selectedOptions[opt.id]))
+  const missingOptions = product.options.filter((opt) => !selectedOptions[opt.id]).map((o) => o.name)
 
   const formatMissingMessage = (missing: string[]) => {
     if (missing.length === 0) return null
@@ -112,6 +72,23 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
     return `Selecione ${missing.map(m => m.toLowerCase()).join(", ")} e ${last?.toLowerCase()}`
   }
   const missingMessage = formatMissingMessage([...missingOptions])
+
+  const handleAddDisabledClick = () => {
+    if (!allOptionsSelected) {
+
+      const newErr: Record<string, boolean> = {}
+      product.options.forEach((opt) => {
+        if (!selectedOptions[opt.id]) newErr[opt.id] = true
+      })
+      setOptionErrors(newErr)
+      setAlertMessage(missingMessage ?? "Selecione as opções")
+      return
+    }
+    if (!selectedVariant || selectedVariant.stock <= 0) {
+      setAlertMessage("Produto sem estoque")
+      return
+    }
+  }
 
   return (
     <>
@@ -140,21 +117,20 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
             <Button
               variant="ghost"
               className="h-12 px-5 hover:bg-gray-100 rounded-none"
-              onClick={() => {
-                setQuantity(Math.min(filteredStock, quantity + 1))
-              }}
-              disabled={quantity >= filteredStock}
+              onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+              disabled={quantity >= maxQuantity}
             >
               +
             </Button>
           </div>
           <span className="text-sm text-gray-600">
-            {filteredStock} disponíveis{Object.keys(selectedOptions).length > 0 ? " (para seleção atual)" : ""}
+            {selectedVariant
+              ? `${maxQuantity} disponíveis`
+              : `${product.variants.reduce((s, v) => s + v.stock, 0)} disponíveis`}
           </span>
         </div>
       </div>
       <div className="space-y-4">
-
         <div className="relative">
           <AddToCartButton
             product={{
@@ -164,15 +140,15 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
               comparePrice: product.comparePrice,
               images: product.images,
               options: product.options,
-              discount
+              discount,
+              variantId: selectedVariant?.id,
             }}
             quantity={quantity}
             size="lg"
             className="w-full"
-            disabled={!allOptionsSelected || filteredStock <= 0}
+            disabled={!allOptionsSelected || !selectedVariant || selectedVariant.stock <= 0}
           />
-
-          {(!allOptionsSelected || filteredStock <= 0) && (
+          {(!allOptionsSelected || !selectedVariant || selectedVariant.stock <= 0) && (
             <button
               type="button"
               aria-hidden="true"
@@ -182,7 +158,6 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
           )}
         </div>
 
-
         <Button
           size="lg"
           variant="outline"
@@ -191,9 +166,7 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
           <Share2 className="size-5 mr-2" />
           Compartilhar
         </Button>
-      </div >
-
-
+      </div>
     </>
   )
 }

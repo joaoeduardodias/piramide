@@ -21,7 +21,6 @@ export interface FormCheckoutProps {
 
 export function FormCheckout({ addresses }: FormCheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses.filter(address => address.isDefault)[0]?.id || "")
-  const [isProcessing, setIsProcessing] = useState(false)
   const [orderId, setOrderId] = useState("")
 
   const { items, getTotalPrice, clearCart } = useCart()
@@ -85,7 +84,6 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
     window.open(whatsappUrl, "_blank")
 
     clearCart()
-    setIsProcessing(false)
 
     toast("Pedido realizado!", {
       description: "Seu pedido foi confirmado e está sendo processado.",
@@ -165,7 +163,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
             <Separator />
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-3">
+                <div key={`${item.id}-${item.variantId || "default"}`} className="flex gap-3">
                   <div className="relative size-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                     <CFImage
                       src={item.image}
@@ -208,7 +206,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
               onClick={handleFinishOrder}
               disabled={createOrderMutation.isPending || !selectedAddressId || addresses.length === 0}
             >
-              {isProcessing ? "Processando..." : "Finalizar Pedido"}
+              {createOrderMutation.isPending ? "Processando..." : "Finalizar Pedido"}
             </Button>
             <Button
               size="lg"

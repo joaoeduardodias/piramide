@@ -47,7 +47,7 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div
-                      key={`${item.id}`}
+                      key={`${item.id}-${item.variantId || "default"}`}
                       className="flex gap-4 p-4 bg-gray-50 rounded-lg"
                     >
                       <div className="relative size-16 flex-shrink-0">
@@ -71,7 +71,7 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
                               size="icon"
                               className="size-6 bg-transparent"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity - 1)
+                                updateQuantity(item.id, item.variantId, item.quantity - 1)
                               }
                             >
                               <Minus className="size-3" />
@@ -82,7 +82,7 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
                               size="icon"
                               className="size-6 bg-transparent"
                               onClick={() =>
-                                updateQuantity(item.id, item.quantity + 1)
+                                updateQuantity(item.id, item.variantId, item.quantity + 1)
                               }
                             >
                               <Plus className="size-3" />
@@ -105,31 +105,14 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="border-t pt-4 px-4 space-y-4">
-                <div className="space-y-2">
-                  {/* {getTotalDiscount() > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Subtotal:</span>
-                      <span className="text-gray-600">
-                        R$ {(getTotalPrice() + getTotalDiscount()).toFixed(2).replace(".", ",")}
-                      </span>
-                    </div>
-                  )}
-                  {getTotalDiscount() > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-green-600">Desconto:</span>
-                      <span className="text-green-600">-R$ {getTotalDiscount().toFixed(2).replace(".", ",")}</span>
-                    </div>
-                  )} */}
-                  {/* <Separator /> */}
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total:</span>
-                    <span>{formatReal(String(getTotalPrice()))}</span>
-                  </div>
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total:</span>
+                  <span>{formatReal(String(getTotalPrice()))}</span>
                 </div>
+
 
                 <div className="space-y-2">
                   <Button
-                    // onClick={handleWhatsAppCheckout}
                     className="w-full"
                     size="lg"
                     asChild

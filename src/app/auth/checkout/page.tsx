@@ -12,10 +12,6 @@ export default async function CheckoutPage() {
   const { addresses } = await getAddressesByUser()
   const { user: profile } = await auth()
 
-  // const { data: addressesData } = useQuery({
-  //   queryKey: ['addresses'],
-  //   queryFn: () => getAddressesByUser(),
-  // })
   if (!addresses || profile.cpf === null || profile.phone === null) {
     redirect("/auth/profile?from=cart");
   }
@@ -23,7 +19,6 @@ export default async function CheckoutPage() {
 
   return (
     <>
-      {/* <Header /> */}
       <div className="min-h-screen bg-background w-full">
         <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-10 md:py-16 overflow-hidden">
           <div className="absolute inset-0 bg-[url('/abstract-geometric-flow.png')] opacity-5" />

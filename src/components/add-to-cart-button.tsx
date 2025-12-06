@@ -13,6 +13,7 @@ interface AddToCartButtonProps {
     price: number,
     comparePrice: number | null,
     discount: number,
+    variantId?: string,
     images: {
       id: string;
       url: string;
@@ -51,6 +52,7 @@ export function AddToCartButton({
       name: product.name,
       price: product.price,
       image: product.images[0].url,
+      variantId: product.variantId,
     }
 
 

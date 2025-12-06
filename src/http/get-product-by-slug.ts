@@ -54,6 +54,6 @@ interface GetProductRequest {
 }
 
 export async function getProductBySlug({ slug }: GetProductRequest) {
-  const result = await api.get(`product/${slug}`, { next: { tags: [`product-${slug}`] } }).json<GetProductBySlugResponse>()
+  const result = await api.get(`product/${slug}`, { next: { tags: [`product-${slug}`] }, headers: { "X-Skip-Auth": "true" } }).json<GetProductBySlugResponse>()
   return result
 }

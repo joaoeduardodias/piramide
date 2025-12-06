@@ -161,7 +161,7 @@ export async function createProductAction(data: FormData) {
         sortOrder: i + 1,
       })),
     })
-    revalidateTag('products')
+    revalidateTag('products', 'max')
 
   } catch (err: any) {
 
@@ -209,7 +209,7 @@ export async function deleteProductAction(data: FormData) {
 
       await r2.send(command)
     }
-    revalidateTag('products')
+    revalidateTag('products', 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -327,8 +327,8 @@ export async function updateProductAction(data: FormData) {
         }))
       })
     }
-    revalidateTag('products')
-    revalidateTag(`product-${productId}`)
+    revalidateTag('products', 'max')
+    revalidateTag(`product-${productId}`, 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -362,7 +362,7 @@ export async function createOptionAction(data: FormData) {
       name,
       values
     })
-    revalidateTag("options")
+    revalidateTag("options", 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -403,7 +403,7 @@ export async function createOptionValueAction(data: FormData) {
       optionName,
       values
     })
-    revalidateTag("options")
+    revalidateTag("options", 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

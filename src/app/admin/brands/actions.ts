@@ -64,8 +64,8 @@ export async function updateBrandAction(data: FormData) {
 
     await updateBrand({ id, name, slug })
 
-    revalidateTag('brands')
-    revalidateTag(`brand-${id}`)
+    revalidateTag("brands", "max")
+    revalidateTag(`brand-${id}`, 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -89,7 +89,7 @@ export async function updateBrandAction(data: FormData) {
 export async function deleteBrandAction(id: string) {
   try {
     await deleteBrand({ id })
-    revalidateTag('brands')
+    revalidateTag('brands', 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

@@ -30,7 +30,7 @@ export async function createCategoryAction(data: FormData) {
 
   try {
     await createCategory({ name, slug })
-    revalidateTag('categories')
+    revalidateTag('categories', 'max')
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
@@ -62,8 +62,8 @@ export async function updateCategoryAction(data: FormData) {
 
   try {
     await updateCategory({ id, name, slug })
-    revalidateTag(`categories`)
-    revalidateTag(`category-${id}`)
+    revalidateTag(`categories`, 'max')
+    revalidateTag(`category-${id}`, 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -86,7 +86,7 @@ export async function updateCategoryAction(data: FormData) {
 export async function deleteCategoryAction(id: string) {
   try {
     await deleteCategory({ id })
-    revalidateTag("categories")
+    revalidateTag("categories", 'max')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

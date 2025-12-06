@@ -1,5 +1,3 @@
-
-
 import { auth } from "@/auth/auth";
 import { getAddressesByUser } from "@/http/get-addresses";
 import { ShoppingBag } from "lucide-react";

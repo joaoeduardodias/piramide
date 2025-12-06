@@ -1,0 +1,100 @@
+"use client"
+import logoText from '@/assets/logo-piramide.svg';
+import logoImg from '@/assets/logo.png';
+import { LayoutIcon, Menu, User2, UserX2, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { CartButton } from '../cart-button';
+import { Button } from '../ui/button';
+
+export interface HeaderClientProps {
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+}
+
+export function HeaderClient({ isAdmin, isAuthenticated }: HeaderClientProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  return (
+    <div className="px-4">
+      <div className="flex items-center justify-between h-16">
+        <div className="w-72 overflow-hidden">
+          <Link href="/" className="flex items-center  space-x-2">
+            <Image
+              src={logoImg}
+              alt="Pirâmide Calçados Logo"
+              width={32}
+              height={32}
+              unoptimized
+              className="h-8 w-8"
+            />
+            <Image
+              src={logoText}
+              alt="Pirâmide Calçados Logo Text"
+              width={230}
+              height={48}
+              unoptimized
+              className="h-12 w-56"
+            />
+          </Link>
+        </div>
+        <nav className="hidden md:flex items-center space-x-8">
+          <Link href="/products" className="text-gray-900 hover:text-gray-600 transition-colors">
+            Produtos
+          </Link>
+          <Link href="/categories" className="text-gray-900 hover:text-gray-600 transition-colors">
+            Categorias
+          </Link>
+          <Link href="/contact" className="text-gray-900 hover:text-gray-600 transition-colors">
+            Contato
+          </Link>
+        </nav>
+        <div className="hidden md:flex w-72 items-center justify-end space-x-4 text-gray-900 hover:text-gray-600">
+          {!isAuthenticated ? (
+            <Link href="/auth/sign-in">
+              <Button variant="ghost">
+                <User2 className="size-5" />
+                <span className='sr-only'>Fazer Login</span>
+              </Button>
+            </Link>
+          ) : (
+            <Button variant="ghost">
+              <a href='/api/auth/sign-out'>
+                <UserX2 className="size-5" />
+                <span className="sr-only">Sair</span>
+              </a>
+            </Button>
+          )}
+          {isAdmin && (
+            <Link href="/admin">
+              <Button variant="ghost">
+                <LayoutIcon className="size-5" />
+                <span className="sr-only">Dashboard</span>
+              </Button>
+            </Link>
+          )}
+          <CartButton />
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </Button>
+        </div>
+      </div>
+      {isMenuOpen && (
+        <div className="md:hidden border-t border-gray-100 py-4">
+          <nav className="flex flex-col space-y-4">
+            <Link href="/products" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Produtos
+            </Link>
+            <Link href="/categories" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Categorias
+            </Link>
+            <Link href="/contact" className="text-gray-900 hover:text-gray-600 transition-colors">
+              Contato
+            </Link>
+          </nav>
+        </div>
+      )}
+    </div>
+  )
+}

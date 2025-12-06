@@ -1,5 +1,5 @@
 import { auth } from "@/auth/auth"
-import { Header } from "@/components/header"
+import { Header } from "@/components/header/header"
 import { Button } from "@/components/ui/button"
 import { getAddressesByUser } from "@/http/get-addresses"
 import { ArrowRight, MapPin, Package, ShoppingBag, User } from "lucide-react"

@@ -12,6 +12,7 @@ import { formatReal } from "@/lib/validations"
 import { useMutation } from "@tanstack/react-query"
 import { AlertCircle, CircleX, MapPin, Plus } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -20,15 +21,16 @@ export interface FormCheckoutProps {
 }
 
 export function FormCheckout({ addresses }: FormCheckoutProps) {
-  const { setIsOpen } = useCart()
-
+  const router = useRouter()
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses.filter(address => address.isDefault)[0]?.id || "")
-  const [orderId, setOrderId] = useState("")
 
-  const { items, getTotalPrice, clearCart } = useCart()
+  const { items, getTotalPrice, clearCart, setIsOpen } = useCart()
   const totalPrice = getTotalPrice()
   const shipping = totalPrice > 199 ? 0 : 29.9
   const finalTotal = totalPrice + shipping
+  if (items.length === 0) {
+    router.push("/")
+  }
 
   useEffect(() => {
     setIsOpen(false)
@@ -38,8 +40,22 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
     mutationKey: ['create-order'],
     mutationFn: createOrder,
     onSuccess: (data) => {
-      setOrderId(data.orderId)
-      toast.success('Pedido Enviado com sucesso, Nossa equipe irá entrar em contato!')
+      const { orderNumber } = data
+
+      const orderDetails = items.map((item) => `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`).join("\n\n")
+      const totalPrice = getTotalPrice()
+      const message = `
+    🚀 *Pedido - Pirâmide Calçados*
+   ${orderDetails}
+
+  💳 *Total: ${formatReal(String(totalPrice))}*~
+  *Número do pedido: ${orderNumber}*
+
+  Gostaria de finalizar este pedido!`
+
+      // const whatsappUrl = `https://wa.me/5517997875330?text=${encodeURIComponent(message)}`
+      const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
+      window.open(whatsappUrl, "_blank")
     },
     onError: (error) => {
       console.error(error.message)
@@ -49,7 +65,6 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
       })
     },
   })
-
 
 
   const handleFinishOrder = async () => {
@@ -74,26 +89,9 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
     })
 
 
-    const orderDetails = items.map((item) => `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`).join("\n\n")
-    const totalPrice = getTotalPrice()
-    const message = `
-    🚀 *Pedido - Pirâmide Calçados*
-   ${orderDetails}
 
-  💳 *Total: ${formatReal(String(totalPrice))}*~
-  *Número do pedido: ${orderId}*
-
-  Gostaria de finalizar este pedido!`
-
-    const whatsappUrl = `https://wa.me/5517997875330?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, "_blank")
 
     clearCart()
-
-    toast("Pedido realizado!", {
-      description: "Seu pedido foi confirmado e está sendo processado.",
-    })
-
     // router.push("/orders")
   }
 

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { useCart } from "@/context/cart-context"
 import { useFormState } from "@/hooks/use-form-state"
 import { formatCpf } from "@/utils/format-cpf"
 import { formatPhone } from "@/utils/format-phone"
 import { AlertTriangle, Check, Loader2, Mail, User } from "lucide-react"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { updateUserAction } from "./actions"
 
@@ -20,6 +21,11 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ initialCpf, initialPhone, userName, userEmail }: ProfileFormProps) {
+  const { setIsOpen } = useCart()
+  useEffect(() => {
+    setIsOpen(false)
+  }, [])
+
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
     updateUserAction,
     () => {

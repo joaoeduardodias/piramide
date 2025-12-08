@@ -11,7 +11,7 @@ interface CreateOrderRequest {
   }[]
 }
 interface CreateOrderResponse {
-  orderId: string
+  orderNumber: number
 }
 
 export async function createOrder({ addressId, status, items }: CreateOrderRequest) {

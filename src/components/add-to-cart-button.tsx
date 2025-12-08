@@ -5,6 +5,10 @@ import { useCart, type CartItem } from "@/context/cart-context"
 import { Check, ShoppingBag } from "lucide-react"
 import { useState } from "react"
 
+export interface SelectedOptionForCart {
+  name: string
+  value: string
+}
 
 interface AddToCartButtonProps {
   product: {
@@ -13,7 +17,7 @@ interface AddToCartButtonProps {
     price: number,
     comparePrice: number | null,
     discount: number,
-    variantId?: string,
+    variantId: string,
     images: {
       id: string;
       url: string;
@@ -21,16 +25,8 @@ interface AddToCartButtonProps {
       fileKey: string | null;
       sortOrder: number;
     }[],
-    options: {
-      id: string;
-      name: string;
-      values: {
-        id: string;
-        value: string;
-        content: string | null;
-      }[];
-    }[]
   }
+  selectedOptions: SelectedOptionForCart[]
   quantity?: number
   disabled?: boolean
   className?: string
@@ -43,6 +39,7 @@ export function AddToCartButton({
   disabled = false,
   className = "",
   size = "default",
+  selectedOptions
 }: AddToCartButtonProps) {
   const { addItem, setIsOpen } = useCart()
   const [isAdded, setIsAdded] = useState(false)
@@ -53,6 +50,7 @@ export function AddToCartButton({
       price: product.price,
       image: product.images[0].url,
       variantId: product.variantId,
+      options: selectedOptions
     }
 
 

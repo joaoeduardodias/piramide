@@ -5,15 +5,12 @@ import { redirect } from "next/navigation";
 import { FormCheckout } from "./components/form-checkout";
 
 export default async function CheckoutPage() {
-
-
   const { addresses } = await getAddressesByUser()
   const { user: profile } = await auth()
 
   if (!addresses || profile.cpf === null || profile.phone === null) {
     redirect("/auth/profile?from=cart");
   }
-
 
   return (
     <>

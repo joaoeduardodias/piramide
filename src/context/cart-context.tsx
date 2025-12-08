@@ -9,15 +9,17 @@ export interface CartItem {
   price: number
   image: string
   quantity: number
-  variantId?: string
+  variantId: string
+  options?: { name: string; value: string }[]
 }
+
 export type AddItemPayload = Omit<CartItem, "quantity"> & { quantity?: number }
 
 interface CartContextType {
   items: CartItem[]
   addItem: (item: AddItemPayload) => void
-  removeItem: (id: string) => void
-  updateQuantity: (id: string, variantId: string | undefined, quantity: number) => void
+  removeItem: (id: string, variantId: string) => void
+  updateQuantity: (id: string, variantId: string, quantity: number) => void
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
@@ -28,7 +30,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 const CART_COOKIE_NAME = "piramide_cart"
-const CART_COOKIE_EXPIRES = 60 * 60 * 24 * 7  // 7 days
+const CART_COOKIE_EXPIRES = 60 * 60 * 24 * 7 // 7 days
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
@@ -40,7 +42,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const savedCart = cookies[CART_COOKIE_NAME]
     if (savedCart) {
       try {
-        const parsedCart = JSON.parse(savedCart)
+        const parsedCart = JSON.parse(savedCart) as CartItem[]
         setItems(parsedCart)
       } catch (error) {
         console.error("Error parsing cart from cookies:", error)
@@ -50,14 +52,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsLoaded(true)
   }, [])
 
-
   useEffect(() => {
     if (isLoaded) {
       if (items.length > 0) {
         setCookie(null, CART_COOKIE_NAME, JSON.stringify(items), {
           maxAge: CART_COOKIE_EXPIRES,
           sameSite: "strict",
-          path: "/"
+          path: "/",
         })
       } else {
         destroyCookie(null, CART_COOKIE_NAME)
@@ -68,10 +69,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (newItem: AddItemPayload) => {
     setItems((prev) => {
       const qtyToAdd = newItem.quantity ?? 1
+
       const existingIndex = prev.findIndex(
-        item =>
-          item.id === newItem.id &&
-          (item.variantId ?? null) === (newItem.variantId ?? null)
+        (item) => item.id === newItem.id && item.variantId === newItem.variantId
       )
 
       if (existingIndex > -1) {
@@ -84,22 +84,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
-  const removeItem = (productId: string, variantId?: string) => {
-    setItems(prev =>
+  const removeItem = (productId: string, variantId: string) => {
+    setItems((prev) =>
       prev.filter(
-        item => !(item.id === productId && (item.variantId ?? null) === (variantId ?? null))
+        (item) => !(item.id === productId && item.variantId === variantId)
       )
     )
   }
 
-
-  const updateQuantity = (productId: string, variantId: string | undefined, quantity: number) => {
+  const updateQuantity = (productId: string, variantId: string, quantity: number) => {
     if (quantity <= 0) {
       return removeItem(productId, variantId)
     }
+
     setItems((prev) =>
-      prev.map(item =>
-        item.id === productId && (item.variantId ?? null) === (variantId ?? null)
+      prev.map((item) =>
+        item.id === productId && item.variantId === variantId
           ? { ...item, quantity }
           : item
       )
@@ -117,8 +117,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const getTotalPrice = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0)
   }
-
-
 
   const value: CartContextType = {
     items,

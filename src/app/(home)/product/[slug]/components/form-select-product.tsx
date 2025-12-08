@@ -1,5 +1,5 @@
 "use client"
-import { AddToCartButton } from "@/components/add-to-cart-button"
+import { AddToCartButton, type SelectedOptionForCart } from "@/components/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import type { ProductDetails } from "@/http/get-product-by-slug"
 import { Share2 } from "lucide-react"
@@ -90,6 +90,23 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
     }
   }
 
+  const selectedOptionsForCart: SelectedOptionForCart[] = useMemo(() => {
+    return product.options
+      .map((opt) => {
+        const selectedValueId = selectedOptions[opt.id]
+        if (!selectedValueId) return null
+
+        const valueObj = opt.values.find((v) => v.id === selectedValueId)
+        if (!valueObj) return null
+
+        return {
+          name: opt.name,
+          value: valueObj.value,
+        }
+      })
+      .filter((x): x is SelectedOptionForCart => x !== null)
+  }, [product.options, selectedOptions])
+
   return (
     <>
       {product.options.map((option) => (
@@ -139,10 +156,10 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
               price: product.price,
               comparePrice: product.comparePrice,
               images: product.images,
-              options: product.options,
               discount,
-              variantId: selectedVariant?.id,
+              variantId: selectedVariant?.id ?? "",
             }}
+            selectedOptions={selectedOptionsForCart}
             quantity={quantity}
             size="lg"
             className="w-full"

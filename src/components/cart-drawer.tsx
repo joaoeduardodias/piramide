@@ -3,23 +3,12 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useCart } from "@/context/cart-context"
 import { formatReal } from "@/lib/validations"
-import type { Role } from "@/permissions/roles"
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 import Link from "next/link"
 import CFImage from "./cf-image"
 
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  cpf: string | null;
-  phone: string | null;
-}
-
 export function CartDrawer({ children }: { children: React.ReactNode }) {
   const { items, removeItem, updateQuantity, getTotalItems, getTotalPrice, isOpen, setIsOpen } = useCart()
-
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -61,6 +50,11 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
 
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm text-gray-900 truncate">{item.name}</h4>
+                        {item.options && item.options.length > 0 && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            {item.options.map((opt) => `${opt.name}: ${opt.value}`).join(" • ")}
+                          </p>
+                        )}
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-sm">{formatReal(String(item.price))}</span>
@@ -95,7 +89,7 @@ export function CartDrawer({ children }: { children: React.ReactNode }) {
                         variant="ghost"
                         size="icon"
                         className="size-8 text-gray-400 hover:text-red-500"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.id, item.variantId)}
                       >
                         <Trash2 className="size-4" />
                       </Button>

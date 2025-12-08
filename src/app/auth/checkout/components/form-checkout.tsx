@@ -12,7 +12,7 @@ import { formatReal } from "@/lib/validations"
 import { useMutation } from "@tanstack/react-query"
 import { AlertCircle, CircleX, MapPin, Plus } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 export interface FormCheckoutProps {
@@ -20,6 +20,8 @@ export interface FormCheckoutProps {
 }
 
 export function FormCheckout({ addresses }: FormCheckoutProps) {
+  const { setIsOpen } = useCart()
+
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses.filter(address => address.isDefault)[0]?.id || "")
   const [orderId, setOrderId] = useState("")
 
@@ -28,6 +30,9 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
   const shipping = totalPrice > 199 ? 0 : 29.9
   const finalTotal = totalPrice + shipping
 
+  useEffect(() => {
+    setIsOpen(false)
+  }, [])
 
   const createOrderMutation = useMutation({
     mutationKey: ['create-order'],
@@ -55,13 +60,13 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
       return
     }
 
-    createOrderMutation.mutateAsync({
+    await createOrderMutation.mutateAsync({
       addressId: selectedAddressId,
       status: "PENDING",
       items: items.map(item => {
         return {
           productId: item.id,
-          variantId: 'variant',
+          variantId: item.variantId,
           quantity: item.quantity,
           unitPrice: item.price,
         }
@@ -108,22 +113,22 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                 {addresses.map((address) => (
                   <div
                     key={address.id}
-                    className={`flex items-start space-x-3 p-4 border-2 rounded-lg transition-colors ${selectedAddressId === address.id ? "border-black bg-gray-50" : "border-gray-200"
+                    className={`flex items-center  space-x-3 p-4 border-2 rounded-lg transition-colors ${selectedAddressId === address.id ? "border-black bg-gray-50" : "border-gray-200"
                       }`}
                   >
-                    <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
-                    <Label htmlFor={address.id} className="flex-1 cursor-pointer">
+                    <RadioGroupItem value={address.id} id={address.id} />
+                    <Label htmlFor={address.id} className="flex-1  cursor-pointer  items-center ">
                       <p className="font-semibold text-gray-900">{address.name}</p>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600">
                         {address.street}, {address.number}
-                        {address.complement && ` - ${address.complement}`}
+                        {address.complement && ` - ${address.district}`}
                       </p>
                       <p className="text-sm text-gray-600">
                         {address.district}, {address.city} - {address.state}
                       </p>
                       <p className="text-sm text-gray-600">CEP: {address.postalCode}</p>
                       {address.isDefault && (
-                        <span className="inline-block mt-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                        <span className="inline-block text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
                           Padrão
                         </span>
                       )}
@@ -145,7 +150,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
             )}
 
             {addresses.length > 0 && (
-              <Button variant="outline" asChild className="w-full border-2 bg-transparent">
+              <Button variant="outline" asChild size="lg" className="w-full">
                 <Link href="/auth/profile?from=cart">
                   <Plus className="size-4 mr-2" />
                   Gerenciar Endereços
@@ -169,7 +174,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                       src={item.image}
                       alt={item.name}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                     />
                   </div>
                   <div className="flex-1 min-w-0">

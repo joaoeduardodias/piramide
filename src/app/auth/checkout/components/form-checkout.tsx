@@ -53,8 +53,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
 
   Gostaria de finalizar este pedido!`
 
-      const whatsappUrl = `https://wa.me/5517997875330?text=${encodeURIComponent(message)}`
-      // const whatsappUrl = `https://wa.me/5567998908771?text=${encodeURIComponent(message)}`
+      const whatsappUrl = `https://wa.me/55${process.env.NEXT_PUBLIC_PHONE_NUMBER}?text=${encodeURIComponent(message)}`
       window.open(whatsappUrl, "_blank")
     },
     onError: (error) => {

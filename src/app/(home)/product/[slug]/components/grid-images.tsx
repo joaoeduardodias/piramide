@@ -36,7 +36,7 @@ export function GridImages({
           src={images[selectedImage]?.url || "/placeholder.svg"}
           alt={images[selectedImage]?.alt ?? 'Imagem do produto'}
           fill
-          className="object-cover"
+          className="object-contain"
         />
       </div>
 

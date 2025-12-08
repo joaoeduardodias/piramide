@@ -25,7 +25,7 @@ export function Product({ product, viewMode = 'grid' }: ProductProps) {
               alt={product.images[0].alt || product.name}
               width={300}
               height={300}
-              className={`w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300 ${viewMode === 'list' && 'rounded-r-md transition-none group-hover:scale-100'}`}
+              className={`w-full h-64 object-top group-hover:scale-105 transition-transform duration-300 ${viewMode === 'list' && 'rounded-r-md transition-none group-hover:scale-100'}`}
             />
           </Link>
           <div className="absolute top-4 left-4 flex flex-col gap-2">

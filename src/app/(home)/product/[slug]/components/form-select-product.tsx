@@ -17,7 +17,23 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
   const [optionErrors, setOptionErrors] = useState<Record<string, boolean>>({})
 
-  // Limpar alertas depois de um tempo
+
+  useEffect(() => {
+    setSelectedOptions((prev) => {
+      let changed = false
+      const next = { ...prev }
+
+      product.options.forEach((option) => {
+        if (option.values.length === 1 && !next[option.id]) {
+          next[option.id] = option.values[0].id
+          changed = true
+        }
+      })
+
+      return changed ? next : prev
+    })
+  }, [product.options])
+
   useEffect(() => {
     if (!alertMessage) return
     const t = setTimeout(() => setAlertMessage(null), 3000)
@@ -54,7 +70,6 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
 
   const maxQuantity = selectedVariant ? selectedVariant.stock : 0
 
-  // Se a quantidade for maior que o stock da variant, ajusta
   useEffect(() => {
     if (quantity > maxQuantity) {
       setQuantity(maxQuantity > 0 ? maxQuantity : 1)
@@ -178,7 +193,7 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
         <Button
           size="lg"
           variant="outline"
-          className="border-black w-full text-black hover:bg-black hover:text-white bg-transparent"
+          className="w-full py-6.5"
         >
           <Share2 className="size-5 mr-2" />
           Compartilhar

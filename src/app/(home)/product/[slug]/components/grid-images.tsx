@@ -45,7 +45,7 @@ export function GridImages({
           <button
             key={index}
             onClick={() => setSelectedImage(index)}
-            className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index
+            className={`aspect-square cursor-pointer bg-gray-100 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index
               ? "border-black ring-2 ring-black"
               : "border-transparent hover:border-gray-300"
               }`}
@@ -55,7 +55,7 @@ export function GridImages({
               alt={`${image?.alt} - ${index + 1}`}
               width={120}
               height={120}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </button>
         ))}

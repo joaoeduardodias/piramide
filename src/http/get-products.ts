@@ -49,17 +49,17 @@ interface GetProducts {
 }
 
 
-interface GetProductsParams {
+export interface GetProductsParams {
   featured?: boolean;
   page?: number;
   limit?: number;
-  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   category?: string;
   search?: string;
-  sortBy?: 'price-asc' | 'price-desc' | 'relevance' | 'created-desc'
+  sortBy?: "price-asc" | "price-desc" | "relevance" | "created-desc";
   brand?: string;
+  optionValues?: string[];
 }
-
 export async function getProducts(params?: GetProductsParams) {
   const query = new URLSearchParams();
   if (params?.featured) query.set("featured", "true");
@@ -72,6 +72,9 @@ export async function getProducts(params?: GetProductsParams) {
   if (params?.sortBy) query.set("sortBy", params.sortBy);
   if (params?.sortBy) query.set("sortBy", params.sortBy);
   if (params?.brand) query.set("brand", params.brand);
+  if (params?.optionValues && params.optionValues.length > 0) {
+    query.set("optionValues", params.optionValues.join(","));
+  }
   const url = `products${query.toString() ? `?${query.toString()}` : ""}`;
   const result = await api.get(url, { next: { tags: ['products'] }, headers: { "X-Skip-Auth": "true" } }).json<GetProducts>()
   return result

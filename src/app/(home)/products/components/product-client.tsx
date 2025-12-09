@@ -1,9 +1,9 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { useProducts } from "@/http/get-products"
+import { useProducts, type GetProductsParams } from "@/http/get-products"
 import { Search } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ActiveFilters } from "./active-filters"
 import { FilterSidebar } from "./filters-sidebar"
 import { Pagination } from "./pagination"
@@ -11,7 +11,6 @@ import { ProductsGrid } from "./products-grid"
 import { ProductsToolbar } from "./products-toolbar"
 
 import { useDebounce } from "@/hooks/use-debounce"
-import type { GetProductsParams } from "../page"
 
 interface Option {
   id: string
@@ -25,13 +24,44 @@ interface ProductsClientProps {
   options: Option[]
   queryParams: GetProductsParams
 }
+type FiltersState = {
+  search: string
+  category: string
+  brand: string
+  options: Record<string, string[]>
+  page: number
+  limit: number
+}
 
 export function ProductsClient({ categories, brands, options, queryParams }: ProductsClientProps) {
+
+  const initialOptionsSelection = useMemo(() => {
+    const map: Record<string, string[]> = {}
+
+    if (!queryParams.optionValues || queryParams.optionValues.length === 0) {
+      return map
+    }
+
+    const selectedIds = queryParams.optionValues
+
+    for (const opt of options) {
+      const selectedForOption = opt.values
+        .filter((v) => selectedIds.includes(v.id))
+        .map((v) => v.id)
+
+      if (selectedForOption.length > 0) {
+        map[opt.id] = selectedForOption
+      }
+    }
+
+    return map
+  }, [options, queryParams.optionValues])
+
   const [filters, setFilters] = useState({
     search: queryParams.search ?? "",
     category: queryParams.category ?? "",
     brand: queryParams.brand ?? "",
-    options: {} as Record<string, string[]>,
+    options: initialOptionsSelection,
     page: queryParams.page ?? 1,
     limit: queryParams.limit ?? 50,
   })
@@ -48,6 +78,11 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     }
   }, [debouncedSearch])
 
+  const selectedOptionValueIds = useMemo(
+    () => Object.values(filters.options).flat(),
+    [filters.options],
+  )
+
 
   const { data, isLoading, isError } = useProducts({
     page: filters.page,
@@ -55,7 +90,9 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     search: filters.search,
     category: filters.category,
     status: "PUBLISHED",
-    sortBy: sortBy
+    sortBy: sortBy,
+    brand: filters.brand,
+    optionValues: selectedOptionValueIds.length ? selectedOptionValueIds : undefined,
   })
   const products = data?.products ?? []
   const pagination = data?.pagination

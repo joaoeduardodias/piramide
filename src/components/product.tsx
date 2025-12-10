@@ -21,8 +21,8 @@ export function Product({ product, viewMode = 'grid' }: ProductProps) {
         <div className={`relative overflow-hidden ${viewMode === 'list' ? 'w-60 flex-shrink-0' : ''}`}>
           <Link href={`/product/${product.slug}`}>
             <CFImage
-              src={product.images[0].url}
-              alt={product.images[0].alt || product.name}
+              src={product.images[0]?.url ?? "/placeholder.png"}
+              alt={product.images[0]?.alt || product.name}
               width={300}
               height={300}
               className={`w-full h-64 object-top group-hover:scale-105 transition-transform duration-300 ${viewMode === 'list' && 'rounded-r-md transition-none group-hover:scale-100'}`}

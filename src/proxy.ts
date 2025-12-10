@@ -1,15 +1,11 @@
 import { jwtDecode } from "jwt-decode";
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * Rotas que têm comportamento especial quando autenticado
- * - 'redirect': Se autenticado, redireciona para home
- * - 'next': Se autenticado, permite continuar
- */
+
 const specialRoutes = [
   { path: '/auth/sign-in', whenAuthenticated: 'redirect' },
   { path: '/auth/sign-up', whenAuthenticated: 'redirect' },
-  { path: '/', whenAuthenticated: 'next' },
+  // { path: '/', whenAuthenticated: 'next' },
 ] as const
 
 const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = '/auth/sign-in'
@@ -25,12 +21,9 @@ function isPrivateRoute(path: string): boolean {
 }
 
 function isPublicRoute(path: string): boolean {
-  // Se é rota privada, não é pública
   if (isPrivateRoute(path)) {
     return false
   }
-  
-  // Qualquer outra rota é considerada pública por padrão
   return true
 }
 
@@ -41,19 +34,17 @@ function isTokenExpired(token: string): boolean {
     if (!decoded.exp) {
       return false
     }
-
-    // exp está em segundos, convertemos para milissegundos
     const expirationTime = decoded.exp * 1000
     const currentTime = Date.now()
 
     return currentTime > expirationTime
   } catch (error) {
     console.error("Erro ao decodificar token:", error)
-    return true // Considera token expirado se houver erro
+    return true
   }
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const authToken = request.cookies.get('token')
   const { found: isSpecial, route: specialRoute } = isSpecialRoute(path)
@@ -85,7 +76,6 @@ export function middleware(request: NextRequest) {
       return response
     }
 
-    // Se é rota especial com comportamento whenAuthenticated: 'redirect'
     if (isSpecial && specialRoute?.whenAuthenticated === 'redirect') {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/'
@@ -95,7 +85,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Rota não mapeada sem token (protegida por padrão)
+
   const redirectUrl = request.nextUrl.clone()
   redirectUrl.pathname = REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE
   return NextResponse.redirect(redirectUrl)

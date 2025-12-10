@@ -1,6 +1,7 @@
 
 import { getBrands } from "@/http/get-brands"
 import { getCategories } from "@/http/get-categories"
+import { getOrders } from "@/http/get-orders"
 import { getProducts } from "@/http/get-products"
 import { Store } from "lucide-react"
 import { NavItem } from "./nav-item"
@@ -12,14 +13,15 @@ export async function Sidebar() {
 
   const { categories } = await getCategories()
   const { brands } = await getBrands()
-  const { products, pagination } = await getProducts()
+  const { pagination: paginationOrder } = await getOrders()
+  const { pagination } = await getProducts()
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: 'layoutDashboard' },
     { name: "Produtos", href: "/admin/products", icon: 'package', badge: pagination.total },
     { name: "Categorias", href: "/admin/categories", icon: "folderTree", badge: categories.length },
     { name: "Marcas", href: "/admin/brands", icon: "hexagon", badge: brands.length },
-    { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: 156 },
+    { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: paginationOrder.total },
     { name: "Clientes", href: "/admin/clients", icon: 'users' },
     { name: "Relatórios", href: "/admin/reports", icon: 'barChart3' },
   ]

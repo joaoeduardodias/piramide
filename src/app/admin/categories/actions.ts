@@ -4,7 +4,7 @@ import { createCategory } from "@/http/create-category"
 import { deleteCategory } from "@/http/delete-category"
 import { updateCategory } from "@/http/update-category"
 import { HTTPError } from "ky"
-import { revalidateTag } from "next/cache"
+import { updateTag } from "next/cache"
 import z from "zod/v4"
 
 const categorySchema = z.object({
@@ -30,7 +30,7 @@ export async function createCategoryAction(data: FormData) {
 
   try {
     await createCategory({ name, slug })
-    revalidateTag('categories', 'max')
+    updateTag('categories')
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
@@ -62,8 +62,8 @@ export async function updateCategoryAction(data: FormData) {
 
   try {
     await updateCategory({ id, name, slug })
-    revalidateTag(`categories`, 'max')
-    revalidateTag(`category-${id}`, 'max')
+    updateTag(`categories`)
+    updateTag(`category-${id}`)
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -86,7 +86,7 @@ export async function updateCategoryAction(data: FormData) {
 export async function deleteCategoryAction(id: string) {
   try {
     await deleteCategory({ id })
-    revalidateTag("categories", 'max')
+    updateTag("categories")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getUsersByRole } from "@/http/get-customers"
 import { getOrdersStats } from "@/http/get-orders-stats"
 import { getProducts } from "@/http/get-products"
+import { formatReal } from "@/lib/validations"
 import { useQuery } from "@tanstack/react-query"
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react"
 import { StatCard } from "./stat-card"
@@ -29,16 +30,14 @@ export function StatsDashboard() {
   })
 
   if (error) return <div>Erro ao carregar estatísticas.</div>
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {/* Vendas Hoje */}
       {loadingOrders ? (
         <SkeletonStat />
       ) : (
         <StatCard
           title="Vendas Hoje"
-          value={`R$ ${ordersToday?.total ?? 0}`}
+          value={formatReal(String(ordersToday?.total ?? 0))}
           change={ordersToday?.changeTotal || ""}
           changeType={
             ordersToday && ordersToday.changeTotal.startsWith("+")
@@ -59,13 +58,12 @@ export function StatsDashboard() {
         />
       )}
 
-      {/* Pedidos */}
       {loadingOrders ? (
         <SkeletonStat />
       ) : (
         <StatCard
           title="Pedidos"
-          value={ordersToday?.total ?? 0}
+          value={ordersToday?.quantity ?? 0}
           change={ordersToday?.changeQuantity || ""}
           changeType={
             ordersToday && ordersToday.changeTotal.startsWith("+")
@@ -86,7 +84,6 @@ export function StatsDashboard() {
         />
       )}
 
-      {/* Produtos */}
       {loadingProducts ? (
         <SkeletonStat />
       ) : (
@@ -100,7 +97,6 @@ export function StatsDashboard() {
         />
       )}
 
-      {/* Clientes */}
       {loadingCustomers ? (
         <SkeletonStat />
       ) : (
@@ -117,7 +113,6 @@ export function StatsDashboard() {
   )
 }
 
-// Skeleton individual de card
 function SkeletonStat() {
   return (
     <div className="rounded-2xl border bg-card p-6 shadow-sm flex flex-col space-y-3">

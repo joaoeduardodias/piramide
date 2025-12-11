@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getOrders } from "@/http/get-orders"
 import { getProducts } from "@/http/get-products"
+import { formatReal } from "@/lib/validations"
 import {
   CheckCircle,
   CircleX,
@@ -88,10 +89,11 @@ export default async function AdminDashboard() {
       }
 
       return {
-        id: order.id.slice(0, 8).toUpperCase(),
+        id: order.id,
+        number: order.number,
         customer: order.customer?.name,
         product: order.items.map(item => item.product.name).join(", "),
-        value: `R$ ${order.total.toFixed(2)}`,
+        value: formatReal(String(order.total)),
         status: order.status,
         date: new Date(order.createdAt).toLocaleDateString("pt-BR"),
         statusColor,
@@ -135,7 +137,7 @@ export default async function AdminDashboard() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="font-medium text-gray-900">{order.id}</span>
+                      <span className="font-medium text-gray-900">{order.number}</span>
                       <Badge className={`text-xs flex items-center gap-1 ${order.statusColor} border-0`}>
                         <order.statusIcon className="w-3 h-3" />
                         {order.status}

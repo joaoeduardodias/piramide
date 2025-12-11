@@ -1,14 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./api-client";
+export type OrderStatus = "PENDING" | "CANCELLED" | "CONFIRMED" | "DELIVERED" | "PROCESSING"
+export type PaymentMethod = "CREDIT" | "DEBIT" | "PIX" | "MONEY"
+
 
 export interface Order {
   id: string;
   number: number;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "DELIVERED";
+  status: OrderStatus;
+  paymentMethod: PaymentMethod;
+  estimatedDelivery: string | null;
   total: number;
   itemsCount: number;
   createdAt: string;
   updatedAt: string;
+  trackingCode: string | null;
   customer: {
     id: string;
     email: string;
@@ -34,7 +40,13 @@ export interface Order {
       id: string;
       name: string;
       slug: string;
+      brandName: string | null;
     };
+    options: {
+      id: string;
+      name: string;
+      optionId: string;
+    }[];
   }[];
 }
 
@@ -53,7 +65,7 @@ interface GetOrders {
 export interface GetOrdersParams {
   page?: number;
   limit?: number;
-  status?: "PENDING" | "CONFIRMED" | "CANCELLED" | "DELIVERED";
+  status?: OrderStatus;
   startDate?: string;
   endDate?: string;
   search?: string;

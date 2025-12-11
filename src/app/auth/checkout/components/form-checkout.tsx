@@ -23,7 +23,6 @@ export interface FormCheckoutProps {
 export function FormCheckout({ addresses }: FormCheckoutProps) {
   const router = useRouter()
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses.filter(address => address.isDefault)[0]?.id || "")
-
   const { items, getTotalPrice, clearCart, setIsOpen } = useCart()
   const totalPrice = getTotalPrice()
   const shipping = totalPrice > 199 ? 0 : 29.9
@@ -41,7 +40,6 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
     mutationFn: createOrder,
     onSuccess: (data) => {
       const { orderNumber } = data
-
       const orderDetails = items.map((item) => `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`).join("\n\n")
       const totalPrice = getTotalPrice()
       const message = `
@@ -76,6 +74,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
 
     await createOrderMutation.mutateAsync({
       addressId: selectedAddressId,
+      paymentMethod: 'PIX',
       status: "PENDING",
       items: items.map(item => {
         return {
@@ -86,10 +85,6 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
         }
       })
     })
-
-
-
-
     clearCart()
     // router.push("/orders")
   }

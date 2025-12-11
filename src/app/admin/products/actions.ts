@@ -11,7 +11,7 @@ import { r2 } from "@/lib/cloudfare"
 import { generateSlug } from "@/utils/generate-slug"
 import { DeleteObjectsCommand } from "@aws-sdk/client-s3"
 import { HTTPError } from "ky"
-import { revalidateTag } from "next/cache"
+import { updateTag } from "next/cache"
 import z from "zod/v4"
 
 const ProductStatusEnum = z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
@@ -161,7 +161,7 @@ export async function createProductAction(data: FormData) {
         sortOrder: i + 1,
       })),
     })
-    revalidateTag('products', 'max')
+    updateTag('products')
 
   } catch (err: any) {
 
@@ -209,7 +209,7 @@ export async function deleteProductAction(data: FormData) {
 
       await r2.send(command)
     }
-    revalidateTag('products', 'max')
+    updateTag('products')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -327,8 +327,8 @@ export async function updateProductAction(data: FormData) {
         }))
       })
     }
-    revalidateTag('products', 'max')
-    revalidateTag(`product-${productId}`, 'max')
+    updateTag('products')
+    updateTag(`product-${productId}`)
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -362,7 +362,7 @@ export async function createOptionAction(data: FormData) {
       name,
       values
     })
-    revalidateTag("options", 'max')
+    updateTag("options")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -403,7 +403,7 @@ export async function createOptionValueAction(data: FormData) {
       optionName,
       values
     })
-    revalidateTag("options", 'max')
+    updateTag("options")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

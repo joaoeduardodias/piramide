@@ -1,7 +1,9 @@
 import { api } from "./api-client";
+import type { OrderStatus, PaymentMethod } from "./get-orders";
 
 interface CreateOrderRequest {
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'DELIVERED'
+  status: OrderStatus
+  paymentMethod: PaymentMethod
   addressId: string
   items: {
     productId: string
@@ -14,7 +16,7 @@ interface CreateOrderResponse {
   orderNumber: number
 }
 
-export async function createOrder({ addressId, status, items }: CreateOrderRequest) {
-  const result = await api.post('orders', { json: { addressId, status, items } }).json<CreateOrderResponse>()
+export async function createOrder({ addressId, status, items, paymentMethod }: CreateOrderRequest) {
+  const result = await api.post('orders', { json: { addressId, status, items, paymentMethod } }).json<CreateOrderResponse>()
   return result
 }

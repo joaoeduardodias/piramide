@@ -32,7 +32,7 @@ export function StatCard({ bgColor, change, changeType, color, icon: Icon, title
                 >
                   {change}
                 </span>
-                <span className="text-sm text-gray-500 ml-1">em relação ao mês anterior</span>
+                <span className="text-sm text-gray-500 ml-1">em relação ao dia anterior</span>
               </>
             )}
           </div>

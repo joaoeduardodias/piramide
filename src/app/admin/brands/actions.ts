@@ -4,7 +4,7 @@ import { createBrand } from "@/http/create-brand"
 import { deleteBrand } from "@/http/delete-brand"
 import { updateBrand } from "@/http/update-brand"
 import { HTTPError } from "ky"
-import { revalidatePath, revalidateTag } from "next/cache"
+import { revalidatePath, updateTag } from "next/cache"
 import z from "zod/v4"
 
 const brandSchema = z.object({
@@ -64,8 +64,8 @@ export async function updateBrandAction(data: FormData) {
 
     await updateBrand({ id, name, slug })
 
-    revalidateTag("brands", "max")
-    revalidateTag(`brand-${id}`, 'max')
+    updateTag("brands")
+    updateTag(`brand-${id}`)
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -89,7 +89,7 @@ export async function updateBrandAction(data: FormData) {
 export async function deleteBrandAction(id: string) {
   try {
     await deleteBrand({ id })
-    revalidateTag('brands', 'max')
+    updateTag('brands')
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

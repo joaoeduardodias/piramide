@@ -6,7 +6,7 @@ import { setAddressDefault } from "@/http/set-address-default";
 import { updateAddress } from "@/http/update-address";
 import { UpdateUser } from "@/http/update-user";
 import { HTTPError } from "ky";
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { z } from "zod/v4";
 
 const updateUserSchema = z.object({
@@ -43,7 +43,7 @@ export async function updateUserAction(data: FormData) {
   const { cpf, name, phone } = result.data
   try {
     await UpdateUser({ cpf, name, phone });
-    revalidateTag('profile', 'max')
+    updateTag('profile')
   }
   catch (err: any) {
     if (err instanceof HTTPError) {
@@ -102,7 +102,7 @@ export async function createAddressAction(data: FormData) {
       complement,
       district,
     })
-    revalidateTag("addresses", 'max')
+    updateTag("addresses")
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
@@ -153,7 +153,7 @@ export async function updateAddressAction(data: FormData) {
       district,
       id,
     })
-    revalidateTag("addresses", 'max')
+    updateTag("addresses")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -176,7 +176,7 @@ export async function updateAddressAction(data: FormData) {
 export async function deleteAddressAction(id: string) {
   try {
     await deleteAddress({ id })
-    revalidateTag("addresses", 'max')
+    updateTag("addresses")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {
@@ -198,7 +198,7 @@ export async function deleteAddressAction(id: string) {
 export async function setDefaultAddressAction(id: string) {
   try {
     await setAddressDefault({ id })
-    revalidateTag("addresses", 'max')
+    updateTag("addresses")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

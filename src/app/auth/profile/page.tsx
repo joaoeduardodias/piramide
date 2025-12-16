@@ -66,7 +66,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 <h3 className="text-sm font-medium text-muted-foreground mb-3 px-2">Atalhos</h3>
                 <nav className="space-y-1">
                   <Link
-                    href="/orders"
+                    href="/auth/orders"
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors"
                   >
                     <Package className="h-5 w-5 text-muted-foreground" />

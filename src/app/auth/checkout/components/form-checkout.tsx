@@ -1,7 +1,7 @@
 "use client"
 import CFImage from "@/components/cf-image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
@@ -10,7 +10,8 @@ import { createOrder } from "@/http/create-order"
 import type { Address } from "@/lib/types"
 import { formatReal } from "@/lib/validations"
 import { useMutation } from "@tanstack/react-query"
-import { AlertCircle, CircleX, MapPin, Plus } from "lucide-react"
+import { AlertCircle, BadgeDollarSign, Banknote, CircleX, CreditCard, MapPin, Plus, Wallet } from "lucide-react"
+import { updateTag } from "next/cache"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -24,6 +25,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
   const router = useRouter()
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses.filter(address => address.isDefault)[0]?.id || "")
   const { items, getTotalPrice, clearCart, setIsOpen } = useCart()
+  const [paymentMethod, setPaymentMethod] = useState<string>("credit")
   const totalPrice = getTotalPrice()
   const shipping = totalPrice > 199 ? 0 : 29.9
   const finalTotal = totalPrice + shipping
@@ -40,6 +42,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
     mutationFn: createOrder,
     onSuccess: (data) => {
       const { orderNumber } = data
+      updateTag('orders')
       const orderDetails = items.map((item) => `• ${item.name}\n    Qtd: ${item.quantity}x | Preço: ${formatReal(String(item.price * item.quantity))}`).join("\n\n")
       const totalPrice = getTotalPrice()
       const message = `
@@ -62,6 +65,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
       })
     },
   })
+
 
 
   const handleFinishOrder = async () => {
@@ -151,36 +155,136 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
             )}
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Forma de Pagamento
+            </CardTitle>
+            <CardDescription>
+              Pagamento Offline, Entraremos em contato pelo WhatsApp para confirmar a forma de pagamento.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+              <div
+                className={`flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === "credit" ? "border-black bg-gray-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <RadioGroupItem value="credit" id="credit" />
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <Label htmlFor="credit" className="flex-1 cursor-pointer">
+                    <p className="font-semibold text-gray-900">Cartão de Crédito</p>
+                    <p className="text-sm text-gray-600">Em até 10x sem juros</p>
+                  </Label>
+                </div>
+              </div>
+
+              <div
+                className={`flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === "debit" ? "border-black bg-gray-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <RadioGroupItem value="debit" id="debit" />
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <Label htmlFor="debit" className="flex-1 cursor-pointer">
+                    <p className="font-semibold text-gray-900">Cartão de Débito</p>
+                    <p className="text-sm text-gray-600">Aprovação imediata</p>
+                  </Label>
+                </div>
+              </div>
+
+              <div
+                className={`flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === "pix" ? "border-black bg-gray-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <RadioGroupItem value="pix" id="pix" />
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-teal-600" />
+                  </div>
+                  <Label htmlFor="pix" className="flex-1 cursor-pointer">
+                    <p className="font-semibold text-gray-900">PIX</p>
+                    <p className="text-sm text-gray-600">Aprovação imediata</p>
+                  </Label>
+                </div>
+              </div>
+
+              <div
+                className={`flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === "boleto" ? "border-black bg-gray-50" : "border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <RadioGroupItem value="boleto" id="boleto" />
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <Label htmlFor="boleto" className="flex-1 cursor-pointer">
+                    <p className="font-semibold text-gray-900">Boleto Bancário</p>
+                    <p className="text-sm text-gray-600">Vencimento em 3 dias úteis</p>
+                  </Label>
+                </div>
+              </div>
+
+              <div
+                className={`flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${paymentMethod === "crediario"
+                  ? "border-black bg-gray-50"
+                  : "border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <RadioGroupItem value="crediario" id="crediario" />
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                    <BadgeDollarSign className="w-5 h-5 text-green-600" />
+                  </div>
+                  <Label htmlFor="crediario" className="flex-1 cursor-pointer">
+                    <p className="font-semibold text-gray-900">Crediário Pirâmide</p>
+                    <p className="text-sm text-gray-600">Parcele em até 6x sem juros</p>
+                  </Label>
+                </div>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="lg:col-span-1">
-        <Card className="sticky top-24">
-          <CardContent className="p-6 space-y-4">
-            <h2 className="text-xl font-bold text-gray-900">Resumo do Pedido</h2>
-            <Separator />
-            <div className="space-y-3 max-h-64 overflow-y-auto">
+      <div className="lg:col-span-1 flex">
+        <Card className="sticky top-24 h-full w-full">
+          <CardContent className="p-6 flex flex-col h-full">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Resumo do Pedido</h2>
+
+            <div className="space-y-2 flex-1 overflow-y-auto max-h-full">
               {items.map((item) => (
-                <div key={`${item.id}-${item.variantId || "default"}`} className="flex gap-3">
-                  <div className="relative size-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                    <CFImage
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-contain"
-                    />
+                <div key={`${item.id}-${item.variantId || "default"}`} className="flex gap-3 p-4 bg-gray-50 rounded-md">
+                  <div className="relative w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                    <CFImage src={item.image} alt={item.name} fill className="object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
-                    <p className="text-xs text-gray-600">Qtd: {item.quantity}</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-1">
-                      {formatReal(String(item.price * item.quantity))}
-                    </p>
+                    {item.options && item.options.length > 0 && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        {item.options.map((opt) => `${opt.name}: ${opt.value}`).join(" • ")}
+                      </p>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-gray-600">Qtd: {item.quantity}</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {formatReal(String(item.price * item.quantity))}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+
             <Separator />
-            <div className="space-y-3">
+
+            <div className="space-y-3 mt-4">
               <div className="flex justify-between text-gray-700">
                 <span>Subtotal</span>
                 <span>{formatReal(String(totalPrice))}</span>
@@ -191,33 +295,31 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                   {shipping === 0 ? "Grátis" : `${formatReal(String(shipping))}`}
                 </span>
               </div>
+
+              <Separator />
+
+              <div className="flex justify-between text-xl font-bold text-gray-900">
+                <span>Total</span>
+                <span>{formatReal(String(finalTotal))}</span>
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={handleFinishOrder}
+                disabled={createOrderMutation.isPending || !selectedAddressId || addresses.length === 0}
+              >
+                {createOrderMutation.isPending ? "Processando..." : "Finalizar Pedido"}
+              </Button>
+
+              <Button size="lg" className="w-full" variant="outline" asChild>
+                <Link href="/">Voltar a loja</Link>
+              </Button>
             </div>
-            <Separator />
-            <div className="flex justify-between text-xl font-bold text-gray-900">
-              <span>Total</span>
-              <span>{formatReal(String(finalTotal))}</span>
-            </div>
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handleFinishOrder}
-              disabled={createOrderMutation.isPending || !selectedAddressId || addresses.length === 0}
-            >
-              {createOrderMutation.isPending ? "Processando..." : "Finalizar Pedido"}
-            </Button>
-            <Button
-              size="lg"
-              className="w-full"
-              variant="outline"
-              asChild
-            >
-              <Link href="/">
-                Voltar a loja
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>
+
     </div>
   )
 }

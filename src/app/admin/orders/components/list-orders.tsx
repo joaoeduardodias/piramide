@@ -21,7 +21,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useFormState } from "@/hooks/use-form-state"
 import { useOrders, type Order, type OrderStatus } from "@/http/get-orders"
 import { queryClient } from "@/lib/query-client"
-import { formatCEP, formatReal } from "@/lib/validations"
+import { formatReal } from "@/lib/validations"
 import { formatPhone } from "@/utils/format-phone"
 import {
   AlertTriangle,
@@ -34,7 +34,7 @@ import {
   Loader2,
   Package,
   Search,
-  Settings,
+  Truck,
   XCircle
 } from "lucide-react"
 import { useState } from "react"
@@ -67,7 +67,7 @@ export function ListOrders() {
 
   const paymentMethodLabels: Record<string, string> = {
     CREDIT: "Cartão de Crédito",
-    PIX: "PIX",
+    PIX: "Pix",
     DEBIT: "Cartão de Débito",
   }
   const filteredOrders = orders.filter((order) => {
@@ -202,36 +202,45 @@ export function ListOrders() {
                               <Eye className="size-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="w-[95vw] max-w-3xl">
+                          <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Detalhes do Pedido -  {selectedOrder?.number}</DialogTitle>
+                              <DialogTitle>Detalhes do Pedido - {order.number}</DialogTitle>
                               <DialogDescription>Informações completas do pedido</DialogDescription>
                             </DialogHeader>
-                            <div className="space-y-4 max-w-full">
-                              <div className="grid grid-cols-2 gap-4 max-w-full">
-                                <div className="max-w-full">
-                                  <Label>Cliente</Label>
-                                  <p className="text-sm break-words whitespace-normal max-w-full">{order.customer?.name}</p>
+                            <div className="space-y-6">
+                              <div className="grid grid-cols-2  gap-4">
+                                <div>
+                                  <Label className="text-muted-foreground">Cliente</Label>
+                                  <p className="font-medium">{order.customer?.name}</p>
                                 </div>
-                                <div className="max-w-full">
-                                  <Label>Email</Label>
-                                  <p className="text-sm break-words whitespace-normal max-w-full">{order.customer?.email}</p>
+                                <div className="flex flex-col items-end">
+                                  <Label className="text-muted-foreground">Email</Label>
+                                  <p className="font-medium">{order.customer?.email}</p>
                                 </div>
-                                {order.customer?.phone && (
-                                  <div className="space-y-2 max-w-full">
-                                    <Label>Telefone</Label>
-                                    <p className="text-sm break-words whitespace-normal max-w-full">{formatPhone(order.customer?.phone)}</p>
-                                  </div>
-                                )}
-                                <div className="space-y-2 max-w-full">
-                                  <Label>Data</Label>
-                                  <p className="text-sm ">{new Date(order.createdAt).toLocaleDateString("pt-BR")}</p>
+                                <div>
+                                  <Label className="text-muted-foreground">Telefone</Label>
+                                  <p className="font-medium">{formatPhone(String(order.customer?.phone))}</p>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  <Label className="text-muted-foreground">Data do Pedido</Label>
+                                  <p className="font-medium">{new Date(order.createdAt).toLocaleDateString("pt-BR")}</p>
                                 </div>
                               </div>
-                              <div className="space-y-2 max-w-full">
-                                <Label>Endereço de Entrega</Label>
-                                <p className="text-sm capitalize break-words whitespace-normal max-w-full">{`${order.address?.name} - ${order.address?.street}, ${order.address?.number}, ${order.address?.district}, ${order.address?.city}, ${formatCEP(String(order.address?.postalCode))} - ${order.address?.state}`}</p>
+
+                              {/* Address */}
+                              <div>
+                                <Label className="text-muted-foreground">Endereço de Entrega</Label>
+                                <p className="font-medium">
+                                  {order.address?.street}, {order.address?.number}
+                                  {order.address?.complement && ` - ${order.address.complement}`}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {order.address?.district}, {order.address?.city} - {order.address?.state},{" "}
+                                  {order.address?.postalCode}
+                                </p>
                               </div>
+
+                              {/* Order Items */}
                               <div>
                                 <Label className="text-muted-foreground mb-3 block">Itens do Pedido</Label>
                                 <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
@@ -240,13 +249,14 @@ export function ListOrders() {
                                       key={item.id}
                                       className="flex items-center gap-4 pb-3 border-b last:border-b-0 last:pb-0"
                                     >
+
                                       <div className="flex-1 min-w-0">
                                         <p className="font-medium truncate">{item.product.name}</p>
                                         <p className="text-sm text-muted-foreground">{item.product.brandName}</p>
                                         <div className="flex flex-wrap gap-2 mt-1">
                                           {Object.entries(item.options).map(([key, value]) => (
                                             <Badge key={key} variant="secondary" className="text-xs">
-                                              {key}: {value.name}
+                                              {value.name}
                                             </Badge>
                                           ))}
                                         </div>
@@ -259,7 +269,8 @@ export function ListOrders() {
                                   ))}
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
+
+                              <div className="flex justify-between gap-4">
                                 <div>
                                   <Label className="text-muted-foreground">Forma de Pagamento</Label>
                                   <p className="font-medium">{paymentMethodLabels[order.paymentMethod]}</p>
@@ -279,13 +290,29 @@ export function ListOrders() {
                                     <p className="font-medium font-mono">{order.trackingCode}</p>
                                   </div>
                                 )}
+                                {order.estimatedDelivery && (
+                                  <div>
+                                    <Label className="text-muted-foreground">Previsão de Entrega</Label>
+                                    <p className="font-medium">
+                                      {new Date(order.estimatedDelivery).toLocaleDateString("pt-BR")}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
-                              <div className="space-y-2 max-w-full">
-                                <Label>Status</Label>
-                                <Badge className={statusConfig[order.status].color}>
-                                  <StatusIcon className="h-3 w-3 mr-1" />
-                                  {statusConfig[order.status].label}
-                                </Badge>
+
+                              <div className="border-t pt-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Subtotal</span>
+                                  <span>{formatReal(String(order.total))}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Frete</span>
+                                  <span>Grátis</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+                                  <span>Total</span>
+                                  <span className="text-green-600">{formatReal(String(order.total))}</span>
+                                </div>
                               </div>
                             </div>
                           </DialogContent>
@@ -350,8 +377,9 @@ export function ListOrders() {
                                   name="status"
                                   value={formStatus}
                                   onValueChange={(v) => setFormStatus(v)}
+
                                 >
-                                  <SelectTrigger id="status">
+                                  <SelectTrigger className="w-full!" id="status">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -363,7 +391,7 @@ export function ListOrders() {
                                     </SelectItem>
                                     <SelectItem value="PROCESSING">
                                       <div className="flex items-center gap-2">
-                                        <Settings className="size-4 text-yellow-600" />
+                                        <Package className="size-4  text-purple-800" />
                                         Processando
                                       </div>
                                     </SelectItem>
@@ -376,7 +404,7 @@ export function ListOrders() {
 
                                     <SelectItem value="DELIVERED">
                                       <div className="flex items-center gap-2">
-                                        <CheckCircle className="size-4 text-green-600" />
+                                        <Truck className="size-4 text-green-600" />
                                         Entregue
                                       </div>
                                     </SelectItem>
@@ -400,7 +428,7 @@ export function ListOrders() {
                                   onValueChange={(v) => setFormPaymentMethod(v)}
 
                                 >
-                                  <SelectTrigger id="paymentMethod">
+                                  <SelectTrigger className="w-full!" id="paymentMethod">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>

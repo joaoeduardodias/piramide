@@ -13,7 +13,7 @@ interface CreateOrderRequest {
   }[]
 }
 interface CreateOrderResponse {
-  orderNumber: number
+  orderId: string
 }
 
 export async function createOrder({ addressId, status, items, paymentMethod }: CreateOrderRequest) {

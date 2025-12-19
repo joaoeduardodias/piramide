@@ -46,7 +46,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems(parsedCart)
       } catch (error) {
         console.error("Error parsing cart from cookies:", error)
-        destroyCookie(null, CART_COOKIE_NAME)
+        destroyCookie(null, CART_COOKIE_NAME, {
+          path: "/",
+        })
       }
     }
     setIsLoaded(true)
@@ -61,7 +63,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           path: "/",
         })
       } else {
-        destroyCookie(null, CART_COOKIE_NAME)
+        destroyCookie(null, CART_COOKIE_NAME, {
+          path: "/",
+        })
       }
     }
   }, [items, isLoaded])

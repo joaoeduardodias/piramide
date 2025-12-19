@@ -1,17 +1,47 @@
 import { auth, isAuthenticated } from "@/auth/auth";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getOrderById } from "@/http/get-order-by-id";
-import { Calendar, CreditCard, MapPin, Package, ShoppingBag } from "lucide-react";
+import { Calendar, CheckCircle, Clock, CreditCard, MapPin, Package, ShoppingBag, XCircle } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-type Props = {
+interface OrderConfirmationPageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function OrderConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
+
+const statusConfig = {
+  PENDING: {
+    label: "Pendente",
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+    icon: Clock,
+  },
+  CONFIRMED: {
+    label: "Confirmado",
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    icon: CheckCircle,
+  },
+  PROCESSING: {
+    label: "Em Preparação",
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+    icon: Package,
+  },
+  DELIVERED: {
+    label: "Entregue",
+    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    icon: CheckCircle,
+  },
+  CANCELLED: {
+    label: "Cancelado",
+    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+    icon: XCircle,
+  },
+}
+
+export default async function OrderConfirmationPage({ params }: OrderConfirmationPageProps) {
   const { id } = await params
   const isAuth = await isAuthenticated()
   if (!isAuth) {
@@ -20,6 +50,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
   const { user: profile } = await auth()
 
   const { order } = await getOrderById({ id })
+  const StatusIcon = statusConfig[order.status]?.icon ?? Clock
 
 
 
@@ -66,9 +97,10 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Status:</span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Confirmado
-                    </span>
+                    <Badge className={`${statusConfig[order.status]?.color} gap-1.5`}>
+                      <StatusIcon className="h-3.5 w-3.5" />
+                      {statusConfig[order.status]?.label}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -128,7 +160,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button asChild variant="outline" size="lg" className="flex-1 bg-transparent">
-              <Link href="/orders">Ver Todos os Pedidos</Link>
+              <Link href="/auth/orders">Ver Todos os Pedidos</Link>
             </Button>
             <Button asChild size="lg" className="flex-1 bg-black hover:bg-gray-800">
               <Link href="/">

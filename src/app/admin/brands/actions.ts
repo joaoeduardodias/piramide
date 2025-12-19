@@ -4,7 +4,7 @@ import { createBrand } from "@/http/create-brand"
 import { deleteBrand } from "@/http/delete-brand"
 import { updateBrand } from "@/http/update-brand"
 import { HTTPError } from "ky"
-import { revalidatePath, updateTag } from "next/cache"
+import { updateTag } from "next/cache"
 import z from "zod/v4"
 
 const brandSchema = z.object({
@@ -30,8 +30,8 @@ export async function createBrandAction(data: FormData) {
 
     await createBrand({ name, slug })
 
-    revalidatePath("/admin/brands")
-    revalidatePath("/admin/products")
+    updateTag("brands")
+    updateTag("products")
 
   } catch (err: any) {
     if (err instanceof HTTPError) {

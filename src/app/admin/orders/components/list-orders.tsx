@@ -69,6 +69,7 @@ export function ListOrders() {
     CREDIT: "Cartão de Crédito",
     PIX: "Pix",
     DEBIT: "Cartão de Débito",
+    MONEY: "Crediário"
   }
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =

@@ -46,7 +46,12 @@ const statusConfig = {
     icon: XCircle,
   },
 }
-
+const paymentMethodLabels: Record<string, string> = {
+  CREDIT: "Cartão de Crédito",
+  PIX: "Pix",
+  DEBIT: "Cartão de Débito",
+  MONEY: "Crediário"
+}
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
     day: "2-digit",

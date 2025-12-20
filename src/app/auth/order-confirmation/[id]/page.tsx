@@ -40,6 +40,12 @@ const statusConfig = {
     icon: XCircle,
   },
 }
+const paymentMethodLabels: Record<string, string> = {
+  CREDIT: "Cartão de Crédito",
+  PIX: "Pix",
+  DEBIT: "Cartão de Débito",
+  MONEY: "Crediário"
+}
 
 export default async function OrderConfirmationPage({ params }: OrderConfirmationPageProps) {
   const { id } = await params
@@ -135,7 +141,7 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
                 </div>
                 <Separator />
                 <div className="text-sm">
-                  <p className="font-semibold text-gray-900">{order.paymentMethod}</p>
+                  <p className="font-semibold text-gray-900">{paymentMethodLabels[order.paymentMethod]}</p>
                   <p className="text-gray-600 mt-1">Pagamento será processado em breve</p>
                 </div>
               </CardContent>

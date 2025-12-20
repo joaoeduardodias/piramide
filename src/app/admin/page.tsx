@@ -5,15 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getOrders } from "@/http/get-orders"
 import { getProducts } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
+import { statusConfig } from "@/utils/badge-status-order"
 import {
-  CheckCircle,
-  CircleX,
-  Clock,
   Eye,
   Package,
   ShoppingCart,
-  TrendingUp,
-  Truck
+  TrendingUp
 } from "lucide-react"
 import Link from "next/link"
 import { EmptyState } from "./components/empty-state"
@@ -43,6 +40,8 @@ const quickActions = [
 export default async function AdminDashboard() {
 
   const { products } = await getProducts()
+  const { orders } = await getOrders()
+
   const topSalesProducts = products
     .map(product => {
       const stock = product.variants.reduce((acc, variant) => acc + variant.stock, 0);
@@ -66,28 +65,11 @@ export default async function AdminDashboard() {
     .sort((a, b) => (b.percentSold || 0) - (a.percentSold || 0))
     .slice(0, 10);
 
-  const { orders } = await getOrders()
 
   const recentOrders = orders
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
     .map(order => {
-      let statusColor = "bg-yellow-100 text-yellow-700"
-      let statusIcon = Clock
-      if (order.status === "DELIVERED") {
-        statusColor = "bg-green-100 text-green-700"
-        statusIcon = CheckCircle
-      } else if (order.status === "CONFIRMED") {
-        statusColor = "bg-blue-100 text-blue-700"
-        statusIcon = Truck
-      } else if (order.status === "PENDING") {
-        statusColor = "bg-yellow-100 text-yellow-700"
-        statusIcon = Clock
-      } else if (order.status === "CANCELLED") {
-        statusColor = "bg-red-100 text-red-700"
-        statusIcon = CircleX
-      }
-
       return {
         id: order.id,
         number: order.number,
@@ -96,8 +78,6 @@ export default async function AdminDashboard() {
         value: formatReal(String(order.total)),
         status: order.status,
         date: new Date(order.createdAt).toLocaleDateString("pt-BR"),
-        statusColor,
-        statusIcon,
       }
     })
 
@@ -130,28 +110,31 @@ export default async function AdminDashboard() {
                   description="Quando você receber pedidos, eles aparecerão aqui. Comece divulgando sua loja!"
                   illustration="orders"
                 />
-              ) : recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-4 bg-gray-50/50 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="font-medium text-gray-900">{order.number}</span>
-                      <Badge className={`text-xs flex items-center gap-1 ${order.statusColor} border-0`}>
-                        <order.statusIcon className="w-3 h-3" />
-                        {order.status}
-                      </Badge>
+              ) : recentOrders.map((order) => {
+                const StatusIcon = statusConfig[order.status].icon
+                return (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-4 bg-gray-50/50 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-medium text-gray-900">#{order.number}</span>
+                        <Badge className={statusConfig[order.status].color}>
+                          <StatusIcon className="h-3 w-3 mr-1" />
+                          {statusConfig[order.status].label}
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">{order.customer}</p>
+                      <p className="text-sm text-gray-500">{order.product}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-700">{order.customer}</p>
-                    <p className="text-sm text-gray-500">{order.product}</p>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{order.value}</p>
+                      <p className="text-sm text-gray-500">{order.date}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{order.value}</p>
-                    <p className="text-sm text-gray-500">{order.date}</p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>

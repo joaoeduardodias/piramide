@@ -4,54 +4,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getOrdersByUser } from "@/http/get-orders-by-user"
 import { formatReal } from "@/lib/validations"
+import { statusConfig } from "@/utils/badge-status-order"
 import {
   ArrowLeft,
-  CheckCircle,
   Clock,
   CreditCard,
   MapPin,
   Package,
   ShoppingBag,
   Truck,
-  User,
-  XCircle
+  User
 } from "lucide-react"
 import Link from "next/link"
 
 
-const statusConfig = {
-  PENDING: {
-    label: "Pendente",
-    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-    icon: Clock,
-  },
-  CONFIRMED: {
-    label: "Confirmado",
-    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    icon: CheckCircle,
-  },
-  PROCESSING: {
-    label: "Em Preparação",
-    color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-    icon: Package,
-  },
-  DELIVERED: {
-    label: "Entregue",
-    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-    icon: CheckCircle,
-  },
-  CANCELLED: {
-    label: "Cancelado",
-    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-    icon: XCircle,
-  },
-}
-const paymentMethodLabels: Record<string, string> = {
-  CREDIT: "Cartão de Crédito",
-  PIX: "Pix",
-  DEBIT: "Cartão de Débito",
-  MONEY: "Crediário"
-}
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
     day: "2-digit",

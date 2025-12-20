@@ -9,7 +9,12 @@ const specialRoutes = [
 ] as const
 
 const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = '/auth/sign-in'
-const PRIVATE_ROUTE_PREFIX = '/admin'
+const PRIVATE_ROUTES = [
+  '/admin',
+  '/auth/checkout',
+  '/auth/orders',
+  '/auth/order-confirmation',
+]
 
 function isSpecialRoute(path: string): { found: boolean; route?: typeof specialRoutes[number] } {
   const route = specialRoutes.find(r => r.path === path)
@@ -17,7 +22,9 @@ function isSpecialRoute(path: string): { found: boolean; route?: typeof specialR
 }
 
 function isPrivateRoute(path: string): boolean {
-  return path.startsWith(PRIVATE_ROUTE_PREFIX)
+  return PRIVATE_ROUTES.some(route =>
+    path === route || path.startsWith(`${route}/`)
+  )
 }
 
 function isPublicRoute(path: string): boolean {

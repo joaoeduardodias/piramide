@@ -1,6 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
+import { useDebouncedSearch } from "@/hooks/use-debounced-search"
 import { useProducts, type GetProductsParams } from "@/http/get-products"
 import { Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -10,7 +11,6 @@ import { Pagination } from "./pagination"
 import { ProductsGrid } from "./products-grid"
 import { ProductsToolbar } from "./products-toolbar"
 
-import { useDebounce } from "@/hooks/use-debounce"
 
 interface Option {
   id: string
@@ -24,14 +24,7 @@ interface ProductsClientProps {
   options: Option[]
   queryParams: GetProductsParams
 }
-type FiltersState = {
-  search: string
-  category: string
-  brand: string
-  options: Record<string, string[]>
-  page: number
-  limit: number
-}
+
 
 export function ProductsClient({ categories, brands, options, queryParams }: ProductsClientProps) {
 
@@ -70,7 +63,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
   const [sortBy, setSortBy] = useState<"relevance" | "price-asc" | "price-desc" | "created-desc">("relevance");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchInput, setSearchInput] = useState(filters.search || "")
-  const debouncedSearch = useDebounce(searchInput, 500)
+  const debouncedSearch = useDebouncedSearch(searchInput, 500)
 
   useEffect(() => {
     if (debouncedSearch.trim() !== filters.search) {

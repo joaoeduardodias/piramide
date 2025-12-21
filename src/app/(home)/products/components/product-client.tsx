@@ -82,7 +82,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
     limit: filters.limit,
     search: filters.search,
     category: filters.category,
-    status: "PUBLISHED",
+    // status: "PUBLISHED",
     sortBy: sortBy,
     brand: filters.brand,
     optionValues: selectedOptionValueIds.length ? selectedOptionValueIds : undefined,
@@ -124,7 +124,7 @@ export function ProductsClient({ categories, brands, options, queryParams }: Pro
         </div>
       </section>
 
-      <div className="container mx-auto flex flex-col lg:flex-row gap-8 mt-8">
+      <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-8 mt-8">
         <FilterSidebar
           showFilters={showFilters}
           setShowFilters={setShowFilters}

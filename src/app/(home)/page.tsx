@@ -17,7 +17,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-white">
       <HeroSection />
-      <section className="py-16">
+      <section className="py-16 px-4">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Algumas de nossas categorias</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -37,7 +37,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 px-4 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Produtos em Destaque</h2>

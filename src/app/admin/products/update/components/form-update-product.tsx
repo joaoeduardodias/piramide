@@ -110,7 +110,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     router.push('/admin/products')
   })
 
-  // === controlled fields / states ===
   const [name, setName] = useState<string>(initialData.name ?? "")
   const [featured, setFeatured] = useState<boolean>(initialData.featured)
   const [description, setDescription] = useState<string>(initialData?.description ?? "")
@@ -120,7 +119,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   const [originalState, setOriginalState] = useState<string>("")
   const [hasChanged, setHasChanged] = useState(false)
 
-  // price inputs (keeping same format behavior)
   const [price, setPrice] = useState(() => formatReal(String(initialData.price ?? "")))
   const [comparePrice, setComparePrice] = useState(() => formatReal(String(initialData.comparePrice ?? "")))
 
@@ -229,7 +227,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     setHasChanged(currentState !== originalState)
   }, [images, originalState])
 
-  // === variants generation when selected options change ===
   const handleOptionToggle = useCallback((optionName: string, optionValue: OptionValue) => {
     setSelectedOptions(prev => {
       const key = optionName
@@ -238,8 +235,8 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
       const updatedValues = exists ? currentValues.filter(v => v.id !== optionValue.id) : [...currentValues, optionValue]
       const newSelected = { ...prev, [key]: updatedValues }
 
-      // Generate variants
-      const baseSku = getInitials(name) // use controlled name
+
+      const baseSku = getInitials(name)
       const optionNames = Object.keys(newSelected)
       const optionValues = Object.values(newSelected).filter(arr => arr.length > 0) as OptionValue[][]
 
@@ -259,7 +256,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     setSelectedCategories(prev => (prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]))
   }, [])
 
-  // helper: set hidden/input value inside form
+
   const setHiddenInputValue = useCallback((name: string, value: string) => {
     const form = formRef.current
     if (!form) return
@@ -273,28 +270,24 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     input.value = value
   }, [])
 
-  // === image upload flow ===
   const handleUploadImage = useCallback(async (): Promise<void> => {
     try {
       if (!hasChanged) {
-        // nothing changed — keep existing filesUpload empty (server should ignore)
+
         return
       }
 
       const originalImages = initialData.images || []
       const originalKeys = originalImages.map(img => img.fileKey).filter(Boolean) as (string | null)[]
 
-      // new images = files present in images state which do not match original fileKey names
       const newImages = images.filter(file => !originalKeys.includes(file.name))
 
-      // helper build mapping for existing files
       const existingMapping = originalImages.reduce<{ [key: string]: ImageItem }>((acc, img) => {
         if (img.fileKey) acc[img.fileKey] = img
         return acc
       }, {})
 
       if (newImages.length === 0) {
-        // No new uploads — just build final array mapping existing order
         const updated = images.map((file, i) => {
           const existing = existingMapping[file.name]
           return {
@@ -307,7 +300,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         return
       }
 
-      // get signed urls
       const { uploads } = await getSignedUrl({
         files: newImages.map((file, i) => ({
           fileName: file.name,
@@ -316,7 +308,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         }))
       })
 
-      // upload files to presigned urls
       await Promise.all(
         uploads.map((u, i) =>
           fetch(u.presignedUrl, {
@@ -330,14 +321,11 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         )
       )
 
-      // kept images in same order filtered from original list
       const keptImages = originalImages.filter(img => images.some(f => f.name === img.fileKey))
 
-      // combine kept and uploaded (uploads is array returned by API, ensure not mutated)
       const uploadsCopy = [...uploads]
       const combined = [...keptImages, ...uploadsCopy]
 
-      // final mapping keeping the images array order
       const final = images.map((file, i) => {
         const match = combined.find(img => img.fileKey === file.name)
         if (match) {
@@ -347,7 +335,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
             sortOrder: i + 1
           }
         }
-        // fallback: take the next upload (safe if order corresponds)
         const fallback = uploadsCopy.shift()
         return {
           fileKey: fallback?.fileKey || file.name,
@@ -377,7 +364,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
 
     setIsPending(true)
     try {
-      // sincroniza hidden inputs que dependem de estado
       setHiddenInputValue("options", JSON.stringify(selectedOptions))
       setHiddenInputValue("variants", JSON.stringify(variants))
       setHiddenInputValue("categories", JSON.stringify(selectedCategories))
@@ -386,12 +372,10 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
       setHiddenInputValue("price", price.replace(/[^\d,]/g, "").replace(",", "."))
       setHiddenInputValue("comparePrice", comparePrice.replace(/[^\d,]/g, "").replace(",", "."))
       setHiddenInputValue("weight", String((formRef.current?.querySelector<HTMLInputElement>('input[name="weight"]')?.value) ?? ""))
-      setHiddenInputValue("description", description) // se você adotou descrição controlada
+      setHiddenInputValue("description", description)
 
-      // realiza upload (aguarda)
       await handleUploadImage()
 
-      // submete o form (requestSubmit disparará o handleSubmit)
       formRef.current?.requestSubmit()
     } catch (err) {
       console.error("Erro ao atualizar produto:", err)

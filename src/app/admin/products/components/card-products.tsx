@@ -3,6 +3,7 @@
 import CFImage from "@/components/cf-image"
 import { Pagination } from "@/components/pagination"
 import { SortIcon, type SortDirection } from "@/components/sort-icon"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -32,16 +34,19 @@ import {
 import { useAdminProductsFilters, type ProductStatusFilter } from "@/hooks/use-admin-products-filters"
 import { useFuseSearch } from "@/hooks/use-fuse-search"
 import type { Category } from "@/http/get-categories"
-import { useProducts } from "@/http/get-products"
+import { useProducts, type ProductType } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
-import { Package2, Plus, Search } from "lucide-react"
+import { Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
+import { deleteProductAction } from "../actions"
 
 interface Props {
   categories: Category[]
 }
-type SortField = "name" | "price" | "stock"
+type SortField = "name" | "price" | "stock" | "sales"
 
 
 
@@ -76,9 +81,11 @@ export function CardProducts({ categories }: Props) {
     status,
     setStatus,
   } = useAdminProductsFilters()
+  const router = useRouter()
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
-
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [productToDelete, setProductToDelete] = useState<ProductType | null>(null)
   function toggleSort(field: SortField) {
     if (sortField === field) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
@@ -87,7 +94,25 @@ export function CardProducts({ categories }: Props) {
       setSortDirection("asc")
     }
   }
+  function handleEditProduct(productId: string) {
+    router.push(`/admin/products/update/${productId}`)
+  }
 
+  function handleDeleteProduct(product: ProductType) {
+    setProductToDelete(product)
+  }
+
+  async function confirmDelete() {
+    const data = new FormData()
+    if (!productToDelete) return
+    data.append("id", productToDelete.id)
+    const { message, success } = await deleteProductAction(data)
+    if (!success) {
+      toast.error(message || "Erro ao deletar o produto")
+      router.refresh()
+    }
+    setProductToDelete(null)
+  }
 
   const { data } = useProducts({
     search: filters.search || undefined,
@@ -263,6 +288,19 @@ export function CardProducts({ categories }: Props) {
                 </TableHead>
                 <TableHead className="w-[140px]">Status</TableHead>
                 <TableHead className="w-[140px]">Marca</TableHead>
+                <TableHead
+                  className="w-[80px] cursor-pointer select-none"
+                  onClick={() => toggleSort("sales")}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Vendas</span>
+                    <SortIcon
+                      active={sortField === "stock"}
+                      direction={sortDirection}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[50px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -340,6 +378,52 @@ export function CardProducts({ categories }: Props) {
                       </TableCell>
                       <TableCell className="truncate">
                         {product.brand.name}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <span className="text-sm text-gray-600 ">{product.sales}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
+                              <Edit className="size-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-red-600" onSelect={(e) => {
+                                  e.preventDefault()
+                                  handleDeleteProduct(product)
+                                }}>
+                                  <Trash2 className="size-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   )

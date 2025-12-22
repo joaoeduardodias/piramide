@@ -34,8 +34,6 @@ export function ListOrders() {
         </CardContent>
       </Card>
 
-
-
       <ListOrdersTable
         search={search}
         statusFilter={statusFilter}

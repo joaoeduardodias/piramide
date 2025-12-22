@@ -23,7 +23,7 @@ import { Edit, MoreHorizontal, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { deleteCategoryAction } from "./actions"
+import { deleteCategoryAction } from "../actions"
 
 interface CategoryActionsClientProps {
   categoryId: string

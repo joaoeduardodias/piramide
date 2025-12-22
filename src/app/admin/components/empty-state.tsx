@@ -3,9 +3,9 @@ import { Plus, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 
 interface EmptyStateProps {
-  icon: LucideIcon
+  icon?: LucideIcon
   title: string
-  description: string
+  description?: string
   actionLabel?: string
   actionHref?: string
   illustration?: "orders" | "products" | "customers" | "analytics"
@@ -169,9 +169,11 @@ export function EmptyState({
       {illustrations[illustration]}
       <div className="relative mb-6">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-xl" />
-        <div className="relative w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center border-2 border-gray-200 shadow-lg">
-          <Icon className="size-10 text-gray-600" />
-        </div>
+        {Icon && (
+          <div className="relative w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center border-2 border-gray-200 shadow-lg">
+            <Icon className="size-10 text-gray-600" />
+          </div>
+        )}
       </div>
       <h3 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">{title}</h3>
       <p className="text-base text-gray-600 max-w-md mb-8 leading-relaxed">{description}</p>

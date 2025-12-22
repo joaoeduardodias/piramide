@@ -36,6 +36,10 @@ const quickActions = [
     href: "/admin/reports",
   },
 ]
+export const metadata = {
+  title: "Dashboard",
+  description: "Gerencie toda  a sua loja",
+}
 
 export default async function AdminDashboard() {
 

@@ -34,6 +34,11 @@ import {
   YAxis,
 } from "recharts"
 
+// export const metadata = {
+//   title: "Relatórios | Dashboard",
+//   description: "Obtenha todos os dados de sua loja de forma intuitiva.",
+// }
+
 const salesData = [
   { month: "Jan", vendas: 12000, pedidos: 45, clientes: 32 },
   { month: "Fev", vendas: 15000, pedidos: 52, clientes: 38 },

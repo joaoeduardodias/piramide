@@ -356,7 +356,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                     <Label className="capitalize">{optionName} *</Label>
                     <FormCreateOptionValue optionName={optionName} />
                   </div>
-                  <div className="grid grid-cols-6 md:grid-cols-10 gap-2">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
                     {values.map((val: OptionValue) => {
                       const valObj = { ...val, content: val.content || "#f5f5f5" }
                       const isSelected = selected.some(v => v.id === valObj.id)
@@ -365,7 +365,7 @@ export function FormCreateProduct({ categories, options, brands }: FormCreatePro
                         return (
                           <div
                             key={valObj.id}
-                            className={`relative cursor-pointer p-3 rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
+                            className={`relative cursor-pointer p-3  rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"}`}
                             onClick={() => handleOptionToggle(optionName, valObj)}
                           >
                             <div

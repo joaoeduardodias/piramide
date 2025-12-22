@@ -2,6 +2,11 @@ import { Suspense } from "react"
 import { ListOrders } from "./components/list-orders"
 import { OrdersStats } from "./components/orders-stats"
 
+export const metadata = {
+  title: "Pedidos | Dashboard",
+  description: "Gerencie os pedidos",
+}
+
 export default function OrdersPage() {
   return (
     <div className="space-y-6">

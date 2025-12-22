@@ -17,6 +17,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DollarSign, Edit, Eye, Filter, Plus, Search, ShoppingBag, Users } from "lucide-react"
 import { useState } from "react"
 
+// export const metadata = {
+//   title: "Clientes | Dashboard",
+//   description: "Gerencie os clientes de sua loja.",
+// }
+
 const customers = [
   {
     id: 1,

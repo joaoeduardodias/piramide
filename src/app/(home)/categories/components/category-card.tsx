@@ -21,7 +21,7 @@ interface CategoryCardProps {
 export function CategoryCard({ category }: CategoryCardProps) {
   const firstProduct = category.products?.[0]
   return (
-    <Link href={`/products?category=${category.name}`} className="group">
+    <Link href={`/products?category=${category.slug}`} className="group">
       <Card className="overflow-hidden border-2 hover:border-foreground transition-all duration-300 hover:shadow-lg">
         <div className="relative h-64 overflow-hidden bg-slate-100">
           {firstProduct && (

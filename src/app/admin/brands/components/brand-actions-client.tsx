@@ -23,7 +23,7 @@ import { Edit, MoreHorizontal, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { deleteBrandAction } from "./actions"
+import { deleteBrandAction } from "../actions"
 
 interface BrandActionsClientProps {
   brandId: string

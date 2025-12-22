@@ -1,42 +1,58 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowUpDown, Filter, Grid3X3, List } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  ArrowUpDown,
+  Filter,
+  Grid3X3,
+  List,
+} from "lucide-react"
 
-interface FiltersState {
-  sort: string
-  viewMode: "grid" | "list"
-}
+export type SortBy =
+  | "relevance"
+  | "price-asc"
+  | "price-desc"
+  | "created-desc"
 
 interface ProductsToolbarProps {
-  filteredCount: number;
-  sortBy: "relevance" | "price-asc" | "price-desc" | "created-desc"
-  setSortBy: (value: "relevance" | "price-asc" | "price-desc" | "created-desc") => void
-  viewMode: "grid" | "list";
-  setViewMode: (v: "grid" | "list") => void;
-  toggleFilters: () => void;
+  sortBy: SortBy
+  onSortChange: (value: SortBy) => void
+  viewMode: "grid" | "list"
+  onViewModeChange: (mode: "grid" | "list") => void
+  toggleFilters: () => void
 }
 
-export function ProductsToolbar({ filteredCount, setSortBy, setViewMode, sortBy, viewMode, toggleFilters }: ProductsToolbarProps) {
+export function ProductsToolbar({
+  sortBy,
+  onSortChange,
+  viewMode,
+  onViewModeChange,
+  toggleFilters,
+}: ProductsToolbarProps) {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={toggleFilters} className="lg:hidden">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleFilters}
+          className="lg:hidden"
+        >
           <Filter className="size-4 mr-2" />
           Filtros
         </Button>
-        <p className="text-gray-600">
-          {filteredCount} produto{filteredCount !== 1 ? "s" : ""} encontrado
-          {filteredCount !== 1 ? "s" : ""}
-        </p>
       </div>
 
       <div className="flex items-center gap-4">
-        <Select
-          value={sortBy}
-          onValueChange={setSortBy}
-        >
+        {/* Ordenação (URL-driven) */}
+        <Select value={sortBy} onValueChange={onSortChange}>
           <SelectTrigger className="w-48">
             <ArrowUpDown className="size-4 mr-2" />
             <SelectValue placeholder="Ordenar por" />
@@ -49,11 +65,12 @@ export function ProductsToolbar({ filteredCount, setSortBy, setViewMode, sortBy,
           </SelectContent>
         </Select>
 
+        {/* View mode (UI only) */}
         <div className="flex border rounded-md">
           <Button
             variant={viewMode === "grid" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setViewMode('grid')}
+            onClick={() => onViewModeChange("grid")}
             className="rounded-r-none"
           >
             <Grid3X3 className="size-4" />
@@ -61,7 +78,7 @@ export function ProductsToolbar({ filteredCount, setSortBy, setViewMode, sortBy,
           <Button
             variant={viewMode === "list" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setViewMode('list')}
+            onClick={() => onViewModeChange("list")}
             className="rounded-l-none"
           >
             <List className="size-4" />

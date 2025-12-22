@@ -22,15 +22,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+
+import { Pagination } from "@/components/pagination"
 import {
   Select,
   SelectContent,
@@ -46,8 +39,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useDebouncedSearch } from "@/hooks/use-debounced-search"
+import { useDebouncedValue } from "@/hooks/use-debounced-search"
 import { useFormState } from "@/hooks/use-form-state"
+import { useFuseSearch } from "@/hooks/use-fuse-search"
 import { useOrdersQuery } from "@/hooks/use-orders-query"
 import type { OrderStatus } from "@/http/get-orders"
 import { queryClient } from "@/lib/query-client"
@@ -55,9 +49,8 @@ import { formatReal } from "@/lib/validations"
 import { statusConfig } from "@/utils/badge-status-order"
 import { formatPhone } from "@/utils/format-phone"
 import { paymentMethodLabels } from "@/utils/payment-method-labels"
-import Fuse from "fuse.js"
 import { AlertTriangle, CheckCircle, Clock, Edit, Eye, Loader2, Package, Truck, XCircle } from "lucide-react"
-import { useMemo, useState, type FormEvent } from "react"
+import { useState } from "react"
 import { updateOrderAction } from "../actions"
 export type OrderStatusFilter = "all" | OrderStatus
 
@@ -81,32 +74,31 @@ export function ListOrdersTableContent({
 
   const normalizedStatus: OrderStatus | undefined =
     statusFilter === "all" ? undefined : statusFilter
-
-  const debouncedSearch = useDebouncedSearch(search, 400)
-
+  const debouncedSearch = useDebouncedValue(search, 400)
+  const shouldSearchOnServer = debouncedSearch.length >= 3
   const { data } = useOrdersQuery({
     page,
     limit: itemsPerPage,
-    status: normalizedStatus,
-    search: debouncedSearch || undefined,
+    search: shouldSearchOnServer ? debouncedSearch : undefined,
   })
-  const orders = data?.orders || []
+
   const totalPages = data?.pagination?.totalPages || 1
+  const orders = data?.orders || []
 
+  const { results: fuseResults } = useFuseSearch({
+    data: orders,
+    search,
+    keys: [
+      "customer.name",
+      "customer.email",
+      "number",
+    ],
+  })
 
-  const fuse = useMemo(() => {
-    return new Fuse(orders, {
-      keys: [
-        "customer.name",
-        "customer.email",
-        "number",
-      ],
-      threshold: 0.4,
-      ignoreLocation: true,
-      minMatchCharLength: 2,
-    })
-  }, [orders])
-
+  const filteredOrders =
+    search && !shouldSearchOnServer
+      ? fuseResults
+      : orders
 
   const [{ success, message, errors }, handleSubmit, isPending] =
     useFormState(updateOrderAction, () => {
@@ -119,10 +111,6 @@ export function ListOrdersTableContent({
   const [editingOrder, setEditingOrder] = useState<any>(null)
   const [formStatus, setFormStatus] = useState<string>("")
   const [formPaymentMethod, setFormPaymentMethod] = useState<string>("")
-
-  const filteredOrders = search
-    ? fuse.search(search).map((result) => result.item)
-    : orders
 
   return (
     <>
@@ -493,63 +481,14 @@ export function ListOrdersTableContent({
           </Table>
         </CardContent>
 
-        <CardFooter className="mt-auto flex items-center justify-between gap-4">
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value))
-              setPage(1)
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Itens por página" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 30, 50].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n} por página
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Pagination className="justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href=""
-                  onClick={(e: FormEvent) => {
-                    e.preventDefault()
-                    if (page > 1) setPage(page - 1)
-                  }}
-                />
-              </PaginationItem>
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
-                    href=""
-                    isActive={page === i + 1}
-                    onClick={(e: FormEvent) => {
-                      e.preventDefault()
-                      setPage(i + 1)
-                    }}
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationEllipsis />
-              <PaginationItem>
-                <PaginationNext
-                  href=""
-                  onClick={(e: FormEvent) => {
-                    e.preventDefault()
-                    if (page < totalPages) setPage(page + 1)
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+        <CardFooter className="w-full">
+          <Pagination
+            itemsPerPage={itemsPerPage}
+            page={page}
+            setItemsPerPage={setItemsPerPage}
+            setPage={setPage}
+            totalPages={totalPages}
+          />
         </CardFooter>
       </Card>
     </>

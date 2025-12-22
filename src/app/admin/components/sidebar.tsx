@@ -11,7 +11,7 @@ import { Profile } from "./profile"
 
 export async function Sidebar() {
 
-  const { categories } = await getCategories()
+  const { pagination: paginationCategories } = await getCategories()
   const { brands } = await getBrands()
   const { pagination: paginationOrder } = await getOrders()
   const { pagination } = await getProducts()
@@ -19,7 +19,7 @@ export async function Sidebar() {
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: 'layoutDashboard' },
     { name: "Produtos", href: "/admin/products", icon: 'package', badge: pagination.total },
-    { name: "Categorias", href: "/admin/categories", icon: "folderTree", badge: categories.length },
+    { name: "Categorias", href: "/admin/categories", icon: "folderTree", badge: paginationCategories.total },
     { name: "Marcas", href: "/admin/brands", icon: "hexagon", badge: brands.length },
     { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: paginationOrder.total },
     { name: "Clientes", href: "/admin/clients", icon: 'users' },

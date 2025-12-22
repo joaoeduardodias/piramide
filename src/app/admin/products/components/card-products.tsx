@@ -1,395 +1,363 @@
 "use client"
+
 import CFImage from "@/components/cf-image"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Pagination } from "@/components/pagination"
+import { SortIcon, type SortDirection } from "@/components/sort-icon"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { useAdminProductsFilters, type ProductStatusFilter } from "@/hooks/use-admin-products-filters"
+import { useFuseSearch } from "@/hooks/use-fuse-search"
 import type { Category } from "@/http/get-categories"
-import { useProducts, type ProductType } from "@/http/get-products"
+import { useProducts } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
-import { AlertTriangle, CheckCircle, Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
+import { Package2, Plus, Search } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
-import { deleteProductAction } from "../actions"
 
-interface CardProductsProps {
-  // products: ProductType[]
+interface Props {
   categories: Category[]
 }
+type SortField = "name" | "price" | "stock"
 
-const allCategory: Category = {
-  id: "all",
-  name: "Todos",
-  slug: "todos",
-  products: []
+
+
+function getStatusBadge(totalStock: number) {
+  if (totalStock === 0) {
+    return {
+      label: "Esgotado",
+      className: "bg-red-100 text-red-700 border-0",
+    }
+  }
+
+  if (totalStock <= 5) {
+    return {
+      label: "Baixo Estoque",
+      className: "bg-amber-100 text-amber-700 border-0",
+    }
+  }
+
+  return {
+    label: "Ativo",
+    className: "bg-emerald-100 text-emerald-700 border-0",
+  }
 }
 
-export function CardProducts({ categories: categoriesDb }: CardProductsProps) {
-  const [page, setPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-  const { data, isLoading, isError } = useProducts({ page, limit: itemsPerPage })
+
+export function CardProducts({ categories }: Props) {
+  const {
+    filters,
+    updateFilters,
+    searchInput,
+    setSearchInput,
+    status,
+    setStatus,
+  } = useAdminProductsFilters()
+  const [sortField, setSortField] = useState<SortField>("name")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+
+  function toggleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setSortField(field)
+      setSortDirection("asc")
+    }
+  }
+
+
+  const { data } = useProducts({
+    search: filters.search || undefined,
+    category: filters.category !== "all" ? filters.category : undefined,
+    page: filters.page,
+    limit: filters.limit,
+  })
+
   const products = data?.products ?? []
-  const categories = [allCategory, ...categoriesDb]
-
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
-  const [selectedStatus, setSelectedStatus] = useState("Todos")
-
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<ProductType | null>(null)
-
-  const total = data?.pagination.total ?? 0
   const totalPages = data?.pagination.totalPages ?? 0
 
 
-  const getStatusBadge = (status: string, stock: number) => {
-    if (status && stock > 10) {
-      return <Badge className="bg-emerald-100 text-emerald-700 border-0">Ativo</Badge>
-    } else if (status === "Baixo Estoque" || (stock > 0 && stock <= 5)) {
-      return <Badge className="bg-amber-100 text-amber-700 border-0">Baixo Estoque</Badge>
-    } else if (status === "Esgotado" || stock === 0) {
-      return <Badge className="bg-red-100 text-red-700 border-0">Esgotado</Badge>
-    } else {
-      return <Badge className="bg-gray-100 text-gray-700 border-0">Inativo</Badge>
+  const { results: fuseResults } = useFuseSearch({
+    data: products,
+    search: searchInput,
+    keys: [
+      "name",
+      "brand.name",
+      "variants.sku",
+    ],
+  })
+
+  const filteredByStatus = fuseResults.filter((product) => {
+    if (status === "Todos") return true
+
+    const totalStock = product.variants.reduce(
+      (acc, v) => acc + v.stock,
+      0,
+    )
+
+    if (status === "Esgotado") {
+      return totalStock === 0
     }
-  }
 
-  const getStockIcon = (stock: number) => {
-    if (stock === 0) {
-      return <AlertTriangle className="size-4 text-red-500" />
-    } else if (stock <= 10) {
-      return <AlertTriangle className="size-4 text-amber-500" />
-    } else {
-      return <CheckCircle className="size-4 text-emerald-500" />
+    if (status === "Baixo Estoque") {
+      return totalStock > 0 && totalStock <= 5
     }
-  }
 
-  const handleEditProduct = (productId: string) => {
-    router.push(`/admin/products/update/${productId}`)
-  }
-
-  const handleDeleteProduct = (product: ProductType) => {
-    setProductToDelete(product)
-  }
-
-  const confirmDelete = async () => {
-    const data = new FormData()
-    if (!productToDelete) return
-    data.append("id", productToDelete.id)
-    const { message, success } = await deleteProductAction(data)
-    if (!success) {
-      toast.error(message || "Erro ao deletar o produto")
-      router.refresh()
-    }
-    setProductToDelete(null)
-  }
-
-
-  const filteredProducts = products.filter((product) => {
-    const normalizedSearch = searchTerm.toLowerCase()
-    const matchesSearch =
-      !searchTerm ||
-      product.name.toLowerCase().includes(normalizedSearch) ||
-      product.variants?.some((v) =>
-        v.sku.toLowerCase().includes(normalizedSearch)
-      )
-    const matchesCategory =
-      selectedCategory === "all" ||
-      product.categories?.some(
-        (c) => c.category?.name === selectedCategory
-      )
-    // const matchesStatus =
-    //   selectedStatus === "Todos" || product.status === selectedStatus
-
-    // return matchesSearch && matchesCategory && matchesStatus
-    return matchesSearch && matchesCategory
+    return true
   })
 
 
-  const statusOptions = ["Todos", "Baixo Estoque", "Esgotado"]
+  const sortedProducts = [...filteredByStatus].sort((a, b) => {
+    let aValue: string | number = ""
+    let bValue: string | number = ""
 
+    if (sortField === "name") {
+      aValue = a.name.toLowerCase()
+      bValue = b.name.toLowerCase()
+    }
 
-  if (isLoading) return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader>
-        <Skeleton className="h-6 w-32" />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
-              <Skeleton className="w-10 h-10 rounded-lg" />
-              <div className="flex-1">
-                <Skeleton className="h-4 w-48 mb-2" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-4 w-12" />
-              <Skeleton className="h-6 w-16 rounded-full" />
-              <Skeleton className="h-4 w-8" />
-              <Skeleton className="w-8 h-8 rounded" />
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  )
-  if (isError) return (
-    <Card className="border-0 shadow-sm">
-      <CardContent>
-        <div className="space-y-4">
-          <p>Erro encontrado!</p>
-        </div>
-      </CardContent>
-    </Card>
-  )
-  if (!categories) return <p>Nenhuma categoria listada</p>
+    if (sortField === "price") {
+      aValue = Number(a.price)
+      bValue = Number(b.price)
+    }
+
+    if (sortField === "stock") {
+      aValue = a.variants.reduce((acc, v) => acc + v.stock, 0)
+      bValue = b.variants.reduce((acc, v) => acc + v.stock, 0)
+    }
+
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
+    return 0
+  })
+
 
   return (
     <>
+
       <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-900">Filtros</CardTitle>
+        <CardHeader >
+          <CardTitle>Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row items-end gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <Input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Buscar produtos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
 
-            </Select>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div>
+              <Label className="text-zinc-800 text-sm">Categoria</Label>
+              <Select
+                value={filters.category}
+                onValueChange={(v) =>
+                  updateFilters({ category: v, page: 1 })
+                }
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.slug}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-zinc-800 text-sm">Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as ProductStatusFilter)}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Todos">Todos</SelectItem>
+                  <SelectItem value="Baixo Estoque">Baixo Estoque</SelectItem>
+                  <SelectItem value="Esgotado">Esgotado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <Card className="border-0 shadow-sm min-h-[48rem]">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-900">
-            Lista de Produtos ({total})
+          <CardTitle>
+            Lista de Produtos ({data?.pagination.total ?? 0})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Estoque</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Marca</TableHead>
-                  <TableHead>Vendas</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.length === 0 ?
-                  <TableRow>
-                    <TableCell colSpan={9} className="col-span-9">
-                      <div className="flex min-h-[400px] flex-col items-center justify-center gap-2  p-8 text-center">
-                        <Package2 className="size-12 text-muted-foreground" />
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-semibold">Nenhum produto encontrado</h3>
-                          <p className="text-sm text-muted-foreground">Comece criando sua primeiro produto</p>
-                        </div>
-                        <Button asChild className="mt-4">
-                          <Link href="/admin/products/new">
-                            <Plus className="mr-2 size-4" />
-                            Novo Produto
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+          <Table className="table-fixed w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead
+                  className="w-[320px] cursor-pointer select-none"
+                  onClick={() => toggleSort("name")}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Produto</span>
+                    <SortIcon
+                      active={sortField === "name"}
+                      direction={sortDirection}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[150px]">SKU</TableHead>
+                <TableHead className="w-[160px]">Categoria</TableHead>
+                <TableHead
+                  className="w-[120px] cursor-pointer select-none"
+                  onClick={() => toggleSort("price")}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Preço</span>
+                    <SortIcon
+                      active={sortField === "price"}
+                      direction={sortDirection}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead
+                  className="w-[120px] cursor-pointer select-none"
+                  onClick={() => toggleSort("stock")}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Estoque</span>
+                    <SortIcon
+                      active={sortField === "stock"}
+                      direction={sortDirection}
+                    />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[140px]">Status</TableHead>
+                <TableHead className="w-[140px]">Marca</TableHead>
+              </TableRow>
+            </TableHeader>
 
-                  : filteredProducts.map((product) => {
-                    return (
-                      <TableRow key={product.id} className="hover:bg-gray-50/50">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            {product.images.length > 0 && (
-                              <CFImage
-                                src={product.images[0].url}
-                                alt={product.name}
-                                width={40}
-                                height={40}
-                                className="size-10 object-cover rounded-lg"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium text-gray-900">{product.name}</p>
-                            </div>
+            <TableBody>
+              {sortedProducts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7}>
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <Package2 className="size-12 text-muted-foreground" />
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Nenhum produto encontrado
+                      </p>
+                      <Button asChild className="mt-4">
+                        <Link href="/admin/products/new">
+                          <Plus className="mr-2 size-4" />
+                          Novo Produto
+                        </Link>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                sortedProducts.map((product) => {
+                  const totalStock = product.variants.reduce(
+                    (acc, v) => acc + v.stock,
+                    0,
+                  )
+
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3 min-w-0">
+                          {product.images[0] && (
+                            <CFImage
+                              src={product.images[0].url}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                              className="size-10 rounded-lg object-cover flex-shrink-0"
+                            />
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-gray-900">
+                              {product.name}
+                            </p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <code className="text-sm bg-gray-100 px-2 py-1 rounded">{product.variants[0]?.sku}</code>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-gray-600">{product.categories[0]?.category.name}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{formatReal(String(product.price))}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getStockIcon(product.variants.reduce((acc, variant) => acc + variant.stock, 0))}
-                            <span className="text-sm">{product.variants.reduce((acc, variant) => acc + variant.stock, 0)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getStatusBadge('ativo', product.variants.reduce((acc, variant) => acc + variant.stock, 0))}</TableCell>
-                        <TableCell>{product.brand.name}</TableCell>
-                        <TableCell>
-                          <span className="text-sm text-gray-600 ">{product.sales}</span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleEditProduct(product.id)}>
-                                <Edit className="size-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem className="text-red-600" onSelect={(e) => {
-                                    e.preventDefault()
-                                    handleDeleteProduct(product)
-                                  }}>
-                                    <Trash2 className="size-4 mr-2" />
-                                    Excluir
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-              </TableBody>
-            </Table>
-          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <code className="w-[150px] text-xs bg-gray-100 px-2 py-1 rounded truncate">
+                          {product.variants[0]?.sku}
+                        </code>
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {product.categories[0]?.category.name}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">
+                        {formatReal(String(product.price))}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {totalStock}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const status = getStatusBadge(totalStock)
+
+                          return (
+                            <Badge
+                              className={`whitespace-nowrap ${status.className}`}
+                            >
+                              {status.label}
+                            </Badge>
+                          )
+                        })()}
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {product.brand.name}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
-        <CardFooter className="mt-auto flex items-center justify-between gap-4">
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value))
-              setPage(1)
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Itens por página" />
-            </SelectTrigger>
-            <SelectContent>
-              {[10, 20, 30, 50].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n} por página
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Pagination className="justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href=""
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (page > 1) setPage(page - 1)
-                  }}
-                  className={page === 1 ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
-                    href=""
-                    isActive={page === i + 1}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setPage(i + 1)
-                    }}
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              {totalPages > 3 && <PaginationEllipsis />}
-              <PaginationItem>
-                <PaginationNext
-                  href=""
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (page < totalPages) setPage(page + 1)
-                  }}
-                  className={page === totalPages ? "pointer-events-none opacity-50" : ""}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+        <CardFooter>
+          <Pagination
+            page={filters.page}
+            itemsPerPage={filters.limit}
+            setPage={(p) => updateFilters({ page: p })}
+            setItemsPerPage={(l) =>
+              updateFilters({ limit: l, page: 1 })
+            }
+            totalPages={totalPages}
+          />
         </CardFooter>
       </Card>
     </>

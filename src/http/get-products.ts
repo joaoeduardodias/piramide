@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { api } from "./api-client";
 
 
@@ -84,5 +84,21 @@ export function useProducts(params: GetProductsParams) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => getProducts(params),
+  })
+}
+
+export function useInfiniteProducts(params: GetProductsParams) {
+  return useInfiniteQuery({
+    queryKey: ["products", params],
+    queryFn: async ({ pageParam = 1 }) => {
+      const { products, pagination } = await getProducts({ ...params, page: pageParam, limit: params.limit ?? 20 })
+
+      return { products, pagination }
+    },
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.pagination
+      return page < totalPages ? page + 1 : undefined
+    },
+    initialPageParam: 1,
   })
 }

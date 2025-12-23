@@ -21,3 +21,8 @@ export async function getSignedUrl({ files }: getSignedUrlRequest) {
   const result = await api.post('uploads', { json: { files } }).json<getSignedUrlResponse>()
   return result
 }
+
+
+
+
+

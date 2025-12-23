@@ -12,15 +12,15 @@ import { Profile } from "./profile"
 export async function Sidebar() {
 
   const { pagination: paginationCategories } = await getCategories()
-  const { brands } = await getBrands()
+  const { pagination: paginationBrand } = await getBrands()
   const { pagination: paginationOrder } = await getOrders()
-  const { pagination } = await getProducts()
+  const { pagination: paginationProduct } = await getProducts()
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: 'layoutDashboard' },
-    { name: "Produtos", href: "/admin/products", icon: 'package', badge: pagination.total },
+    { name: "Produtos", href: "/admin/products", icon: 'package', badge: paginationProduct.total },
     { name: "Categorias", href: "/admin/categories", icon: "folderTree", badge: paginationCategories.total },
-    { name: "Marcas", href: "/admin/brands", icon: "hexagon", badge: brands.length },
+    { name: "Marcas", href: "/admin/brands", icon: "hexagon", badge: paginationBrand.total },
     { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: paginationOrder.total },
     { name: "Clientes", href: "/admin/clients", icon: 'users' },
     { name: "Relatórios", href: "/admin/reports", icon: 'barChart3' },

@@ -35,6 +35,7 @@ import { useAdminProductsFilters, type ProductStatusFilter } from "@/hooks/use-a
 import { useFuseSearch } from "@/hooks/use-fuse-search"
 import type { Category } from "@/http/get-categories"
 import { useProducts, type ProductType } from "@/http/get-products"
+import { queryClient } from "@/lib/query-client"
 import { formatReal } from "@/lib/validations"
 import { Edit, MoreHorizontal, Package2, Plus, Search, Trash2 } from "lucide-react"
 import Link from "next/link"
@@ -111,6 +112,8 @@ export function CardProducts({ categories }: Props) {
       toast.error(message || "Erro ao deletar o produto")
       router.refresh()
     }
+    queryClient.invalidateQueries({ queryKey: ['products'] })
+
     setProductToDelete(null)
   }
 

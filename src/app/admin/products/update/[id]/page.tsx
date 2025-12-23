@@ -23,6 +23,13 @@ export default async function UpdateProductPage({ params }: PageProps) {
   const { options } = await getOptions()
   const { brands } = await getBrands()
 
+  const productWithImages = {
+    ...product,
+    images: product.images.map(image => ({
+      ...image,
+      isNew: false,
+    })),
+  }
 
   return (
     <div className="space-y-8">
@@ -40,7 +47,7 @@ export default async function UpdateProductPage({ params }: PageProps) {
         </div>
       </div>
 
-      <FormUpdateProduct options={options} categories={categories} brands={brands} initialData={product} />
+      <FormUpdateProduct options={options} categories={categories} brands={brands} initialData={productWithImages} />
     </div>
   )
 }

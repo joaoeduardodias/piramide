@@ -87,6 +87,7 @@ export async function createProductAction(data: FormData) {
   }
 
   const filesUpload = data.get("filesUpload") as string | null
+  console.log(filesUpload);
   let formattedFilesUploads: any[] = []
   if (filesUpload) {
     try {

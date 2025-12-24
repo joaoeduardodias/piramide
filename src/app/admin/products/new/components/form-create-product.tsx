@@ -19,9 +19,6 @@ import { ProductPricing } from "./product-pricing"
 import { ProductStatus } from "./product-status"
 import { ProductVariants } from "./product-variants"
 
-/* =======================
-   Types
-======================= */
 
 type OptionValue = { id: string; value: string; content: string | null }
 type SelectedOptions = Record<string, OptionValue[]>
@@ -44,9 +41,6 @@ interface FormCreateProps {
   }[]
 }
 
-/* =======================
-   Component
-======================= */
 
 export function FormCreateProduct({
   categories,
@@ -61,10 +55,6 @@ export function FormCreateProduct({
     () => router.push("/admin/products")
   )
 
-  /* =======================
-     State
-  ======================= */
-
   const [images, setImages] = useState<ImageItem[]>([])
   const [featured, setFeatured] = useState(false)
   const [brand, setBrand] = useState("")
@@ -78,9 +68,6 @@ export function FormCreateProduct({
       prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     )
   }
-  /* =======================
-     Memo
-  ======================= */
 
   const defaultOptions = useMemo(() => {
     return Object.fromEntries(
@@ -117,43 +104,43 @@ export function FormCreateProduct({
   const handleUploadImages = useCallback(async () => {
     if (!images.length) return
 
-    const newImages = images.filter((img) => img.isNew)
-    if (!newImages.length) return
+    if (!formRef.current) return
 
-    const imagesWithKeys = newImages.map((img, i) => ({
-      ...img,
-      fileKey: `products/${Date.now()}-${i}-${img.file?.name}`,
-    }))
 
     const { uploads } = await getSignedUrl({
-      files: imagesWithKeys.map((img, i) => ({
-        fileName: img.fileKey!,
-        contentType: img.file?.type || "image/jpeg",
-        sortOrder: i + 1,
+      files: images.map((img) => ({
+        fileName: img.file!.name,
+        contentType: img.file!.type,
       })),
     })
 
     await Promise.all(
-      uploads.map((u, i) =>
-        fetch(u.presignedUrl, {
+      uploads.map((upload, index) =>
+        fetch(upload.presignedUrl, {
           method: "PUT",
-          headers: { "Content-Type": u.contentType },
-          body: imagesWithKeys[i].file,
+          headers: { "Content-Type": upload.contentType },
+          body: images[index].file,
         })
       )
     )
 
-    const payload = JSON.stringify({ uploads })
-    const input =
-      formRef.current?.querySelector<HTMLInputElement>(
-        'input[name="filesUpload"]'
-      ) || document.createElement("input")
+    const finalImages = uploads.map((upload, index) => ({
+      fileKey: upload.fileKey,
+      url: upload.url,
+      sortOrder: index,
+    }))
 
-    input.name = "filesUpload"
-    input.type = "hidden"
-    input.value = payload
-    formRef.current?.appendChild(input)
+    const input =
+      formRef.current.querySelector<HTMLInputElement>('input[name="filesUpload"]') ??
+      Object.assign(document.createElement("input"), {
+        type: "hidden",
+        name: "filesUpload",
+      })
+
+    input.value = JSON.stringify(finalImages)
+    formRef.current.appendChild(input)
   }, [images])
+
 
 
   return (

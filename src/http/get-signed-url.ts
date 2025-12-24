@@ -5,7 +5,6 @@ interface getSignedUrlRequest {
   files: {
     fileName: string;
     contentType: string;
-    sortOrder: number;
   }[]
 }
 interface getSignedUrlResponse {

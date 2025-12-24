@@ -10,6 +10,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import { createProductAction } from "../../actions"
 import type { ImageItem } from "../../components/image-upload"
 
+import { FormCreateOption } from "./form-create-option"
 import { ProductActions } from "./product-actions"
 import { ProductBasicInfo } from "./product-basic-info"
 import { ProductCategories } from "./product-categories"
@@ -58,6 +59,7 @@ export function FormCreateProduct({
   const [images, setImages] = useState<ImageItem[]>([])
   const [featured, setFeatured] = useState(false)
   const [brand, setBrand] = useState("")
+  const [productName, setProductName] = useState("")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({})
   const [variants, setVariants] = useState<Variant[]>([])
@@ -161,6 +163,8 @@ export function FormCreateProduct({
           </CardHeader>
           <CardContent className="space-y-4">
             <ProductBasicInfo
+              name={productName}
+              setName={setProductName}
               brands={brands}
               brand={brand}
               setBrand={setBrand}
@@ -190,12 +194,14 @@ export function FormCreateProduct({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Variações</CardTitle>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="flex justify-between">
+            <CardTitle>Seleção de Variações *</CardTitle>
+            <FormCreateOption />
           </CardHeader>
           <CardContent>
             <ProductOptions
+              productName={productName}
               defaultOptions={defaultOptions}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}

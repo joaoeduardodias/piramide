@@ -3,12 +3,21 @@
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, Check } from "lucide-react"
-import { useCallback } from "react"
+import { FormCreateOptionValue } from "./form-create-option-value"
 
 type OptionValue = {
   id: string
   value: string
   content: string | null
+}
+interface Variant {
+  id: string
+  sku: string
+  price?: number
+  comparePrice?: number
+  stock: number
+  options: Record<string, { value: string; content: string | null } | string>
+  optionValueIds?: string[]
 }
 
 type SelectedOptions = Record<string, OptionValue[]>
@@ -19,6 +28,7 @@ interface ProductOptionsProps {
   setSelectedOptions: (v: SelectedOptions | ((prev: SelectedOptions) => SelectedOptions)) => void
   setVariants: (v: any[]) => void
   errors?: Record<string, string[]> | null
+  productName: string
 }
 
 export function ProductOptions({
@@ -27,51 +37,101 @@ export function ProductOptions({
   setSelectedOptions,
   setVariants,
   errors,
+  productName
 }: ProductOptionsProps) {
-  const toggleOption = useCallback(
-    (optionName: string, value: OptionValue) => {
-      setSelectedOptions((prev: SelectedOptions): SelectedOptions => {
-        const current = prev[optionName] || []
-        const exists = current.some((v) => v.id === value.id)
 
-        const updated = exists
-          ? current.filter((v) => v.id !== value.id)
-          : [...current, value]
+  function getInitials(productName: string): string {
+    const trimmed = productName.trim()
+    if (!trimmed) return ""
+    return trimmed
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(p => p[0].toUpperCase())
+      .join("")
+  }
 
-        const next: SelectedOptions = { ...prev, [optionName]: updated }
+  function generateCombinations<T>(arrays: T[][]): T[][] {
+    if (!arrays.length) return []
+    return arrays.reduce<T[][]>(
+      (acc, curr) => acc.flatMap(a => curr.map(b => [...a, b])),
+      [[]],
+    )
+  }
 
-        // 🔥 Geração simples de variantes (igual ao fluxo original)
-        const combinations = Object.values(next).reduce<OptionValue[][]>(
-          (acc, values) =>
-            acc.length
-              ? acc.flatMap((a) => values.map((v) => [...a, v]))
-              : values.map((v) => [v]),
-          []
-        )
+  function buildVariantsGeneric(
+    combinations: OptionValue[][],
+    optionNames: string[],
+    baseSku: string,
+  ): Variant[] {
+    return combinations.map(combo => {
+      const options: Record<string, OptionValue> = {}
+      const optionValueIds: string[] = []
 
-        type Variant = {
-          id: string
-          sku: string
-          stock: number
-          options: Record<string, OptionValue>
-        }
-
-        setVariants(
-          combinations.map((combo): Variant => ({
-            id: crypto.randomUUID(),
-            sku: "",
-            stock: 0,
-            options: Object.fromEntries(
-              combo.map((v) => [optionName, v])
-            ) as Record<string, OptionValue>,
-          }))
-        )
-
-        return next
+      combo.forEach((opt, i) => {
+        options[optionNames[i]] = opt
+        optionValueIds.push(opt.id) // 🔥 domínio
       })
-    },
-    [setSelectedOptions, setVariants]
-  )
+
+      const sku = [baseSku, ...combo.map(v => v.value)]
+        .filter(Boolean)
+        .join("-")
+        .toUpperCase()
+
+      return {
+        id: crypto.randomUUID(),
+        sku,
+        stock: 0,
+        options,
+        optionValueIds,
+      }
+    })
+  }
+
+
+
+
+
+  const handleOptionToggle = (
+    optionName: string,
+    optionValue: OptionValue,
+    productName: string,
+  ) => {
+    setSelectedOptions(prev => {
+      const currentValues = prev[optionName] || []
+      const exists = currentValues.some(v => v.id === optionValue.id)
+
+      const updatedValues = exists
+        ? currentValues.filter(v => v.id !== optionValue.id)
+        : [...currentValues, optionValue]
+
+      const newSelected = {
+        ...prev,
+        [optionName]: updatedValues,
+      }
+
+      const optionNames = Object.keys(newSelected)
+      const optionValues = Object.values(newSelected).filter(
+        arr => arr.length > 0,
+      ) as OptionValue[][]
+
+      if (!optionValues.length) {
+        setVariants([])
+        return newSelected
+      }
+
+      const baseSku = getInitials(productName)
+      const combinations = generateCombinations(optionValues)
+      const newVariants = buildVariantsGeneric(
+        combinations,
+        optionNames,
+        baseSku,
+      )
+
+      setVariants(newVariants)
+
+      return newSelected
+    })
+  }
 
   return (
     <div className="space-y-8">
@@ -81,8 +141,9 @@ export function ProductOptions({
 
         return (
           <div key={optionName}>
-            <div className="flex justify-between items-center mb-4">
+            <div className=" flex items-center justify-between  mb-4">
               <Label className="capitalize">{optionName} *</Label>
+              <FormCreateOptionValue optionName={optionName} />
             </div>
 
             <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
@@ -93,7 +154,8 @@ export function ProductOptions({
                   return (
                     <div
                       key={val.id}
-                      onClick={() => toggleOption(optionName, val)}
+                      onClick={() => handleOptionToggle(optionName, val, productName)}
+
                       className={`relative cursor-pointer p-3 rounded-lg border-2 ${isSelected ? "border-black" : "border-gray-200"
                         }`}
                     >
@@ -117,7 +179,8 @@ export function ProductOptions({
                     key={val.id}
                     type="button"
                     variant={isSelected ? "default" : "outline"}
-                    onClick={() => toggleOption(optionName, val)}
+                    onClick={() => handleOptionToggle(optionName, val, productName)}
+
                   >
                     {val.value}
                   </Button>

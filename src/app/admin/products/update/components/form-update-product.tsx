@@ -517,7 +517,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
                     <Label className="capitalize">{optionName} *</Label>
                     <FormCreateOptionValue optionName={optionName} />
                   </div>
-                  <div className="grid grid-cols-4 md:grid-cols-6  gap-1">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
                     {values.map((val: OptionValue) => {
                       const valObj = { ...val, content: val.content || "#ccc" }
                       const isSelected = selected.some((v) => v.id === valObj.id)

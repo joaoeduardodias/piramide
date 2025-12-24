@@ -87,7 +87,6 @@ export async function createProductAction(data: FormData) {
   }
 
   const filesUpload = data.get("filesUpload") as string | null
-  console.log(filesUpload);
   let formattedFilesUploads: any[] = []
   if (filesUpload) {
     try {
@@ -100,8 +99,8 @@ export async function createProductAction(data: FormData) {
   }
 
   const variantsData = data.get("variants") as string
-  const formattedVariants = JSON.parse(variantsData)
 
+  const formattedVariants = JSON.parse(variantsData)
   const categoriesData = data.get("categories") as string
   const categoriesIds = JSON.parse(categoriesData)
 

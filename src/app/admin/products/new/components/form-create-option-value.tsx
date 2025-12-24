@@ -29,7 +29,6 @@ export function FormCreateOptionValue({ optionName }: OptionValueProps) {
       setValuesText("");
       setColors([]);
       setIsOptionDialogOpen(false);
-      router.push('/admin/products')
     }
   );
 

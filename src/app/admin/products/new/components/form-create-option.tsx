@@ -20,7 +20,7 @@ export function FormCreateOption() {
   const [colors, setColors] = useState<string[]>([])
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createOptionAction,
     () => {
-      router.push('/admin/products')
+      setIsOptionDialogOpen(false)
     }
   )
 

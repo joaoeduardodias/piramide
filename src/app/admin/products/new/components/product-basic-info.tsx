@@ -16,7 +16,9 @@ import { AlertCircle, AlertTriangle } from "lucide-react"
 interface ProductBasicInfoProps {
   brands: { id: string; name: string }[]
   brand: string
+  name: string
   setBrand: (value: string) => void
+  setName: (value: string) => void
   errors?: Record<string, string[]> | null
   success?: boolean
   message?: string | null
@@ -29,6 +31,8 @@ export function ProductBasicInfo({
   errors,
   success,
   message,
+  name,
+  setName
 }: ProductBasicInfoProps) {
   return (
     <>
@@ -44,6 +48,8 @@ export function ProductBasicInfo({
         <Label htmlFor="name">Nome do Produto *</Label>
         <Input
           id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           name="name"
           className={`mt-2 ${errors?.name ? "border-red-500" : ""}`}
         />

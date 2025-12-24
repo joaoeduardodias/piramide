@@ -1,6 +1,7 @@
 
 import { getBrands } from "@/http/get-brands"
 import { getCategories } from "@/http/get-categories"
+import { getCoupons } from "@/http/get-coupons"
 import { getOrders } from "@/http/get-orders"
 import { getProducts } from "@/http/get-products"
 import { Store } from "lucide-react"
@@ -13,6 +14,7 @@ export async function Sidebar() {
 
   const { pagination: paginationCategories } = await getCategories()
   const { pagination: paginationBrand } = await getBrands()
+  const { pagination: paginationCoupons } = await getCoupons()
   const { pagination: paginationOrder } = await getOrders()
   const { pagination: paginationProduct } = await getProducts()
 
@@ -21,6 +23,7 @@ export async function Sidebar() {
     { name: "Produtos", href: "/admin/products", icon: 'package', badge: paginationProduct.total },
     { name: "Categorias", href: "/admin/categories", icon: "folderTree", badge: paginationCategories.total },
     { name: "Marcas", href: "/admin/brands", icon: "hexagon", badge: paginationBrand.total },
+    { name: "Cupons", href: "/admin/coupons", icon: "tag", badge: paginationCoupons.total },
     { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: paginationOrder.total },
     { name: "Clientes", href: "/admin/clients", icon: 'users' },
     { name: "Relatórios", href: "/admin/reports", icon: 'barChart3' },

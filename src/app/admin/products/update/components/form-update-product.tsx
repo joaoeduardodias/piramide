@@ -244,9 +244,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     )
   }, [])
 
-  const setHiddenInputValue = useCallback((name: string, value: string) => {
-    const form = formRef.current
-    if (!form) return
+  function setHiddenInputValue(form: HTMLFormElement, name: string, value: unknown) {
     let input = form.querySelector<HTMLInputElement>(`input[name="${name}"]`)
     if (!input) {
       input = document.createElement("input")
@@ -254,14 +252,58 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
       input.name = name
       form.appendChild(input)
     }
-    input.value = value
-  }, [])
+    input.value = typeof value === "string" ? value : JSON.stringify(value)
+  }
+
+  function serializeOptions(selected: SelectedOptions) {
+    return Object.entries(selected)
+      .filter(([, values]) => values.length > 0)
+      .map(([name, values]) => ({
+        name,
+        valueIds: values.map(v => v.id),
+      }))
+  }
+
+  function serializeVariants(variants: Variant[]) {
+    return variants.map(v => ({
+      id: v.id.startsWith("TEMP_") ? undefined : v.id,
+      sku: v.sku,
+      price: v.price,
+      comparePrice: v.comparePrice,
+      stock: v.stock,
+      optionValueIds: v.optionValueIds ?? [],
+    }))
+  }
+
+  const syncFormPayload = useCallback(() => {
+    const form = formRef.current
+    if (!form) return
+
+    setHiddenInputValue(form, "categories", selectedCategories)
+
+    setHiddenInputValue(
+      form,
+      "options",
+      serializeOptions(selectedOptions),
+    )
+
+    setHiddenInputValue(
+      form,
+      "variants",
+      serializeVariants(variants),
+    )
+  }, [selectedCategories, selectedOptions, variants])
+
+
+
 
   const handleUploadImage = useCallback(async (): Promise<void> => {
     try {
       if (!hasChanged) {
         return
       }
+      const form = formRef.current
+      if (!form) return
 
       const newImages = images.filter((img) => img.isNew && img.file)
 
@@ -271,7 +313,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
           url: img.url,
           sortOrder: index,
         }))
-        setHiddenInputValue("images", JSON.stringify(finalImages))
+        setHiddenInputValue(form, "filesUpload", JSON.stringify(finalImages))
         return
       }
 
@@ -315,7 +357,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         }
       })
 
-      setHiddenInputValue("images", JSON.stringify(finalImages))
+      setHiddenInputValue(form, "filesUpload", JSON.stringify(finalImages))
     } catch (error) {
       console.error("Erro no fluxo de upload de imagem:", error)
       throw new Error("Falha ao processar o upload das imagens.")
@@ -331,11 +373,18 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   }, [])
 
   const onActionButtonClick = useCallback(async () => {
-    setIsPending(true)
-    await handleUploadImage()
-    formRef.current?.requestSubmit()
-    setIsPending(false)
-  }, [handleUploadImage])
+    try {
+      setIsPending(true)
+
+      await handleUploadImage()
+      syncFormPayload()
+
+      formRef.current?.requestSubmit()
+    } finally {
+      setIsPending(false)
+    }
+  }, [handleUploadImage, syncFormPayload])
+
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">

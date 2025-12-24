@@ -254,6 +254,7 @@ export async function updateProductAction(data: FormData) {
   const rawData = Object.fromEntries(data.entries())
   const filesUpload = data.get("filesUpload") as string | null
   let formattedFilesUploads: any[] = []
+  console.log(filesUpload);
 
   if (filesUpload) {
     try {

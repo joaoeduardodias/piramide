@@ -3,6 +3,7 @@ import CFImage from "@/components/cf-image"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
@@ -10,7 +11,7 @@ import { useCart } from "@/context/cart-context"
 import { useFormState } from "@/hooks/use-form-state"
 import type { Address } from "@/lib/types"
 import { formatReal } from "@/lib/validations"
-import { AlertCircle, AlertTriangle, BadgeDollarSign, CreditCard, MapPin, Plus, Wallet } from "lucide-react"
+import { AlertCircle, AlertTriangle, BadgeDollarSign, CreditCard, MapPin, Plus, Tag, Wallet } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -28,6 +29,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
   const { items, getTotalPrice, clearCart, setIsOpen } = useCart()
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddressId ?? "")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>()
+  const [couponCode, setCouponCode] = useState("")
   const totalPrice = getTotalPrice()
   const shipping = totalPrice > 199 ? 0 : 29.9
   const finalTotal = totalPrice + shipping
@@ -277,7 +279,35 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
             </div>
 
             <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="coupon" className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                Cupom de Desconto
+              </Label>
 
+              <div className="flex gap-2">
+                <Input
+                  id="coupon"
+                  name="couponCode"
+                  placeholder="Digite o código"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase())
+                  }}
+                  className="flex-1 border-2"
+                />
+                {/* <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!couponCode.trim()}
+                  className="border-2 bg-transparent"
+                >
+                  Aplicar
+                </Button> */}
+              </div>
+
+            </div>
+            <Separator />
             <div className="space-y-3 mt-4">
               <div className="flex justify-between text-gray-700">
                 <span>Subtotal</span>
@@ -291,6 +321,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
               </div>
 
               <Separator />
+
 
               <div className="flex justify-between text-xl font-bold text-gray-900">
                 <span>Total</span>

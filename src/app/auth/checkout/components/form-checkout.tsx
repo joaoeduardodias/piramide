@@ -12,12 +12,12 @@ import { useFormState } from "@/hooks/use-form-state"
 import { useValidateCoupon } from "@/http/validade-coupon"
 import type { Address } from "@/lib/types"
 import { formatReal } from "@/lib/validations"
+import { HTTPError } from "ky"
 import { AlertCircle, AlertTriangle, BadgeDollarSign, CreditCard, MapPin, Plus, Tag, Wallet, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { createOrderAction } from "../actions"
-
 interface FormCheckoutProps {
   addresses: Address[]
 }
@@ -48,20 +48,23 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
         orderTotal: totalPrice,
       },
       {
-        onSuccess(data) {
+        async onSuccess(data) {
           setDiscount(data.discount)
           setIsCouponApplied(true)
         },
-        onError(err: any) {
-          setDiscount(0)
-          setIsCouponApplied(false)
-          setCouponError(
-            err?.message ?? "Cupom inválido ou expirado"
-          )
-        },
+        async onError(error: HTTPError | unknown) {
+          if (error instanceof HTTPError) {
+            const body = await error.response.json<{ message?: string }>()
+            setCouponError(body.message ?? "Cupom inválido.")
+            return
+          }
+
+          setCouponError("Erro inesperado ao validar cupom.")
+        }
       }
     )
   }
+
 
   const finalTotal = Math.max(totalPrice + shipping - discount, 0)
 

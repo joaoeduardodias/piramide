@@ -14,9 +14,9 @@ export const metadata = {
 
 export default async function NewProductPage() {
 
-  const { categories } = await getCategories()
+  const { categories } = await getCategories({ limit: 99999 })
+  const { brands } = await getBrands({ limit: 99999 })
   const { options } = await getOptions()
-  const { brands } = await getBrands()
 
   return (
     <div className="space-y-8">

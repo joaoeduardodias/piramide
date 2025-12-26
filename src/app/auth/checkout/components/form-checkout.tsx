@@ -87,6 +87,14 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
     quantity: item.quantity,
     unitPrice: item.price,
   }))
+  function handleCouponChange(value: string) {
+    setCouponCode(value.toUpperCase())
+
+    if (couponError) {
+      setCouponError(null)
+    }
+  }
+
 
 
   return (
@@ -347,9 +355,9 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                     placeholder="Digite o código"
                     value={couponCode}
                     onChange={(e) =>
-                      setCouponCode(e.target.value.toUpperCase())
+                      handleCouponChange(e.target.value)
                     }
-                    className="h-10 flex-1 border-muted-foreground/20 focus-visible:ring-1 focus-visible:ring-ring"
+                    className={`h-10 flex-1 border-muted-foreground/20 focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring ${couponError ? "border-red-600 text-red-500 focus-visible:ring-red focus-visible:border-red" : ""}`}
                   />
 
                   <Button

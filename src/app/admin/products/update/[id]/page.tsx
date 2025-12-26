@@ -18,10 +18,10 @@ export const metadata = {
 export default async function UpdateProductPage({ params }: PageProps) {
   const { id } = await params
 
-  const { categories } = await getCategories()
+  const { categories } = await getCategories({ limit: 99999 })
   const { product } = await getProductById({ id })
   const { options } = await getOptions()
-  const { brands } = await getBrands()
+  const { brands } = await getBrands({ limit: 99999 })
 
   const productWithImages = {
     ...product,

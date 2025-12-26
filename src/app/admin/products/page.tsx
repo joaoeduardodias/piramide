@@ -35,7 +35,7 @@ export default async function AdminProductsPage({
     queryFn: () => getProducts(queryParams),
   })
 
-  const { categories } = await getCategories()
+  const { categories } = await getCategories({ limit: 99999 })
   const { products, pagination } = await getProducts({ page: 1, limit: 10 })
 
   function countLowStockProducts(products: any[], limit: number) {

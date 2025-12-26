@@ -1,4 +1,3 @@
-// components/orders-stats.tsx
 import { Card, CardContent } from "@/components/ui/card"
 import { getOrders } from "@/http/get-orders"
 import { formatReal } from "@/lib/validations"
@@ -11,7 +10,7 @@ import {
 } from "lucide-react"
 
 export async function OrdersStats() {
-  const { pagination, orders } = await getOrders({ page: 1, limit: 9999 })
+  const { pagination, orders } = await getOrders({ limit: 9999 })
 
   const stats = {
     total: pagination.total,

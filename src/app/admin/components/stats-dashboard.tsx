@@ -1,7 +1,7 @@
 "use client"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { getUsersByRole } from "@/http/get-customers"
+import { getCustomers } from "@/http/get-customers"
 import { getOrdersStats } from "@/http/get-orders-stats"
 import { getProducts } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
@@ -26,7 +26,7 @@ export function StatsDashboard() {
 
   const { data: customers, isLoading: loadingCustomers } = useQuery({
     queryKey: ["customersStatsToday"],
-    queryFn: () => getUsersByRole({ role: "CUSTOMER" }),
+    queryFn: () => getCustomers({ limit: 9999 }),
   })
 
   if (error) return <div>Erro ao carregar estatísticas.</div>
@@ -102,7 +102,7 @@ export function StatsDashboard() {
       ) : (
         <StatCard
           title="Clientes"
-          value={customers?.users.length ?? 0}
+          value={customers?.customers.length ?? 0}
           changeType="positive"
           icon={Users}
           color="text-orange-600"

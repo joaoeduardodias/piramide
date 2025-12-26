@@ -72,8 +72,7 @@ export function ListOrdersTableContent({
   setItemsPerPage,
 }: Props) {
 
-  const normalizedStatus: OrderStatus | undefined =
-    statusFilter === "all" ? undefined : statusFilter
+
   const debouncedSearch = useDebouncedValue(search, 400)
   const shouldSearchOnServer = debouncedSearch.length >= 3
   const { data } = useOrdersQuery({

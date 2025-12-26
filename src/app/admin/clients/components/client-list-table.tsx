@@ -13,7 +13,6 @@ import { statusConfig } from "./client-list";
 
 interface ClientListTableProps {
   search: string
-  statusFilter: "inactive" | "active" | "all"
   page: number
   setPage: (v: number) => void
   itemsPerPage: number
@@ -25,7 +24,6 @@ type SortDirection = "asc" | "desc"
 
 export function ClientListTable({
   search,
-  statusFilter,
   page,
   itemsPerPage,
   setPage,
@@ -110,7 +108,7 @@ export function ClientListTable({
         <CardDescription>{filteredCustomers.length} cliente(s) encontrado(s)</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
+        <Table className="mb-4">
           <TableHeader>
             <TableRow>
               <TableHead
@@ -126,12 +124,12 @@ export function ClientListTable({
                 </div>
               </TableHead>
 
-              <TableHead>
+              <TableHead className="w-72">
                 Localização
               </TableHead>
 
               <TableHead
-                className="cursor-pointer select-none text-right"
+                className="cursor-pointer select-none text-right w-18"
                 onClick={() => toggleSort("orders")}
               >
                 <div className="flex items-center justify-end gap-2">
@@ -144,7 +142,7 @@ export function ClientListTable({
               </TableHead>
 
               <TableHead
-                className="cursor-pointer select-none text-right"
+                className="cursor-pointer select-none text-right w-28"
                 onClick={() => toggleSort("totalSpent")}
               >
                 <div className="flex items-center justify-end gap-2">
@@ -157,7 +155,7 @@ export function ClientListTable({
               </TableHead>
 
               <TableHead
-                className="cursor-pointer select-none"
+                className="cursor-pointer select-none w-44!"
                 onClick={() => toggleSort("lastOrder")}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -169,8 +167,8 @@ export function ClientListTable({
                 </div>
               </TableHead>
 
-              <TableHead>Status</TableHead>
-              <TableHead>Ações</TableHead>
+              <TableHead className="w-36">Status</TableHead>
+              <TableHead className="w-14">Ações</TableHead>
             </TableRow>
 
           </TableHeader>

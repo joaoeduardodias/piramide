@@ -11,17 +11,17 @@ export const metadata = {
 export default async function ClientPage() {
   return (
     <div className="container mx-auto space-y-6">
-      <div className="flex justify-between items-center mt-5">
-        <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
-        <p className="text-gray-600">Gerencie sua base de clientes</p>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Clientes</h1>
+        <p className="text-muted-foreground">
+          Gerencie sua base de clientes
+        </p>
       </div>
 
       <Suspense fallback={<div>Carregando estatísticas...</div>}>
         <ClientsStats />
       </Suspense>
-
       <ClientList />
-
     </div>
   )
 }

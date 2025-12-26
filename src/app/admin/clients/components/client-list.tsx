@@ -32,7 +32,6 @@ export function ClientList() {
           page={page}
           setPage={setPage}
           search={searchTerm}
-          statusFilter={statusFilter}
         />
       </Suspense>
     </>

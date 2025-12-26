@@ -68,8 +68,6 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
 
   const finalTotal = Math.max(totalPrice + shipping - discount, 0)
 
-
-
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createOrderAction, () => {
     clearCart()
   })
@@ -208,7 +206,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
           </CardHeader>
           <CardContent>
             {errors?.paymentMethod && (
-              <p className="text-xs ml-1 text-red-600">{errors.paymentMethod[0]}</p>
+              <p className="text-base ml-1 text-red-600">{errors.paymentMethod[0]}</p>
             )}
             <RadioGroup name="paymentMethod" value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}>
               <div

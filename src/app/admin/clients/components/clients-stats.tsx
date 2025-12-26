@@ -9,14 +9,13 @@ export async function ClientsStats() {
   const stats = {
     total: customers.length,
     active: customers.filter((c) => c.status === "active").length,
-    vip: customers.filter((c) => c.status === "vip").length,
     inactive: customers.filter((c) => c.status === "inactive").length,
     totalRevenue: customers.reduce((sum, c) => sum + c.totalSpent, 0),
     avgOrderValue:
       customers.reduce((sum, c) => sum + c.totalSpent, 0) / customers.reduce((sum, c) => sum + c.orders, 0),
   }
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <Card className="border border-gray-200">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
@@ -37,18 +36,6 @@ export async function ClientsStats() {
               <p className="text-2xl font-bold text-green-600">{stats.active}</p>
             </div>
             <Users className="h-8 w-8 text-green-400" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border border-gray-200">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">VIP</p>
-              <p className="text-2xl font-bold text-purple-600">{stats.vip}</p>
-            </div>
-            <Users className="h-8 w-8 text-purple-400" />
           </div>
         </CardContent>
       </Card>

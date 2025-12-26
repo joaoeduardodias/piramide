@@ -9,15 +9,23 @@ import { z } from "zod/v4";
 
 
 const createOrderSchema = z.object({
-  paymentMethod: z.enum(["PIX", "CREDIT", "DEBIT", "MONEY"], "Selecione o método de pagamento."),
+  paymentMethod: z.enum(["PIX", "CREDIT", "DEBIT", "MONEY"], {
+    message: "Selecione o método de pagamento.",
+  }),
   addressId: z.uuid("Selecione o endereço"),
-  items: z.array(z.object({
-    productId: z.uuid(),
-    variantId: z.uuid(),
-    quantity: z.number(),
-    unitPrice: z.number(),
-  }))
+  couponCode: z.string().optional(),
+  items: z.array(
+    z.object({
+      productId: z.uuid(),
+      variantId: z.uuid().optional(),
+      quantity: z.number().int().min(1),
+      unitPrice: z.number().positive(),
+    }),
+  ),
 })
+
+
+
 
 
 export async function createOrderAction(data: FormData) {
@@ -41,14 +49,12 @@ export async function createOrderAction(data: FormData) {
       return { success: false, message: null, errors }
     };
 
-    const { addressId, items, paymentMethod } = result.data
-    const { orderId } = await createOrder({ addressId, items, paymentMethod, status: "PENDING" })
+    const { addressId, items, paymentMethod, couponCode } = result.data
+    const { orderId } = await createOrder({ addressId, items, paymentMethod, status: "PENDING", couponCode })
     order = orderId
     await sendEmailOrderConfirmation({ orderId })
 
     updateTag('orders')
-
-
   } catch (err: any) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json()
@@ -63,9 +69,4 @@ export async function createOrderAction(data: FormData) {
   }
   redirect(`/auth/order-confirmation/${order}`)
 
-  return {
-    success: true,
-    message: null,
-    errors: null,
-  }
 }

@@ -5,6 +5,7 @@ interface CreateOrderRequest {
   status: OrderStatus
   paymentMethod: PaymentMethod
   addressId: string
+  couponCode?: string
   items: {
     productId: string
     variantId?: string
@@ -16,7 +17,7 @@ interface CreateOrderResponse {
   orderId: string
 }
 
-export async function createOrder({ addressId, status, items, paymentMethod }: CreateOrderRequest) {
-  const result = await api.post('orders', { json: { addressId, status, items, paymentMethod } }).json<CreateOrderResponse>()
+export async function createOrder({ addressId, status, items, paymentMethod, couponCode }: CreateOrderRequest) {
+  const result = await api.post('orders', { json: { addressId, status, items, paymentMethod, couponCode } }).json<CreateOrderResponse>()
   return result
 }

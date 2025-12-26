@@ -9,9 +9,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { useCart } from "@/context/cart-context"
 import { useFormState } from "@/hooks/use-form-state"
+import { useValidateCoupon } from "@/http/validade-coupon"
 import type { Address } from "@/lib/types"
 import { formatReal } from "@/lib/validations"
-import { AlertCircle, AlertTriangle, BadgeDollarSign, CreditCard, MapPin, Plus, Tag, Wallet } from "lucide-react"
+import { AlertCircle, AlertTriangle, BadgeDollarSign, CreditCard, MapPin, Plus, Tag, Wallet, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -30,9 +31,40 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddressId ?? "")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>()
   const [couponCode, setCouponCode] = useState("")
+  const [discount, setDiscount] = useState(0)
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const [isCouponApplied, setIsCouponApplied] = useState(false)
+
   const totalPrice = getTotalPrice()
   const shipping = totalPrice > 199 ? 0 : 29.9
-  const finalTotal = totalPrice + shipping
+
+  const validateCoupon = useValidateCoupon()
+  async function handleApplyCoupon() {
+    setCouponError(null)
+
+    validateCoupon.mutate(
+      {
+        code: couponCode,
+        orderTotal: totalPrice,
+      },
+      {
+        onSuccess(data) {
+          setDiscount(data.discount)
+          setIsCouponApplied(true)
+        },
+        onError(err: any) {
+          setDiscount(0)
+          setIsCouponApplied(false)
+          setCouponError(
+            err?.message ?? "Cupom inválido ou expirado"
+          )
+        },
+      }
+    )
+  }
+
+  const finalTotal = Math.max(totalPrice + shipping - discount, 0)
+
 
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createOrderAction, () => {
@@ -57,6 +89,8 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
   return (
     <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
       <input type="hidden" name="items" value={JSON.stringify(formattedItemsToOrder)} />
+      <input type="hidden" name="couponCode" value={isCouponApplied ? couponCode : ""} />
+
       <div className="lg:col-span-2 space-y-6">
         {
           success === false && message && (
@@ -279,34 +313,66 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
             </div>
 
             <Separator />
-            <div className="space-y-2">
-              <Label htmlFor="coupon" className="text-sm font-medium text-gray-900 flex items-center gap-2">
+            <div className="space-y-3 my-4">
+              <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Tag className="w-4 h-4" />
-                Cupom de Desconto
+                Cupom de desconto
               </Label>
 
-              <div className="flex gap-2">
-                <Input
-                  id="coupon"
-                  name="couponCode"
-                  placeholder="Digite o código"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value.toUpperCase())
-                  }}
-                  className="flex-1 border-2"
-                />
-                {/* <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!couponCode.trim()}
-                  className="border-2 bg-transparent"
-                >
-                  Aplicar
-                </Button> */}
-              </div>
+              {isCouponApplied ? (
+                <div className="flex items-center justify-between rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2">
+                  <span className="text-sm font-semibold text-emerald-700 tracking-wide">
+                    {couponCode}
+                  </span>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCouponCode("")
+                      setDiscount(0)
+                      setIsCouponApplied(false)
+                    }}
+                    className="rounded p-1 text-emerald-600 transition hover:bg-emerald-100 hover:text-emerald-800"
+                    aria-label="Remover cupom"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Digite o código"
+                    value={couponCode}
+                    onChange={(e) =>
+                      setCouponCode(e.target.value.toUpperCase())
+                    }
+                    className="h-10 flex-1 border-muted-foreground/20 focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleApplyCoupon}
+                    disabled={!couponCode || validateCoupon.isPending}
+                    className="h-10 px-4"
+                  >
+                    {validateCoupon.isPending ? "Validando…" : "Aplicar"}
+                  </Button>
+                </div>
+              )}
+
+              {/* Feedback */}
+              {couponError && (
+                <p className="text-xs text-destructive">{couponError}</p>
+              )}
+
+              {isCouponApplied && (
+                <p className="text-xs text-emerald-600">
+                  Desconto aplicado com sucesso
+                </p>
+              )}
             </div>
+
             <Separator />
             <div className="space-y-3 mt-4">
               <div className="flex justify-between text-gray-700">
@@ -319,7 +385,12 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                   {shipping === 0 ? "Grátis" : `${formatReal(String(shipping))}`}
                 </span>
               </div>
-
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600 font-semibold">
+                  <span>Desconto</span>
+                  <span>- {formatReal(String(discount))}</span>
+                </div>
+              )}
               <Separator />
 
 
@@ -344,6 +415,6 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
           </CardContent>
         </Card>
       </div>
-    </form>
+    </form >
   )
 }

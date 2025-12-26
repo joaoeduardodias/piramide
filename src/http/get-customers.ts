@@ -43,7 +43,7 @@ export async function getCustomers(params?: GetCustomersParams) {
   if (params?.status) query.set("status", params.status);
   if (params?.search) query.set("search", params.search);
 
-  const url = `customers?${query.toString()}`;
+  const url = `users/customers?${query.toString()}`;
   const result = await api.get(url).json<GetCustomersResponse>()
   return result
 

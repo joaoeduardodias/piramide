@@ -3,6 +3,7 @@ import { getBrands } from "@/http/get-brands"
 import { getCategories } from "@/http/get-categories"
 import { getCoupons } from "@/http/get-coupons"
 import { getCustomers } from "@/http/get-customers"
+import { getHeroBanner } from "@/http/get-hero-banners"
 import { getOrders } from "@/http/get-orders"
 import { getProducts } from "@/http/get-products"
 import { Store } from "lucide-react"
@@ -19,6 +20,7 @@ export async function Sidebar() {
   const { pagination: paginationOrder } = await getOrders()
   const { pagination: paginationProduct } = await getProducts()
   const { pagination: paginationCustomer } = await getCustomers()
+  const { slides } = await getHeroBanner()
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: 'layoutDashboard' },
@@ -28,6 +30,7 @@ export async function Sidebar() {
     { name: "Cupons", href: "/admin/coupons", icon: "tag", badge: paginationCoupons.total },
     { name: "Pedidos", href: "/admin/orders", icon: 'shoppingCart', badge: paginationOrder.total },
     { name: "Clientes", href: "/admin/clients", icon: 'users', badge: paginationCustomer.total },
+    { name: "Hero Banner", href: "/admin/hero", icon: 'imagePlay', badge: slides.length },
     { name: "Relatórios", href: "/admin/reports", icon: 'barChart3' },
   ]
 

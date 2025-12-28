@@ -227,7 +227,6 @@ export function FormCreateProduct({
         )}
       </div>
 
-      {/* RIGHT */}
       <div className="space-y-8">
         <Card>
           <CardHeader>

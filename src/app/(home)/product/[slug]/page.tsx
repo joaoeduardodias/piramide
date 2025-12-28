@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getProductBySlug } from "@/http/get-product-by-slug"
+import { getProducts } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
 import { RotateCcw, Shield, Truck } from "lucide-react"
+import type { Metadata, ResolvingMetadata } from "next"
 import Link from "next/link"
 import { FormSelectProduct } from "./components/form-select-product"
 import { GridImages } from "./components/grid-images"
@@ -11,35 +13,34 @@ type Props = {
   params: Promise<{ slug: string }>
 }
 
-// export async function generateStaticParams(): Promise<{ slug: string }[]> {
-//   const { products } = await getProducts({ sortBy: "relevance", limit: 100 });
-//   return products.map((product) => ({ slug: product.slug }));
-// }
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  const { products } = await getProducts({ sortBy: "relevance", limit: 100 });
+  return products.map((product) => ({ slug: product.slug }));
+}
 
-// export async function generateMetadata(
-//   { params }: Props,
-//   parent: ResolvingMetadata
-// ): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
 
-//   const { slug } = await params
-//   const { product } = await getProductBySlug({ slug })
-//   const previousImages = (await parent).openGraph?.images || []
+  const { slug } = await params
+  const { product } = await getProductBySlug({ slug })
+  const previousImages = (await parent).openGraph?.images || []
 
-//   return {
-//     title: `${product.name} | Piramide Calçados`,
-//     openGraph: {
-//       images: [
-//         product?.images?.[0]?.url || "/placeholder.png",
-//         ...previousImages,
-//       ],
-//     },
-//   }
-// }
+  return {
+    title: `${product.name} | Piramide Calçados`,
+    openGraph: {
+      images: [
+        product?.images?.[0]?.url || "/placeholder.png",
+        ...previousImages,
+      ],
+    },
+  }
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const { product } = await getProductBySlug({ slug })
-  console.log(product);
 
   if (!product) {
     return (

@@ -254,7 +254,6 @@ export async function updateProductAction(data: FormData) {
   const rawData = Object.fromEntries(data.entries())
   const filesUpload = data.get("filesUpload") as string | null
   let formattedFilesUploads: any[] = []
-  console.log(filesUpload);
 
   if (filesUpload) {
     try {
@@ -280,7 +279,6 @@ export async function updateProductAction(data: FormData) {
   const result = createProductSchema.safeParse(formattedData)
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors
-    console.log(errors);
     return { success: false, message: null, errors }
   }
 

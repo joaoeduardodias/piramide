@@ -1,20 +1,13 @@
+import type { HeroBanner } from "@/http/get-hero-banners"
 import { ArrowRight, User } from "lucide-react"
 import Link from "next/link"
 import CFImage from "../cf-image"
 import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
 
-type Slide = {
-  id: number
-  title: string
-  subtitle: string
-  description: string
-  image: string
-  cta: string
-  link: string
-}
 
-export function SlideItem({ slide, active, priority, isAuthenticated }: { slide: Slide; active: boolean; priority?: boolean; isAuthenticated: boolean; }) {
+
+export function SlideItem({ slide, active, priority, isAuthenticated }: { slide: HeroBanner; active: boolean; priority?: boolean; isAuthenticated: boolean; }) {
   return (
     <div
       aria-hidden={!active}

@@ -33,6 +33,7 @@ export function UpdateHeroSlider({ banner }: UpdateHeroSliderProps) {
   const [{ success, message, errors }, handleSubmit] = useFormState(updateHeroBannerAction,
     () => {
       queryClient.invalidateQueries({ queryKey: ["hero-banners"] })
+      setHeroImage(null)
       setOpen(false)
     }
   )

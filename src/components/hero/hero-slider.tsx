@@ -1,20 +1,13 @@
 "use client"
+import type { HeroBanner } from "@/http/get-hero-banners"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { SlideItem } from "./slide-item"
 
-type Slide = {
-  id: number
-  title: string
-  subtitle: string
-  description: string
-  image: string
-  cta: string
-  link: string
-}
+
 
 type Props = {
-  slides: Slide[]
+  slides: HeroBanner[]
   isAuth?: boolean
 }
 

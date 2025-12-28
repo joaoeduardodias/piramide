@@ -34,6 +34,7 @@ export function CreateHeroBanner() {
     () => {
       queryClient.invalidateQueries({ queryKey: ["hero-banners"] })
       setCreateDialogOpen(false)
+      setHeroImage(null)
     }
   )
 

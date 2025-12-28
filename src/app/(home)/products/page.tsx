@@ -19,8 +19,8 @@ export default async function ProductsPage({ searchParams }:
     initialPageParam: 1,
   })
   const [categories, brands, options] = await Promise.all([
-    getCategories(),
-    getBrands(),
+    getCategories({ limit: 9999 }),
+    getBrands({ limit: 9999 }),
     getOptions(),
   ])
   return (

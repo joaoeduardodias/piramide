@@ -35,7 +35,6 @@ export function ProductsClient({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  /* ---------------- filters from URL ---------------- */
   const filters = useMemo(
     () => ({
       search: searchParams.get("search") ?? "",
@@ -48,16 +47,16 @@ export function ProductsClient({
     [searchParams],
   )
 
-  /* ---------------- UI state ---------------- */
+
   const [showFilters, setShowFilters] = useState(true)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [searchInput, setSearchInput] = useState(filters.search)
 
-  /* ---------------- debounce (backend control) ---------------- */
+
   const debouncedSearch = useDebouncedValue(searchInput, 500)
   const shouldSearchOnServer = debouncedSearch.length >= 3
 
-  /* ---------------- sync URL search ---------------- */
+
   useEffect(() => {
     if (debouncedSearch !== filters.search) {
       updateFilters({ search: debouncedSearch })
@@ -69,7 +68,7 @@ export function ProductsClient({
     setSearchInput(filters.search)
   }, [filters.search])
 
-  /* ---------------- backend query ---------------- */
+
   const {
     data,
     fetchNextPage,
@@ -81,14 +80,15 @@ export function ProductsClient({
 
   const products = data?.pages.flatMap(p => p.products) ?? []
 
-  /* ---------------- Fuse (UX local) ---------------- */
+
   const { results: fuseProducts } = useFuseSearch({
     data: products,
-    search: searchInput, // 🔥 search cru, sem debounce
+    search: searchInput,
     keys: [
-      "name",
-      "description",
-      "brand.name",
+      { name: "name", weight: 0.5 },
+      { name: "brand.name", weight: 0.3 },
+      { name: "categories.category.name", weight: 0.15 },
+      { name: "description", weight: 0.05 },
     ],
   })
 
@@ -97,7 +97,7 @@ export function ProductsClient({
       ? fuseProducts
       : products
 
-  /* ---------------- infinite scroll ---------------- */
+
   const { ref, inView } = useInView()
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export function ProductsClient({
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  /* ---------------- helpers ---------------- */
+
   const updateFilters = (next: Partial<typeof filters>) => {
     const params = new URLSearchParams(searchParams.toString())
 
@@ -125,7 +125,7 @@ export function ProductsClient({
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  /* ---------------- render ---------------- */
+
   return (
     <main className="w-full">
       {/* HERO / SEARCH */}

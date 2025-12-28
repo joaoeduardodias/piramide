@@ -35,7 +35,6 @@ export function DeleteCoupon({
     startTransition(async () => {
       const data = new FormData()
       data.append("id", couponId)
-
       const { message, success } = await deleteCouponAction(data)
 
       if (!success) {

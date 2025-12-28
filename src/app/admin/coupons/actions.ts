@@ -8,15 +8,7 @@ import { HTTPError } from "ky"
 import { updateTag } from "next/cache"
 import z from "zod/v4"
 
-// const couponSchema = z.object({
-//   id: z.uuid().optional(),
-//   code: z.string().optional(),
-//   value: z.number().positive().optional(),
-//   minOrderValue: z.number().positive().nullable().optional(),
-//   maxUses: z.number().int().positive().nullable().optional(),
-//   expiresAt: z.coerce.date().nullable().optional(),
-//   isActive: z.boolean().optional(),
-// })
+
 const deleteCouponSchema = z.object({
   id: z.uuid()
 })
@@ -36,14 +28,22 @@ const createCouponSchema = z.object({
 
 export async function createCouponAction(formData: FormData) {
   try {
+    const type = formData.get("type") as "PERCENT" | "FIXED"
+    const rawValue = Number(formData.get("value"))
     const data = {
       code: formData.get("code") as string,
-      type: formData.get("type") as "PERCENT" | "FIXED",
-      value: Number(formData.get("value")),
+      type,
+      value: type === "FIXED" ? Math.round(rawValue * 100) : rawValue,
       isActive: formData.get("isActive") === "true",
-      minOrderValue: formData.get("minOrderValue") ? Number(formData.get("minOrderValue")) : undefined,
-      maxUses: formData.get("maxUses") ? Number(formData.get("maxUses")) : undefined,
-      expiresAt: formData.get("expiresAt") ? new Date(formData.get("expiresAt") as string) : undefined,
+      minOrderValue: formData.get("minOrderValue")
+        ? Math.round(Number(formData.get("minOrderValue")) * 100)
+        : undefined,
+      maxUses: formData.get("maxUses")
+        ? Number(formData.get("maxUses"))
+        : undefined,
+      expiresAt: formData.get("expiresAt")
+        ? new Date(formData.get("expiresAt") as string)
+        : undefined,
     }
     const result = createCouponSchema.safeParse(data);
 
@@ -58,7 +58,6 @@ export async function createCouponAction(formData: FormData) {
       maxUses,
       minOrderValue,
       value,
-      type
     } = result.data
 
     await createCoupon({
@@ -95,16 +94,24 @@ export async function createCouponAction(formData: FormData) {
 export async function updateCouponAction(formData: FormData) {
   try {
     const couponId = formData.get("couponId") as string
+    const type = formData.get("type") as "PERCENT" | "FIXED"
+    const rawValue = Number(formData.get("value"))
     const data = {
       code: formData.get("code") as string,
-      type: formData.get("type") as "PERCENT" | "FIXED",
-      value: Number(formData.get("value")),
+      type,
+      value: type === "FIXED" ? Math.round(rawValue * 100) : rawValue,
       isActive: formData.get("isActive") === "true",
-      minOrderValue: formData.get("minOrderValue") ? Number(formData.get("minOrderValue")) : undefined,
-      maxUses: formData.get("maxUses") ? Number(formData.get("maxUses")) : undefined,
-      expiresAt: formData.get("expiresAt") ? new Date(formData.get("expiresAt") as string) : undefined,
+      minOrderValue: formData.get("minOrderValue")
+        ? Math.round(Number(formData.get("minOrderValue")) * 100)
+        : undefined,
+      maxUses: formData.get("maxUses")
+        ? Number(formData.get("maxUses"))
+        : undefined,
+      expiresAt: formData.get("expiresAt")
+        ? new Date(formData.get("expiresAt") as string)
+        : undefined,
     }
-    const result = createCouponSchema.safeParse(data)
+    const result = createCouponSchema.safeParse(data);
     if (!result.success) {
       const errors = result.error.flatten().fieldErrors;
       return { success: false, message: null, errors }
@@ -116,7 +123,6 @@ export async function updateCouponAction(formData: FormData) {
       maxUses,
       minOrderValue,
       value,
-      type,
     } = result.data
 
     await updateCoupon({
@@ -152,9 +158,10 @@ export async function updateCouponAction(formData: FormData) {
 }
 
 export async function deleteCouponAction(data: FormData) {
-  const result = deleteCouponSchema.safeParse(data)
+  const result = deleteCouponSchema.safeParse(Object.fromEntries(data))
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors;
+    console.log(errors);
     return { success: false, message: null, errors }
   };
   const { id } = result.data

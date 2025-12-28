@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useCoupons, type Coupon } from "@/http/get-coupons"
+import { formatReal } from "@/lib/validations"
 import { Calendar, DollarSign, Percent, Tag, Users } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
@@ -29,6 +30,7 @@ export function CouponsTable() {
   const limit = Number(searchParams.get("limit") ?? 10)
 
   const { data, isLoading } = useCoupons({ page, limit })
+
   function updatePage(next: Partial<{ page: number; limit: number }>) {
     const params = new URLSearchParams(searchParams.toString())
 
@@ -43,12 +45,6 @@ export function CouponsTable() {
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value)
-  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -131,7 +127,7 @@ export function CouponsTable() {
                       </Badge>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {coupon.type === "PERCENT" ? `${coupon.value}%` : formatCurrency(coupon.value)}
+                      {coupon.type === "PERCENT" ? `${coupon.value}%` : formatReal(String(coupon.value))}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">

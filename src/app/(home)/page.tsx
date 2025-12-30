@@ -11,7 +11,7 @@ export default async function Home() {
   const featuredCategories = categories
     .sort((a, b) => b.products.length - a.products.length)
     .slice(0, 4)
-  const { products: featuredProducts } = await getProducts({ featured: true })
+  const { products: featuredProducts } = await getProducts({ featured: true, limit: 9999 })
 
 
   return (

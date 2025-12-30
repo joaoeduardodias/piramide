@@ -7,7 +7,7 @@ import { CategoryCard } from "./components/category-card";
 export const revalidate = 3600; // 01 hour
 
 export default async function CategoriesPage() {
-  const { categories } = await getCategories()
+  const { categories } = await getCategories({ limit: 9999 })
 
   return (
     <div className="min-h-screen bg-white">

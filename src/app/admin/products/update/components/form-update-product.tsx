@@ -387,7 +387,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
 
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form ref={formRef} onSubmit={handleSubmit} className=" gap-8 items-start">
       <input type="hidden" name="id" value={initialData.id} />
       <div className="lg:col-span-2 space-y-8">
         <Card className="border-0 shadow-sm">

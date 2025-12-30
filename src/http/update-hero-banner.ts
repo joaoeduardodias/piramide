@@ -5,13 +5,13 @@ import { api } from "./api-client";
 interface UpdateHeroBannerRequest {
   id: string
   cta?: string;
-  description?: string;
+  description?: string | null;
   image?: string;
   isActive?: boolean;
   link?: string;
   order?: number;
-  subtitle?: string;
-  title?: string;
+  subtitle?: string | null;
+  title?: string | null;
 }
 
 export async function updateHeroBanner({

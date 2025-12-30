@@ -149,7 +149,7 @@ export function FormCreateProduct({
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+      className=" gap-8 items-start!"
     >
       <input type="hidden" name="options" value={serializedOptions} />
       <input type="hidden" name="variants" value={serializedVariants} />
@@ -227,53 +227,45 @@ export function FormCreateProduct({
         )}
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-8 ">
         <Card>
           <CardHeader>
             <CardTitle>Status</CardTitle>
           </CardHeader>
+
           <CardContent>
             <ProductStatus
               featured={featured}
               setFeatured={setFeatured}
             />
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Preços</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ProductPricing
-              price={price}
-              onPriceChange={handlePriceChange}
-              errors={errors}
-            />
-          </CardContent>
-        </Card>
+            <CardTitle className="my-8">Preços</CardTitle>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProductActions
-              isPending={isPending}
-              error={errors?.form?.[0]}
-              onSubmit={async () => {
-                try {
-                  setIsPending(true)
-                  await handleUploadImages()
-                  formRef.current?.requestSubmit()
-                } finally {
-                  setIsPending(false)
-                }
-              }}
-            />
+            <div className="space-y-4">
+              <ProductPricing
+                price={price}
+                onPriceChange={handlePriceChange}
+                errors={errors}
+              />
+
+              <ProductActions
+                isPending={isPending}
+                error={errors?.form?.[0]}
+                onSubmit={async () => {
+                  try {
+                    setIsPending(true)
+                    await handleUploadImages()
+                    formRef.current?.requestSubmit()
+                  } finally {
+                    setIsPending(false)
+                  }
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>
+
     </form>
   )
 }

@@ -8,9 +8,9 @@ import { updateTag } from "next/cache";
 import { z } from "zod";
 
 const heroBannerSchema = z.object({
-  title: z.string().min(1, "Título é obrigatório").transform((val) => val.toUpperCase()),
-  subtitle: z.string().min(1, "Subtítulo é obrigatório").transform((val) => val.toUpperCase()),
-  description: z.string().min(1, "Descrição é obrigatória"),
+  title: z.string().min(1).transform((val) => val.toUpperCase()).nullish(),
+  subtitle: z.string().min(1).transform((val) => val.toUpperCase()).nullish(),
+  description: z.string().min(1).nullish(),
   image: z.url().min(1, "Imagem é obrigatória"),
   cta: z.string().min(1, "Texto do botão é obrigatório"),
   link: z.string().min(1, "Link é obrigatório"),

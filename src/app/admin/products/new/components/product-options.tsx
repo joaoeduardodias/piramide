@@ -146,7 +146,7 @@ export function ProductOptions({
               <FormCreateOptionValue optionName={optionName} />
             </div>
 
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 max-h-80 overflow-y-auto pr-1">
               {values.map((val) => {
                 const isSelected = selected.some((v) => v.id === val.id)
 

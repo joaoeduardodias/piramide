@@ -34,7 +34,7 @@ export function ProductCategories({
             {errors.categories[0]}
           </p>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
           {categories.map((category) => {
             const isSelected = selectedCategories.includes(category.id)
             return (

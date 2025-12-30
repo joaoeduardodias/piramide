@@ -4,13 +4,13 @@ import { api } from "./api-client";
 
 interface CreateHeroBannerRequest {
   cta: string;
-  description: string;
+  description?: string | null;
   image: string;
   isActive: boolean;
   link: string;
   order: number;
-  subtitle: string;
-  title: string;
+  subtitle?: string | null;
+  title?: string | null;
 }
 
 export async function createHeroBanner({

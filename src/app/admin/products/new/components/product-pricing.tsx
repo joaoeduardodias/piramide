@@ -17,7 +17,7 @@ export function ProductPricing({
 }: ProductPricingProps) {
   return (
     <>
-      <div>
+      <div className="space-y-2">
         <Label>Preço de Venda *</Label>
         <Input value={price} onChange={(e) => onPriceChange(e.target.value)} />
         <input
@@ -33,12 +33,12 @@ export function ProductPricing({
         )}
       </div>
 
-      <div>
+      <div className="space-y-2">
         <Label>Preço Comparativo</Label>
         <Input name="comparePrice" type="number" step="0.01" />
       </div>
 
-      <div>
+      <div className="space-y-2">
         <Label>Peso (kg)</Label>
         <Input name="weight" type="number" step="0.01" />
       </div>

@@ -27,13 +27,32 @@ export async function generateMetadata(
   const { product } = await getProductBySlug({ slug })
   const previousImages = (await parent).openGraph?.images || []
 
+  const imageUrl = product?.images?.[0]?.url || "/placeholder.png"
+
   return {
     title: `${product.name} | Piramide Calçados`,
+    description: product.description || 'Encontre os melhores calçados na Piramide Calçados. Qualidade e estilo para todas as ocasiões.',
     openGraph: {
+      title: `${product.name} | Piramide Calçados`,
+      description: product.description ?? 'Encontre os melhores calçados na Piramide Calçados. Qualidade e estilo para todas as ocasiões.',
+      type: 'website',
+      siteName: 'Piramide Calçados',
+      url: `/product/${slug}`,
       images: [
-        product?.images?.[0]?.url || "/placeholder.png",
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: product.name,
+        },
         ...previousImages,
       ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description ?? 'Encontre os melhores calçados na Piramide Calçados. Qualidade e estilo para todas as ocasiões.',
+      images: [imageUrl],
     },
   }
 }
@@ -96,7 +115,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               ou 10x de R$ {((product.price / 100) / 10).toFixed(2).replace(".", ",")} sem juros
             </p>
           </div>
-          <FormSelectProduct discount={discount} product={product} />
+          <FormSelectProduct description={product.description ?? ""} slug={slug} title={product.name} discount={discount} product={product} />
 
           <Card className="border-2">
             <CardContent className="p-6">
@@ -139,6 +158,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            description: product.description,
+            image: [product.images?.[0]?.url || "/placeholder.png"],
+            sku: product.variants[0]?.sku,
+            brand: {
+              "@type": "Brand",
+              name: product.brand,
+            },
+            offers: {
+              "@type": "Offer",
+              url: `${process.env.NEXT_APP_URL}/produto/${slug}`,
+              priceCurrency: "BRL",
+              price: product.price,
+              availability: "https://schema.org/InStock",
+            },
+          }),
+        }}
+      />
+
     </main>
   )
 }

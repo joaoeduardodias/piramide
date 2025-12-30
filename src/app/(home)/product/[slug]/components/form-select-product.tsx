@@ -2,16 +2,20 @@
 import { AddToCartButton, type SelectedOptionForCart } from "@/components/add-to-cart-button"
 import { Button } from "@/components/ui/button"
 import type { ProductDetails } from "@/http/get-product-by-slug"
-import { Share2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { ProductOptionSelector } from "./product-option-selector"
+import { ShareButton } from "./share-button"
 
 export interface FormSelectProductProps {
   product: ProductDetails
   discount: number
+  title: string
+  description: string
+  slug: string
+
 }
 
-export function FormSelectProduct({ product, discount }: FormSelectProductProps) {
+export function FormSelectProduct({ product, discount, title, description, slug }: FormSelectProductProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
   const [quantity, setQuantity] = useState(1)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
@@ -53,9 +57,7 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
     })
   }
 
-  // Encontra a variante que corresponde exatamente às opções selecionadas
   const selectedVariant = useMemo(() => {
-    // se não selecionou todas as opções, não há variant definida
     if (Object.keys(selectedOptions).length !== product.options.length) {
       return null
     }
@@ -190,14 +192,7 @@ export function FormSelectProduct({ product, discount }: FormSelectProductProps)
           )}
         </div>
 
-        <Button
-          size="lg"
-          variant="outline"
-          className="w-full py-6.5"
-        >
-          <Share2 className="size-5 mr-2" />
-          Compartilhar
-        </Button>
+        <ShareButton title={title} description={description} slug={slug} />
       </div>
     </>
   )

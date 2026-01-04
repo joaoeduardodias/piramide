@@ -7,12 +7,20 @@ export interface Coupon {
   id: string;
   code: string;
   type: CouponType;
+  scope: "All_PRODUCTS" | "PRODUCTS";
   value: number;
   isActive: boolean;
   usedCount: number;
   maxUses: number | null;
   expiresAt: string | null;
   minOrderValue: number | null
+  products: {
+    id: string;
+    name: string;
+    brand: string | null;
+    price: number;
+    image: string;
+  }[];
 }
 
 

@@ -9,7 +9,9 @@ import { Switch } from "@/components/ui/switch"
 import { useFormState } from "@/hooks/use-form-state"
 import type { Coupon } from "@/http/get-coupons"
 import { AlertTriangle, DollarSign, Edit, Loader2, Percent } from "lucide-react"
+import { useEffect, useState } from "react"
 import { updateCouponAction } from "../actions"
+import { ProductsSelector } from "./products-selector"
 
 
 interface UpdateCouponProps {
@@ -21,12 +23,33 @@ interface UpdateCouponProps {
 }
 
 export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCoupon, setSelectedCoupon, coupon }: UpdateCouponProps) {
+  const [scope, setScope] = useState<"ALL_PRODUCTS" | "PRODUCTS">(
+    coupon.products?.length ? "PRODUCTS" : "ALL_PRODUCTS"
+  )
 
+  const [updateSelectedProducts, setUpdateSelectedProducts] = useState<string[]>(
+    coupon.products?.map(p => p.id) ?? []
+  )
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateCouponAction,
     () => {
       setUpdateDialogOpen(false)
     }
   )
+  const [isActive, setIsActive] = useState(true)
+  const [type, setType] = useState<"PERCENT" | "FIXED">("PERCENT")
+
+
+  useEffect(() => {
+    if (!selectedCoupon) return
+
+    setScope(
+      selectedCoupon.products?.length ? "PRODUCTS" : "ALL_PRODUCTS"
+    )
+
+    setUpdateSelectedProducts(
+      selectedCoupon.products?.map(p => p.id) ?? []
+    )
+  }, [selectedCoupon])
 
 
   return (
@@ -42,8 +65,7 @@ export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCo
           <Edit className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
-
+      <DialogContent className="max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Editar Cupom - {coupon.code}</DialogTitle>
           <DialogDescription>Altere as informações do cupom</DialogDescription>
@@ -58,9 +80,19 @@ export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCo
           </Alert>
         )
         }
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto pr-2">
           <input type="hidden" name="couponId" value={coupon.id} />
-          <div className="space-y-4 py-4">
+          <input type="hidden" name="scope" value={scope} />
+          <input type="hidden" name="type" value={type} />
+          {updateSelectedProducts.map(productId => (
+            <input
+              key={productId}
+              type="hidden"
+              name="productIds"
+              value={productId}
+            />
+          ))}
+          <div className="space-y-4 py-4 overflow-y-auto pr-1">
             <div className="space-y-2">
               <Label htmlFor="edit-code">Código do Cupom</Label>
               <Input
@@ -78,10 +110,11 @@ export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCo
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 w-full min-w-0">
               <div className="space-y-2">
                 <Label htmlFor="edit-type">Tipo de Desconto</Label>
-                <Select name="type" defaultValue={coupon.type} required>
+                <Select value={type} defaultValue={coupon.type} onValueChange={(v) => setType(v as any)}>
+
                   <SelectTrigger id="edit-type">
                     <SelectValue />
                   </SelectTrigger>
@@ -113,16 +146,52 @@ export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCo
                   type="number"
                   min="0"
                   step="0.01"
-                  defaultValue={coupon.value}
+                  defaultValue={
+                    coupon.type === "FIXED"
+                      ? (coupon.value / 100)
+                      : coupon.value
+                  }
                   required
                 />
                 {errors?.value && (
                   <p className="text-xs ml-1 text-red-600">{errors.value[0]}</p>
                 )}
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-scope">Aplicar Cupom</Label>
+                <Select
+                  name="scope"
+                  value={scope}
+                  onValueChange={(v) => {
+                    setScope(v as "ALL_PRODUCTS" | "PRODUCTS")
+                    if (v === "ALL_PRODUCTS") {
+                      setUpdateSelectedProducts([])
+                    }
+                  }}
+                  required
+                >
+                  <SelectTrigger id="create-scope">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL_PRODUCTS">Todos os Produtos</SelectItem>
+                    <SelectItem value="PRODUCTS">Produtos Específicos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            {scope === "PRODUCTS" && (
+              <div className="border rounded-lg p-4 bg-muted/30 w-full min-w-0 overflow-hidden">
+                <ProductsSelector
+                  selectedProductIds={updateSelectedProducts}
+                  onProductsChange={setUpdateSelectedProducts}
+                />
+                {errors?.productIds && (
+                  <p className="text-xs ml-1 text-red-600">{errors.productIds[0]}</p>
+                )}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4 w-full min-w-0">
               <div className="space-y-2">
                 <Label htmlFor="edit-minOrderValue">Pedido Mínimo (R$)</Label>
                 <Input
@@ -131,7 +200,11 @@ export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCo
                   type="number"
                   min="0"
                   step="0.01"
-                  defaultValue={coupon.minOrderValue ?? ""}
+                  defaultValue={
+                    coupon.minOrderValue != null
+                      ? (coupon.minOrderValue / 100)
+                      : ""
+                  }
                 />
                 {errors?.minOrderValue && (
                   <p className="text-xs ml-1 text-red-600">{errors.minOrderValue[0]}</p>
@@ -172,11 +245,15 @@ export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCo
               <Label htmlFor="edit-isActive" className="cursor-pointer">
                 Cupom Ativo
               </Label>
-              <Switch
-                id="edit-isActive"
+              <input
+                type="hidden"
                 name="isActive"
-                defaultChecked={coupon.isActive}
-                value="true"
+                value={isActive ? "true" : "false"}
+              />
+
+              <Switch
+                checked={isActive}
+                onCheckedChange={setIsActive}
               />
               {errors?.isActive && (
                 <p className="text-xs ml-1 text-red-600">{errors.isActive[0]}</p>

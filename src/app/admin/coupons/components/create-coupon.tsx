@@ -11,18 +11,15 @@ import { queryClient } from "@/lib/query-client"
 import { AlertTriangle, DollarSign, Loader2, Percent, Plus } from "lucide-react"
 import { useState } from "react"
 import { createCouponAction } from "../actions"
-
-// export interface CreateCouponProps {
-//   createDialogOpen: boolean
-//   setCreateDialogOpen: (value: boolean) => void
-// }
+import { ProductsSelector } from "./products-selector"
 
 
 export function CreateCoupon() {
   const [type, setType] = useState<"PERCENT" | "FIXED">("PERCENT")
-  const [isActive, setIsActive] = useState(true)
+  const [scope, setScope] = useState<"ALL_PRODUCTS" | "PRODUCTS">("ALL_PRODUCTS")
+  const [createSelectedProducts, setCreateSelectedProducts] = useState<string[]>([])
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-
+  const [isActive, setIsActive] = useState(true)
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(createCouponAction,
     () => {
@@ -39,7 +36,8 @@ export function CreateCoupon() {
           Novo Cupom
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col">
+
         {success === false && message && (
           <Alert variant="destructive">
             <AlertTriangle className="size-4" />
@@ -54,10 +52,20 @@ export function CreateCoupon() {
           <DialogTitle>Criar Novo Cupom</DialogTitle>
           <DialogDescription>Preencha os dados do cupom de desconto</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <input type="hidden" name="type" value={type} />
-          <input type="hidden" name="isActive" value={String(isActive)} />
-          <div className="space-y-4 py-4">
+          <input type="hidden" name="scope" value={scope} />
+          {createSelectedProducts.map(productId => (
+            <input
+              key={productId}
+              type="hidden"
+              name="productIds"
+              value={productId}
+            />
+          ))}
+
+          <div className="space-y-4 py-4 overflow-y-auto pr-1">
+
             <div className="space-y-2">
               <Label htmlFor="create-code">Código do Cupom</Label>
               <Input
@@ -75,7 +83,7 @@ export function CreateCoupon() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 w-full min-w-0">
               <div className="space-y-2">
                 <Label htmlFor="create-type">Tipo de Desconto</Label>
                 <Select value={type} defaultValue="PERCENT" onValueChange={(v) => setType(v as any)}>
@@ -118,8 +126,42 @@ export function CreateCoupon() {
                 )}
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-scope">Aplicar Cupom</Label>
+              <Select
+                name="scope"
+                value={scope}
+                onValueChange={(v) => {
+                  setScope(v as "ALL_PRODUCTS" | "PRODUCTS")
+                  if (v === "ALL_PRODUCTS") {
+                    setCreateSelectedProducts([])
+                  }
+                }}
+                required
+              >
+                <SelectTrigger id="create-scope">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL_PRODUCTS">Todos os Produtos</SelectItem>
+                  <SelectItem value="PRODUCTS">Produtos Específicos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {scope === "PRODUCTS" && (
+              <div className="border rounded-lg p-4 bg-muted/30 w-full min-w-0 overflow-hidden">
+                <ProductsSelector
+                  selectedProductIds={createSelectedProducts}
+                  onProductsChange={setCreateSelectedProducts}
+                />
+                {errors?.productIds && (
+                  <p className="text-xs ml-1 text-red-600">{errors.productIds[0]}</p>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4 w-full min-w-0">
               <div className="space-y-2">
                 <Label htmlFor="create-minOrderValue">Pedido Mínimo (R$)</Label>
                 <Input
@@ -156,7 +198,16 @@ export function CreateCoupon() {
               <Label htmlFor="create-isActive" className="cursor-pointer">
                 Cupom Ativo
               </Label>
-              <Switch id="create-isActive" name="isActive" defaultChecked value="true" />
+              <input
+                type="hidden"
+                name="isActive"
+                value={isActive ? "true" : "false"}
+              />
+
+              <Switch
+                checked={isActive}
+                onCheckedChange={setIsActive}
+              />
               {errors?.isActive && (
                 <p className="text-xs ml-1 text-red-600">{errors.isActive[0]}</p>
               )}

@@ -6,6 +6,8 @@ interface UpdateCouponRequest {
   id: string
   code: string
   type: 'PERCENT' | 'FIXED'
+  productIds?: string[] | undefined
+  scope: "ALL_PRODUCTS" | "PRODUCTS";
   isActive: boolean
   value: number
   minOrderValue?: number
@@ -22,7 +24,9 @@ export async function updateCoupon({
   value,
   expiresAt,
   maxUses,
-  minOrderValue
+  minOrderValue,
+  scope,
+  productIds
 }: UpdateCouponRequest) {
   const result = await api.put(`coupons/${id}`, {
     json: {
@@ -32,7 +36,9 @@ export async function updateCoupon({
       value,
       expiresAt,
       maxUses,
-      minOrderValue
+      minOrderValue,
+      scope,
+      productIds
     }
   }).json()
   return result

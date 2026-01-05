@@ -2,18 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "./api-client";
 
 export type CouponType = 'PERCENT' | 'FIXED'
-
+export type CouponScope = "ALL_PRODUCTS" | "PRODUCTS";
 export interface Coupon {
   id: string;
   code: string;
   type: CouponType;
-  scope: "All_PRODUCTS" | "PRODUCTS";
   value: number;
+  scope: CouponScope;
   isActive: boolean;
-  usedCount: number;
   maxUses: number | null;
-  expiresAt: string | null;
-  minOrderValue: number | null
+  minOrderValue: number | null;
+  usedCount: number;
+  usages: {
+    id: string;
+    couponId: string;
+    userId: string;
+    usedAt: Date;
+  }[];
+  createdAt: Date;
+  expiresAt: Date | null;
   products: {
     id: string;
     name: string;

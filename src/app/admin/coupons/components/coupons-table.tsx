@@ -46,7 +46,7 @@ export function CouponsTable() {
   }
 
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -103,82 +103,83 @@ export function CouponsTable() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data!.coupons.map((coupon) => (
-                  <TableRow key={coupon.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Tag className="size-4 text-muted-foreground" />
-                        <span className="font-mono font-semibold">{coupon.code}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {coupon.type === "PERCENT" ? (
-                          <div className="flex items-center gap-1">
-                            <Percent className="size-3" />
-                            Percentual
+                data!.coupons.map((coupon) => {
+                  return (
+                    <TableRow key={coupon.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Tag className="size-4 text-muted-foreground" />
+                          <span className="font-mono font-semibold">{coupon.code}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {coupon.type === "PERCENT" ? (
+                            <div className="flex items-center gap-1">
+                              <Percent className="size-3" />
+                              Percentual
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="size-3" />
+                              Fixo
+                            </div>
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {coupon.type === "PERCENT" ? `${coupon.value}%` : formatReal(String(coupon.value))}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Users className="size-4 text-muted-foreground" />
+                          {coupon.usedCount}
+                          {coupon.maxUses && ` / ${coupon.maxUses}`}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {coupon.expiresAt ? (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="size-4 text-muted-foreground" />
+                            {formatDate(coupon.expiresAt)}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="size-3" />
-                            Fixo
-                          </div>
+                          <span className="text-muted-foreground text-sm">Sem expiração</span>
                         )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-semibold">
-                      {coupon.type === "PERCENT" ? `${coupon.value}%` : formatReal(String(coupon.value))}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Users className="size-4 text-muted-foreground" />
-                        {coupon.usedCount}
-                        {coupon.maxUses && ` / ${coupon.maxUses}`}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {coupon.expiresAt ? (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Calendar className="size-4 text-muted-foreground" />
-                          {formatDate(coupon.expiresAt)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch checked={coupon.isActive} onCheckedChange={() => handleToggleStatus(coupon.id)} />
+                          <Badge variant={coupon.isActive ? "default" : "secondary"}>
+                            {coupon.isActive ? "Ativo" : "Inativo"}
+                          </Badge>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Sem expiração</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch checked={coupon.isActive} onCheckedChange={() => handleToggleStatus(coupon.id)} />
-                        <Badge variant={coupon.isActive ? "default" : "secondary"}>
-                          {coupon.isActive ? "Ativo" : "Inativo"}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-2">
-                        <UpdateCoupon
-                          coupon={coupon}
-                          selectedCoupon={selectedCoupon}
-                          setUpdateDialogOpen={setUpdateDialogOpen}
-                          updateDialogOpen={updateDialogOpen}
-                          setSelectedCoupon={setSelectedCoupon}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          <UpdateCoupon
+                            coupon={coupon}
+                            selectedCoupon={selectedCoupon}
+                            setUpdateDialogOpen={setUpdateDialogOpen}
+                            updateDialogOpen={updateDialogOpen}
+                            setSelectedCoupon={setSelectedCoupon}
 
-                        />
+                          />
 
-                        <DeleteCoupon
-                          couponId={coupon.id}
+                          <DeleteCoupon
+                            couponId={coupon.id}
 
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>
         </div>
 
-        {/* Pagination Controls */}
         <Pagination
           page={data!.pagination.page}
           itemsPerPage={data!.pagination.limit}

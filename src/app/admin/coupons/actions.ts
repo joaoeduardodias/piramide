@@ -45,7 +45,6 @@ export async function createCouponAction(formData: FormData) {
     const rawMinOrderValue = formData.get("minOrderValue")
 
     const productIds = formData.getAll("productIds") as string[]
-
     const data = {
       code: formData.get("code") as string,
       type,

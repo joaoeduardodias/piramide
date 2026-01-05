@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { useFormState } from "@/hooks/use-form-state"
 import type { Coupon } from "@/http/get-coupons"
+import { queryClient } from "@/lib/query-client"
 import { AlertTriangle, DollarSign, Edit, Loader2, Percent } from "lucide-react"
 import { useEffect, useState } from "react"
 import { updateCouponAction } from "../actions"
@@ -24,32 +25,31 @@ interface UpdateCouponProps {
 
 export function UpdateCoupon({ setUpdateDialogOpen, updateDialogOpen, selectedCoupon, setSelectedCoupon, coupon }: UpdateCouponProps) {
   const [scope, setScope] = useState<"ALL_PRODUCTS" | "PRODUCTS">(
-    coupon.products?.length ? "PRODUCTS" : "ALL_PRODUCTS"
+    coupon.scope
   )
-
   const [updateSelectedProducts, setUpdateSelectedProducts] = useState<string[]>(
     coupon.products?.map(p => p.id) ?? []
   )
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateCouponAction,
     () => {
       setUpdateDialogOpen(false)
+      queryClient.invalidateQueries({ queryKey: ['coupons', { page: 1, limit: 10 }] })
+
     }
   )
   const [isActive, setIsActive] = useState(true)
-  const [type, setType] = useState<"PERCENT" | "FIXED">("PERCENT")
+  const [type, setType] = useState<"PERCENT" | "FIXED">(coupon.type)
 
 
   useEffect(() => {
-    if (!selectedCoupon) return
+    if (!open || !selectedCoupon) return
 
-    setScope(
-      selectedCoupon.products?.length ? "PRODUCTS" : "ALL_PRODUCTS"
-    )
+    setScope(coupon.scope)
 
     setUpdateSelectedProducts(
       selectedCoupon.products?.map(p => p.id) ?? []
     )
-  }, [selectedCoupon])
+  }, [updateDialogOpen, selectedCoupon])
 
 
   return (

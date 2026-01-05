@@ -46,6 +46,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
       {
         code: couponCode,
         orderTotal: totalPrice,
+        productIds: items.map(i => i.id)
       },
       {
         async onSuccess(data) {

@@ -5,14 +5,15 @@ import { api } from "./api-client";
 interface ValidadeCouponRequest {
   code: string,
   orderTotal: number,
+  productIds: string[]
 }
 interface ValidadeCouponResponse {
   total: number,
   discount: number,
 }
 
-export async function validadeCoupon({ code, orderTotal }: ValidadeCouponRequest) {
-  const result = await api.post(`coupons/validate`, { json: { code, orderTotal } }).json<ValidadeCouponResponse>()
+export async function validadeCoupon({ code, orderTotal, productIds }: ValidadeCouponRequest) {
+  const result = await api.post(`coupons/validate`, { json: { code, orderTotal, productIds } }).json<ValidadeCouponResponse>()
   return result
 }
 

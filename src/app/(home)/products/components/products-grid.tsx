@@ -17,7 +17,16 @@ export function ProductsGrid({ products, viewMode }: ProductsGridProps) {
       }
     >
       {products.map((product) => (
-        <Product product={product} viewMode={viewMode} key={product.id} />
+        <div
+          key={product.id}
+          className={
+            viewMode === "grid"
+              ? "w-full max-w-[320px] justify-self-center"
+              : ""
+          }
+        >
+          <Product product={product} viewMode={viewMode} />
+        </div>
       ))}
     </div>
   )

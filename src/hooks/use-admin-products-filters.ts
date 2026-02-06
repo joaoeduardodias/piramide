@@ -2,7 +2,7 @@
 
 import { useDebouncedValue } from "@/hooks/use-debounced-search"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export interface AdminProductsFilters {
   search: string
@@ -30,7 +30,9 @@ export function useAdminProductsFilters() {
   const [status, setStatus] =
     useState<ProductStatusFilter>("Todos")
 
-  const updateFilters = (next: Partial<AdminProductsFilters>) => {
+  const lastAppliedSearchRef = useRef<string | null>(null)
+
+  const updateFilters = useCallback((next: Partial<AdminProductsFilters>) => {
     const params = new URLSearchParams(searchParams.toString())
 
     Object.entries(next).forEach(([key, value]) => {
@@ -41,8 +43,11 @@ export function useAdminProductsFilters() {
       }
     })
 
+    if ("search" in next) {
+      lastAppliedSearchRef.current = String(next.search ?? "")
+    }
     router.push(`?${params.toString()}`, { scroll: false })
-  }
+  }, [router, searchParams])
 
   const [searchInput, setSearchInput] = useState(filters.search)
   const debouncedSearch = useDebouncedValue(searchInput, 500)
@@ -51,9 +56,10 @@ export function useAdminProductsFilters() {
     if (debouncedSearch !== filters.search) {
       updateFilters({ search: debouncedSearch, page: 1 })
     }
-  }, [debouncedSearch])
+  }, [debouncedSearch, filters.search, updateFilters])
 
   useEffect(() => {
+    if (filters.search === lastAppliedSearchRef.current) return
     setSearchInput(filters.search)
   }, [filters.search])
 

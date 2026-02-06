@@ -18,8 +18,9 @@ import type { Role } from "@/permissions/roles";
 import { LogOut, Menu, Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CartButton } from '../cart-button';
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface HeaderClientProps {
   isAuthenticated: boolean
@@ -31,7 +32,11 @@ interface HeaderClientProps {
 }
 
 export function HeaderClient({ isAuthenticated, user }: HeaderClientProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState("")
   const getUserInitials = () => {
     if (!user?.name) return "U"
     return user.name.charAt(0).toUpperCase()
@@ -39,6 +44,29 @@ export function HeaderClient({ isAuthenticated, user }: HeaderClientProps) {
 
   const getUserName = () => {
     return user?.name || "Usuário"
+  }
+
+  useEffect(() => {
+    if (!isSearchOpen) return
+    setSearchValue(searchParams.get("search") ?? "")
+  }, [isSearchOpen, searchParams])
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const params = new URLSearchParams(searchParams.toString())
+    const value = searchValue.trim()
+
+    if (value) {
+      params.set("search", value)
+    } else {
+      params.delete("search")
+    }
+    params.delete("page")
+
+    router.push(`/products?${params.toString()}`)
+    if (pathname !== "/products") {
+      setIsSearchOpen(false)
+    }
   }
 
   return (
@@ -210,13 +238,18 @@ export function HeaderClient({ isAuthenticated, user }: HeaderClientProps) {
 
       {isSearchOpen && (
         <div className="py-4 border-t">
-          <div className="relative">
+          <form className="relative" onSubmit={handleSearchSubmit}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input type="search" placeholder="Buscar produtos..." className="pl-10" />
-          </div>
+            <Input
+              type="search"
+              placeholder="Buscar produtos..."
+              className="pl-10"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+          </form>
         </div>
       )}
     </div>
   )
 }
-

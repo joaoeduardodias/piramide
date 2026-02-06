@@ -128,7 +128,6 @@ export function ProductsClient({
 
   return (
     <main className="w-full">
-      {/* HERO / SEARCH */}
       <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-20 md:py-28 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/abstract-geometric-flow.png')] opacity-5" />
         <h1 className="text-4xl text-center md:text-5xl lg:text-6xl font-bold text-white mb-6 text-balance">
@@ -149,7 +148,6 @@ export function ProductsClient({
         </div>
       </section>
 
-      {/* CONTENT */}
       <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-8 mt-8">
         <FilterSidebar
           showFilters={showFilters}

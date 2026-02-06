@@ -14,8 +14,12 @@ type Props = {
 }
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const { products } = await getProducts({ sortBy: "relevance", limit: 100 });
-  return products.map((product) => ({ slug: product.slug }));
+  try {
+    const { products } = await getProducts({ sortBy: "created-desc", limit: 100 });
+    return products.map((product) => ({ slug: product.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata(

@@ -12,7 +12,10 @@ const createOrderSchema = z.object({
   paymentMethod: z.enum(["PIX", "CREDIT", "DEBIT", "MONEY"], {
     message: "Selecione o método de pagamento.",
   }),
-  addressId: z.uuid("Selecione o endereço"),
+  addressId: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.uuid("Selecione o endereço").optional().nullable()
+  ),
   couponCode: z.string().optional(),
   items: z.array(
     z.object({
@@ -50,7 +53,7 @@ export async function createOrderAction(data: FormData) {
     };
 
     const { addressId, items, paymentMethod, couponCode } = result.data
-    const { orderId } = await createOrder({ addressId, items, paymentMethod, status: "PENDING", couponCode })
+    const { orderId } = await createOrder({ addressId: addressId ?? null, items, paymentMethod, status: "PENDING", couponCode })
     order = orderId
     await sendEmailOrderConfirmation({ orderId })
 

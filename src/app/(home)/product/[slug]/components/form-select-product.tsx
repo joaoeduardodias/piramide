@@ -124,7 +124,6 @@ export function FormSelectProduct({ product, discount, title, description, slug 
       })
       .filter((x): x is SelectedOptionForCart => x !== null)
   }, [product.options, selectedOptions])
-  console.log("allOptionsSelected:", allOptionsSelected, "selectedVariant:", selectedVariant, "isOutOfStock:", isOutOfStock);
   return (
     <>
       {product.options.map((option) => (

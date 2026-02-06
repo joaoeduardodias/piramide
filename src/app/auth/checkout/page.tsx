@@ -8,7 +8,7 @@ export default async function CheckoutPage() {
   const { addresses } = await getAddressesByUser()
   const { user: profile } = await auth()
 
-  if (!addresses || profile.cpf === null || profile.phone === null) {
+  if (profile.cpf === null || profile.phone === null) {
     redirect("/auth/profile?from=cart");
   }
 
@@ -32,7 +32,7 @@ export default async function CheckoutPage() {
           </div>
         </section>
         <div className="container mx-auto px-4 py-8">
-          <FormCheckout addresses={addresses} />
+          <FormCheckout addresses={addresses ?? []} />
         </div>
       </div>
     </>

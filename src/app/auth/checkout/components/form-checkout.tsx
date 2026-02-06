@@ -117,13 +117,10 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="size-5" />
-              Endereço de Entrega
+              Endereço de Entrega (opcional)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {errors?.address && (
-              <p className="text-xs ml-1 text-red-600">{errors.address[0]}</p>
-            )}
             {addresses.length > 0 ? (
               <RadioGroup
                 name="addressId"
@@ -413,7 +410,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                 size="lg"
                 className="w-full"
                 type="submit"
-                disabled={isPending || addresses.length === 0}
+                disabled={isPending}
               >
                 {isPending ? "Processando..." : "Finalizar Pedido"}
               </Button>

@@ -4,7 +4,7 @@ import type { OrderStatus, PaymentMethod } from "./get-orders";
 interface CreateOrderRequest {
   status: OrderStatus
   paymentMethod: PaymentMethod
-  addressId: string
+  addressId: string | null
   couponCode?: string
   items: {
     productId: string

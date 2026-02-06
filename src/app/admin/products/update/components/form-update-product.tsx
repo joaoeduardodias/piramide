@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormState } from "@/hooks/use-form-state"
 import { getSignedUrl } from "@/http/get-signed-url"
+import { generateVariantSku, getProductSkuBase } from "@/lib/sku"
 import { formatReal } from "@/lib/validations"
 import { AlertCircle, Check, Loader2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -140,16 +141,6 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     })),
   )
 
-  function getInitials(productName: string): string {
-    const trimmed = (productName ?? "").trim()
-    if (!trimmed) return ""
-    const parts = trimmed.split(/\s+/)
-    return parts
-      .slice(0, 2)
-      .map((p) => p[0].toUpperCase())
-      .join("")
-  }
-
   const generateCombinations = useCallback(<T,>(arrays: T[][]): T[][] => {
     if (!arrays || arrays.length === 0) return []
     return arrays.reduce<T[][]>((acc, curr) => acc.flatMap((a) => curr.map((b) => [...a, b])), [[]])
@@ -174,7 +165,12 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         optionValueIds.push(opt.id)
       })
 
-      const sku = [baseSku, ...combo.map((v) => v.value)].filter(Boolean).join("-").toUpperCase()
+      const sku = generateVariantSku({
+        productName: name,
+        prefix: baseSku,
+        optionValues: combo.map((v) => v.value),
+        optionValueIds,
+      })
 
       return {
         id: sku,
@@ -250,7 +246,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
           : [...currentValues, optionValue]
         const newSelected = { ...prev, [key]: updatedValues }
 
-        const baseSku = getInitials(name)
+        const baseSku = getProductSkuBase(name)
         const optionNames = Object.keys(newSelected)
         const optionValues = Object.values(newSelected).filter((arr) => arr.length > 0) as OptionValue[][]
 

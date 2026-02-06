@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, Check } from "lucide-react"
+import { generateVariantSku, getProductSkuBase } from "@/lib/sku"
 import { FormCreateOptionValue } from "./form-create-option-value"
 
 type OptionValue = {
@@ -40,16 +41,6 @@ export function ProductOptions({
   productName
 }: ProductOptionsProps) {
 
-  function getInitials(productName: string): string {
-    const trimmed = productName.trim()
-    if (!trimmed) return ""
-    return trimmed
-      .split(/\s+/)
-      .slice(0, 2)
-      .map(p => p[0].toUpperCase())
-      .join("")
-  }
-
   function generateCombinations<T>(arrays: T[][]): T[][] {
     if (!arrays.length) return []
     return arrays.reduce<T[][]>(
@@ -72,10 +63,12 @@ export function ProductOptions({
         optionValueIds.push(opt.id) // 🔥 domínio
       })
 
-      const sku = [baseSku, ...combo.map(v => v.value)]
-        .filter(Boolean)
-        .join("-")
-        .toUpperCase()
+      const sku = generateVariantSku({
+        productName,
+        prefix: baseSku,
+        optionValues: combo.map((v) => v.value),
+        optionValueIds,
+      })
 
       return {
         id: crypto.randomUUID(),
@@ -119,7 +112,7 @@ export function ProductOptions({
         return newSelected
       }
 
-      const baseSku = getInitials(productName)
+      const baseSku = getProductSkuBase(productName)
       const combinations = generateCombinations(optionValues)
       const newVariants = buildVariantsGeneric(
         combinations,

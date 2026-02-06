@@ -7,7 +7,7 @@ interface ProductOption {
   values: {
     id: string
     content?: string
-    value: string
+    value?: string
   }[]
 }
 interface ProductVariant {
@@ -30,26 +30,29 @@ interface updateProductRequest {
   comparePrice?: number | null
   weight?: number
   categoryIds: string[]
-  options: ProductOption[]
+  options?: ProductOption[]
   variants?: ProductVariant[]
 }
 
 export async function updateProduct({ id, name, slug, categoryIds, featured, options, price, comparePrice, description, brandId, tags, variants, weight }: updateProductRequest) {
-  const result = await api.put(`products/${id}`, {
-    json: {
-      name,
-      slug,
-      categoryIds,
-      featured,
-      options,
-      price,
-      comparePrice,
-      description,
-      tags,
-      variants,
-      weight,
-      brandId
-    }
-  })
+  const payload: Record<string, unknown> = {
+    name,
+    slug,
+    categoryIds,
+    featured,
+    price,
+    comparePrice,
+    description,
+    tags,
+    variants,
+    weight,
+    brandId,
+  }
+
+  if (options !== undefined) {
+    payload.options = options
+  }
+
+  const result = await api.put(`products/${id}`, { json: payload })
   return result
 }

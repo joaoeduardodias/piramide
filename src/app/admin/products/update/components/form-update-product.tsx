@@ -127,6 +127,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
   }, [initialData.options])
 
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(initialSelectedOptions)
+  const [optionsTouched, setOptionsTouched] = useState(false)
 
   const [variants, setVariants] = useState<Variant[]>(() =>
     (initialData.variants || []).map((variant) => ({
@@ -213,6 +214,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
 
   const handleOptionToggle = useCallback(
     (optionName: string, optionValue: OptionValue) => {
+      setOptionsTouched(true)
       setSelectedOptions((prev) => {
         const key = optionName
         const currentValues = prev[key] || []
@@ -266,16 +268,49 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
       }))
   }
 
-  function serializeVariants(variants: Variant[]) {
-    return variants.map(v => ({
-      id: v.id.startsWith("TEMP_") ? undefined : v.id,
-      sku: v.sku,
-      price: v.price,
-      comparePrice: v.comparePrice,
-      stock: v.stock,
-      optionValueIds: v.optionValueIds ?? [],
-    }))
+  function serializeOptionsForPayload(selected: SelectedOptions) {
+    return Object.entries(selected)
+      .filter(([, values]) => values.length > 0)
+      .map(([name, values]) => ({
+        name,
+        values: values.map(v => ({ id: v.id, value: v.value, content: v.content ?? undefined })),
+      }))
   }
+
+  function normalizeOptionsSignature(selected: SelectedOptions) {
+    const normalized = serializeOptions(selected)
+      .map((opt) => ({
+        name: opt.name.toLowerCase(),
+        valueIds: [...opt.valueIds].sort(),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+    return JSON.stringify(normalized)
+  }
+
+  function serializeVariants(variants: Variant[], includeOptionValueIds: boolean) {
+    return variants.map((v) => {
+      const base = {
+        id: v.id.startsWith("TEMP_") ? undefined : v.id,
+        sku: v.sku,
+        price: v.price,
+        stock: v.stock,
+      }
+
+      if (!includeOptionValueIds) return base
+
+      return {
+        ...base,
+        id: undefined,
+        comparePrice: v.comparePrice,
+        optionValueIds: v.optionValueIds ?? [],
+      }
+    })
+  }
+
+  const initialOptionsSignature = useMemo(
+    () => normalizeOptionsSignature(initialSelectedOptions),
+    [initialSelectedOptions],
+  )
 
   const syncFormPayload = useCallback(() => {
     const form = formRef.current
@@ -283,18 +318,22 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
 
     setHiddenInputValue(form, "categories", selectedCategories)
 
+    const currentOptionsSignature = normalizeOptionsSignature(selectedOptions)
+    const hasOptions = currentOptionsSignature !== "[]"
+    const shouldSendOptions = hasOptions && (optionsTouched || currentOptionsSignature !== initialOptionsSignature)
+
     setHiddenInputValue(
       form,
       "options",
-      serializeOptions(selectedOptions),
+      shouldSendOptions ? serializeOptionsForPayload(selectedOptions) : "",
     )
 
     setHiddenInputValue(
       form,
       "variants",
-      serializeVariants(variants),
+      serializeVariants(variants, shouldSendOptions),
     )
-  }, [selectedCategories, selectedOptions, variants])
+  }, [initialOptionsSignature, optionsTouched, selectedCategories, selectedOptions, variants])
 
 
 

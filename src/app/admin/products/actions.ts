@@ -48,6 +48,24 @@ const createProductSchema = z.object({
     optionValueIds: z.array(z.uuid()).optional(),
   })).optional(),
 })
+const updateProductSchema = createProductSchema.extend({
+  options: z.array(z.object({
+    name: z.string(),
+    values: z.array(z.object({
+      id: z.string(),
+      value: z.string().optional(),
+      content: z.string().optional(),
+    })),
+  })).optional(),
+  variants: z.array(z.object({
+    id: z.string().optional(),
+    sku: z.string().optional(),
+    price: z.number().optional(),
+    comparePrice: z.number().optional(),
+    stock: z.number().int().default(0),
+    optionValueIds: z.array(z.string()).optional(),
+  })).optional(),
+})
 const deleteProductSchema = z.object({
   id: z.uuid()
 })
@@ -231,26 +249,70 @@ export async function deleteProductAction(data: FormData) {
 
 export async function updateProductAction(data: FormData) {
   const productId = data.get("id") as string
-  const optionsData = data.get("options") as string
+  const optionsData = data.get("options") as string | null
   const variantsData = data.get("variants") as string
-  const formattedVariants = JSON.parse(variantsData)
   const categoriesData = data.get("categories") as string
-  const categoriesIds = JSON.parse(categoriesData)
-  let formattedOptions: { name: string; values: Array<{ id?: string; value: string; content?: string | null }> }[] = []
+  let formattedVariants: any[] = []
+  let categoriesIds: string[] = []
+  try {
+    formattedVariants = variantsData ? JSON.parse(variantsData) : []
+    if (!Array.isArray(formattedVariants)) formattedVariants = []
+    formattedVariants = formattedVariants.map((variant) => ({
+      ...variant,
+      price: variant.price !== undefined && variant.price !== null ? Number(variant.price) : undefined,
+      comparePrice: variant.comparePrice !== undefined && variant.comparePrice !== null ? Number(variant.comparePrice) : undefined,
+      stock: variant.stock !== undefined && variant.stock !== null ? Number(variant.stock) : undefined,
+      optionValueIds: Array.isArray(variant.optionValueIds) ? variant.optionValueIds : undefined,
+    }))
+  } catch {
+    return { success: false, message: "Variantes inválidas.", errors: { variants: ["Variantes inválidas."] } }
+  }
+  try {
+    categoriesIds = categoriesData ? JSON.parse(categoriesData) : []
+    if (!Array.isArray(categoriesIds)) categoriesIds = []
+  } catch {
+    return { success: false, message: "Categorias inválidas.", errors: { categories: ["Categorias inválidas."] } }
+  }
+  let formattedOptions:
+    | { name: string; values: Array<{ id?: string; value?: string; content?: string | null }> }[]
+    | undefined
+
+
+
   if (optionsData) {
     try {
-      const parsed = JSON.parse(optionsData) as Record<string, Array<{ id?: string; value: string; content?: string | null }>>;
-      formattedOptions = Object.entries(parsed).map(([name, values]) => ({
-        name,
-        values: values.map(v => ({
-          ...v,
-          content: v.content ?? undefined,
-        })),
-      }))
+      const parsed = JSON.parse(optionsData)
+      if (Array.isArray(parsed)) {
+        formattedOptions = parsed.map((opt) => ({
+          name: String(opt.name),
+          values: Array.isArray(opt.values)
+            ? opt.values.map((v: any) => ({
+              id: v.id,
+              value: v.value ?? undefined,
+              content: v.content ?? undefined,
+            }))
+            : Array.isArray(opt.valueIds)
+              ? opt.valueIds.map((id: string) => ({ id }))
+              : [],
+        }))
+      } else {
+        const record = parsed as Record<string, Array<{ id?: string; value?: string; content?: string | null }>>
+        formattedOptions = Object.entries(record).map(([name, values]) => ({
+          name,
+          values: values.map(v => ({
+            ...v,
+            content: v.content ?? undefined,
+          })),
+        }))
+      }
     } catch {
-      formattedOptions = []
+      formattedOptions = undefined
     }
   }
+  if (formattedOptions && formattedOptions.length === 0) {
+    formattedOptions = undefined
+  }
+
   const rawData = Object.fromEntries(data.entries())
   const filesUpload = data.get("filesUpload") as string | null
   let formattedFilesUploads: any[] = []
@@ -275,8 +337,7 @@ export async function updateProductAction(data: FormData) {
     variants: formattedVariants,
 
   }
-
-  const result = createProductSchema.safeParse(formattedData)
+  const result = updateProductSchema.safeParse(formattedData)
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors
     return { success: false, message: null, errors }
@@ -291,12 +352,39 @@ export async function updateProductAction(data: FormData) {
     description,
     weight,
     brandId,
-    options,
     variants,
     tags,
   } = result.data
 
   try {
+    const shouldSendOptions = !!(formattedOptions && formattedOptions.length > 0)
+
+    if (shouldSendOptions) {
+      const missingOptionValueIds = (variants ?? []).some((variant) => !variant.optionValueIds || variant.optionValueIds.length === 0)
+      if (missingOptionValueIds) {
+        return {
+          success: false,
+          message: "Selecione valores de variação para todas as variantes.",
+          errors: { variants: ["Selecione valores de variação para todas as variantes."] }
+        }
+      }
+    }
+
+    const payloadVariants = shouldSendOptions
+      ? (variants ?? []).map((variant) => ({
+        sku: variant.sku,
+        price: variant.price,
+        comparePrice: variant.comparePrice,
+        stock: variant.stock,
+        optionValueIds: variant.optionValueIds,
+      }))
+      : (variants ?? []).map((variant) => ({
+        id: variant.id,
+        sku: variant.sku,
+        price: variant.price,
+        stock: variant.stock,
+      }))
+
     await updateProduct({
       id: productId,
       name,
@@ -309,8 +397,8 @@ export async function updateProductAction(data: FormData) {
       brandId,
       tags,
       categoryIds: category,
-      options,
-      variants,
+      options: formattedOptions,
+      variants: payloadVariants,
     })
     const uploads = formattedFilesUploads
 
@@ -338,7 +426,7 @@ export async function updateProductAction(data: FormData) {
   }
   return {
     success: true,
-    message: false,
+    message: null,
     errors: null
   }
 }

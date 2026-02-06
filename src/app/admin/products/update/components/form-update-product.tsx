@@ -155,6 +155,13 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
     return arrays.reduce<T[][]>((acc, curr) => acc.flatMap((a) => curr.map((b) => [...a, b])), [[]])
   }, [])
 
+  function getVariantKey(variant: Pick<Variant, "optionValueIds" | "sku">) {
+    if (variant.optionValueIds && variant.optionValueIds.length > 0) {
+      return [...variant.optionValueIds].sort().join("|")
+    }
+    return variant.sku
+  }
+
   function buildVariantsGeneric(combinations: OptionValue[][], optionNames: string[], baseSku: string): Variant[] {
     if (!combinations || combinations.length === 0) return []
     return combinations.map((combo) => {
@@ -177,6 +184,25 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
         stock: 0,
         options,
         optionValueIds,
+      }
+    })
+  }
+
+  function mergeVariantsWithExisting(nextVariants: Variant[], prevVariants: Variant[]) {
+    const prevByOptionKey = new Map(prevVariants.map((v) => [getVariantKey(v), v]))
+    const prevBySku = new Map(prevVariants.map((v) => [v.sku, v]))
+
+    return nextVariants.map((next) => {
+      const optionKey = getVariantKey(next)
+      const prev = prevByOptionKey.get(optionKey) ?? prevBySku.get(next.sku)
+      if (!prev) return next
+
+      return {
+        ...next,
+        price: prev.price ?? next.price,
+        comparePrice: prev.comparePrice ?? next.comparePrice,
+        stock: prev.stock ?? next.stock,
+        sku: prev.sku || next.sku,
       }
     })
   }
@@ -230,7 +256,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
 
         const allCombinations = generateCombinations(optionValues)
         const newVariants = buildVariantsGeneric(allCombinations, optionNames, baseSku)
-        setVariants(newVariants)
+        setVariants((prevVariants) => mergeVariantsWithExisting(newVariants, prevVariants))
 
         return newSelected
       })

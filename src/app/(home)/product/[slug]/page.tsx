@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getProductBySlug } from "@/http/get-product-by-slug"
 import { getProducts } from "@/http/get-products"
 import { formatReal } from "@/lib/validations"
-import { RotateCcw, Shield, Truck } from "lucide-react"
+import { RotateCcw, Shield } from "lucide-react"
 import type { Metadata, ResolvingMetadata } from "next"
 import Link from "next/link"
 import { FormSelectProduct } from "./components/form-select-product"
@@ -123,16 +123,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <Card className="border-2">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Truck className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-gray-900">Frete Grátis</p>
-                    <p className="text-xs text-gray-600 mt-1">Acima de R$ 199</p>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <RotateCcw className="w-5 h-5 text-blue-600" />

@@ -265,16 +265,17 @@ export async function updateProductAction(data: FormData) {
       optionValueIds: Array.isArray(variant.optionValueIds) ? variant.optionValueIds : undefined,
     }))
   } catch {
-    return { success: false, message: "Variantes inválidas.", errors: { variants: ["Variantes inválidas."] } }
+    return { success: false, message: "Variantes inválidas.", errors: { variants: ["Variantes inválidas."] } as Record<string, string[]> }
   }
   try {
     categoriesIds = categoriesData ? JSON.parse(categoriesData) : []
     if (!Array.isArray(categoriesIds)) categoriesIds = []
   } catch {
-    return { success: false, message: "Categorias inválidas.", errors: { categories: ["Categorias inválidas."] } }
+    return { success: false, message: "Categorias inválidas.", errors: { categories: ["Categorias inválidas."] } as Record<string, string[]> }
   }
+  const normalizeContent = (value: string | null | undefined): string | undefined => value ?? undefined
   let formattedOptions:
-    | { name: string; values: Array<{ id?: string; value?: string; content?: string | null }> }[]
+    | { name: string; values: Array<{ id: string; value: string; content?: string }> }[]
     | undefined
 
 
@@ -286,24 +287,29 @@ export async function updateProductAction(data: FormData) {
         formattedOptions = parsed.map((opt) => ({
           name: String(opt.name),
           values: Array.isArray(opt.values)
-            ? opt.values.map((v: any) => ({
-              id: v.id,
-              value: v.value ?? undefined,
-              content: v.content ?? undefined,
-            }))
-            : Array.isArray(opt.valueIds)
-              ? opt.valueIds.map((id: string) => ({ id }))
-              : [],
-        }))
+            ? opt.values
+              .filter((v: any) => v?.id && v?.value)
+              .map((v: any) => ({
+                id: String(v.id),
+                value: String(v.value),
+                content: normalizeContent(v.content),
+              }))
+            : [],
+        })).filter((opt) => opt.values.length > 0)
       } else {
         const record = parsed as Record<string, Array<{ id?: string; value?: string; content?: string | null }>>
-        formattedOptions = Object.entries(record).map(([name, values]) => ({
-          name,
-          values: values.map(v => ({
-            ...v,
-            content: v.content ?? undefined,
-          })),
-        }))
+        formattedOptions = Object.entries(record)
+          .map(([name, values]) => ({
+            name,
+            values: values
+              .filter((v) => v?.id && v?.value)
+              .map((v) => ({
+                id: String(v.id),
+                value: String(v.value),
+                content: normalizeContent(v.content),
+              })),
+          }))
+          .filter((opt) => opt.values.length > 0)
       }
     } catch {
       formattedOptions = undefined
@@ -365,7 +371,7 @@ export async function updateProductAction(data: FormData) {
         return {
           success: false,
           message: "Selecione valores de variação para todas as variantes.",
-          errors: { variants: ["Selecione valores de variação para todas as variantes."] }
+          errors: { variants: ["Selecione valores de variação para todas as variantes."] } as Record<string, string[]>
         }
       }
     }

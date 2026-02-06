@@ -71,6 +71,7 @@ export function FormSelectProduct({ product, discount, title, description, slug 
   }, [product.variants, product.options, selectedOptions])
 
   const maxQuantity = selectedVariant ? selectedVariant.stock : 0
+  const isOutOfStock = selectedVariant ? selectedVariant.stock === 0 : false
 
   useEffect(() => {
     if (quantity > maxQuantity) {
@@ -101,7 +102,7 @@ export function FormSelectProduct({ product, discount, title, description, slug 
       setAlertMessage(missingMessage ?? "Selecione as opções")
       return
     }
-    if (!selectedVariant || selectedVariant.stock <= 0) {
+    if (!selectedVariant || isOutOfStock) {
       setAlertMessage("Produto sem estoque")
       return
     }
@@ -123,7 +124,7 @@ export function FormSelectProduct({ product, discount, title, description, slug 
       })
       .filter((x): x is SelectedOptionForCart => x !== null)
   }, [product.options, selectedOptions])
-
+  console.log("allOptionsSelected:", allOptionsSelected, "selectedVariant:", selectedVariant, "isOutOfStock:", isOutOfStock);
   return (
     <>
       {product.options.map((option) => (
@@ -180,9 +181,9 @@ export function FormSelectProduct({ product, discount, title, description, slug 
             quantity={quantity}
             size="lg"
             className="w-full"
-            disabled={!allOptionsSelected || !selectedVariant || selectedVariant.stock <= 0}
+            disabled={!allOptionsSelected || !selectedVariant || isOutOfStock}
           />
-          {(!allOptionsSelected || !selectedVariant || selectedVariant.stock <= 0) && (
+          {(!allOptionsSelected || !selectedVariant || isOutOfStock) && (
             <button
               type="button"
               aria-hidden="true"

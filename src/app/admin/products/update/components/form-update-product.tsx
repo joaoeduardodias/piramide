@@ -67,6 +67,7 @@ interface FormUpdateProps {
       comparePrice: number | null
       sku: string
       stock: number
+      optionValueIds?: string[]
     }[]
     categories: string[]
     options: {
@@ -134,6 +135,7 @@ export function FormUpdateProduct({ categories, options, brands, initialData }: 
       comparePrice: variant.comparePrice === null ? 0 : Number(variant.comparePrice),
       sku: variant.sku,
       stock: variant.stock ?? 0,
+      optionValueIds: variant.optionValueIds ?? [],
     })),
   )
 

@@ -27,6 +27,7 @@ export interface GetProductByIdResponse {
       comparePrice: number | null;
       sku: string;
       stock: number;
+      optionValueIds?: string[];
     }[];
     categories: string[]
     options: {

@@ -21,7 +21,6 @@ interface ProductOptionSelectorProps {
 export function ProductOptionSelector({ option, selectedValue, onValueChange, error = false }: ProductOptionSelectorProps) {
   const hasColorContent = option.values.some((v) => v.content && v.content.startsWith("#"))
 
-  // classe de destaque quando há erro
   const containerBorderClass = error ? "border-red-500 ring-1 ring-red-500" : "border-transparent"
 
   if (hasColorContent) {

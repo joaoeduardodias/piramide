@@ -35,7 +35,7 @@ function getAddressIcon(name: string) {
 }
 
 export function AddressList({ initialAddresses }: AddressListProps) {
-
+  const [addresses, setAddresses] = useState<Address[]>(initialAddresses)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -61,7 +61,11 @@ export function AddressList({ initialAddresses }: AddressListProps) {
       const result = await deleteAddressAction(id)
       if (result.success) {
         toast.success("Endereço removido")
+        setAddresses((prev) => prev.filter((address) => address.id !== id))
+        setDeletingId(null)
+        return
       }
+      toast.error(result.message ?? "Erro ao remover endereço")
       setDeletingId(null)
     })
   }
@@ -71,7 +75,15 @@ export function AddressList({ initialAddresses }: AddressListProps) {
       const result = await setDefaultAddressAction(id)
       if (result.success) {
         toast.success("Endereço definido como padrão")
+        setAddresses((prev) =>
+          prev.map((address) => ({
+            ...address,
+            isDefault: address.id === id,
+          })),
+        )
+        return
       }
+      toast.error(result.message ?? "Erro ao definir endereço padrão")
     })
   }
 
@@ -88,7 +100,7 @@ export function AddressList({ initialAddresses }: AddressListProps) {
         </Button>
 
         {/* Address Cards */}
-        {initialAddresses.length === 0 ? (
+        {addresses.length === 0 ? (
           <div className="rounded-xl border border-dashed p-12 text-center bg-muted/30">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mx-auto mb-4">
               <MapPin className="h-8 w-8 text-muted-foreground" />
@@ -104,7 +116,7 @@ export function AddressList({ initialAddresses }: AddressListProps) {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {initialAddresses.map((address) => (
+            {addresses.map((address) => (
               <div
                 key={address.id}
                 className={`group relative rounded-xl border p-5 transition-all hover:shadow-md ${address.isDefault

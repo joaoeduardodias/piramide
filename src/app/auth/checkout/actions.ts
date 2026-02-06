@@ -13,7 +13,7 @@ const createOrderSchema = z.object({
     message: "Selecione o método de pagamento.",
   }),
   addressId: z.preprocess(
-    (value) => (value === "" ? undefined : value),
+    (value) => (value === "" || value === "NONE" ? undefined : value),
     z.uuid("Selecione o endereço").optional().nullable()
   ),
   couponCode: z.string().optional(),

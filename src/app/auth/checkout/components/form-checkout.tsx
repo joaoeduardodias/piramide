@@ -28,7 +28,7 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
 
   const router = useRouter()
   const { items, getTotalPrice, clearCart, setIsOpen } = useCart()
-  const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddressId ?? "")
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddressId ?? "NONE")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>()
   const [couponCode, setCouponCode] = useState("")
   const [discount, setDiscount] = useState(0)
@@ -126,6 +126,22 @@ export function FormCheckout({ addresses }: FormCheckoutProps) {
                 name="addressId"
                 value={selectedAddressId} onValueChange={setSelectedAddressId}
               >
+                <div
+                  className={`flex items-center  space-x-3 p-4 border-2 rounded-lg transition-colors ${selectedAddressId === "NONE" ? "border-black bg-gray-50" : "border-gray-200"
+                    }`}
+                >
+                  <RadioGroupItem
+                    value="NONE"
+                    id="address-none"
+                  />
+                  <Label
+                    htmlFor="address-none"
+                    className="flex-1 cursor-pointer"
+                  >
+                    <p className="font-semibold text-gray-900">Sem endereço</p>
+                    <p className="text-sm text-gray-600">Retirar na loja ou combinar entrega por WhatsApp.</p>
+                  </Label>
+                </div>
 
                 {addresses.map((address) => {
                   return (
